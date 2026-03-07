@@ -24,9 +24,10 @@ const Stack = createStackNavigator<RootStackParams>();
 
 const AppNavigator = () => {
   const themePreference = useBrowserStore((state) => state.themePreference);
+  const isTransparentMode = useBrowserStore((state) => state.isTransparentMode);
 
   return (
-    <ThemeProvider preference={themePreference}>
+    <ThemeProvider preference={themePreference} isTransparentMode={isTransparentMode}>
       <NavigationContainer>
         <ThemedStack />
       </NavigationContainer>

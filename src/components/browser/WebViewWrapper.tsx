@@ -87,12 +87,19 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
     }
   };
 
+  const hexToRgba = (hex: string, opacity: number): string => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
   return (
     <WebView
       ref={webViewRef}
       source={isBlankPage ? { html: blankHtml } : { uri: tab.url }}
       originWhitelist={['*']}
-      style={[styles.webview, !visible && styles.hidden, { backgroundColor: theme.bg }]}
+      style={[styles.webview, !visible && styles.hidden, { backgroundColor: hexToRgba(theme.bg, 0.15) }]}
       onNavigationStateChange={handleNavChange}
       injectedJavaScript={faviconInjectionScript}
       onMessage={(event) => {

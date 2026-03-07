@@ -29,6 +29,7 @@ export const SettingsScreen = () => {
   const tabListSize = useBrowserStore((state) => state.tabListSize);
   const isLeftHandMode = useBrowserStore((state) => state.isLeftHandMode);
   const defaultNewTabUrl = useBrowserStore((state) => state.defaultNewTabUrl);
+  const isTransparentMode = useBrowserStore((state) => state.isTransparentMode);
 
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
@@ -38,6 +39,7 @@ export const SettingsScreen = () => {
   const setLeftHandMode = useBrowserStore((state) => state.setLeftHandMode);
   const setDefaultNewTabUrl = useBrowserStore((state) => state.setDefaultNewTabUrl);
   const setBlockTrackers = useBrowserStore((state) => state.setBlockTrackers);
+  const setTransparentMode = useBrowserStore((state) => state.setTransparentMode);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]} edges={['top', 'left', 'right']}>
@@ -197,6 +199,11 @@ export const SettingsScreen = () => {
                 <Text style={[styles.chipLabel, { color: language === lang ? '#fff' : theme.text }]}>{lang.toUpperCase()}</Text>
               </Pressable>
             ))}
+          </View>
+
+          <View style={styles.switchRow}>
+            <Text style={[styles.rowText, { color: theme.text }]}>Transparent Mode</Text>
+            <Switch value={isTransparentMode} onValueChange={setTransparentMode} />
           </View>
 
           <View style={styles.chipsRow}>

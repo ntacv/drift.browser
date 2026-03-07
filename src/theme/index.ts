@@ -59,6 +59,36 @@ export const lightTheme: Theme = {
   spacing: { xs: 4, sm: 8, md: 14, lg: 20, xl: 32 },
 };
 
+export const transparentTheme: Theme = {
+  bg: 'rgba(13, 15, 20, 0.75)',
+  surface: 'rgba(20, 23, 32, 0.85)',
+  surface2: 'rgba(28, 32, 48, 0.80)',
+  border: 'rgba(255,255,255,0.10)',
+  accent: '#6c9fff',
+  accent2: '#a78bfa',
+  text: '#e8eaf2',
+  text2: '#7a809a',
+  text3: '#454b66',
+  danger: '#ff6b6b',
+  radius: { sm: 8, md: 14, lg: 20, pill: 100 },
+  spacing: { xs: 4, sm: 8, md: 14, lg: 20, xl: 32 },
+};
+
+export const lightTransparentTheme: Theme = {
+  bg: 'rgba(244, 246, 251, 0.75)',
+  surface: 'rgba(255, 255, 255, 0.85)',
+  surface2: 'rgba(238, 242, 250, 0.80)',
+  border: 'rgba(0,0,0,0.12)',
+  accent: '#3867d6',
+  accent2: '#6a46c8',
+  text: '#151a2a',
+  text2: '#4d5672',
+  text3: '#7e88a8',
+  danger: '#d63031',
+  radius: { sm: 8, md: 14, lg: 20, pill: 100 },
+  spacing: { xs: 4, sm: 8, md: 14, lg: 20, xl: 32 },
+};
+
 interface ThemeContextValue {
   theme: Theme;
   mode: 'light' | 'dark';
@@ -73,10 +103,11 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 interface ThemeProviderProps {
   preference: ThemePreference;
+  isTransparentMode: boolean;
   children: React.ReactNode;
 }
 
-export const ThemeProvider = ({ preference, children }: ThemeProviderProps) => {
+export const ThemeProvider = ({ preference, isTransparentMode, children }: ThemeProviderProps) => {
   const system = useColorScheme();
 
   const mode = useMemo<'light' | 'dark'>(() => {
@@ -88,11 +119,13 @@ export const ThemeProvider = ({ preference, children }: ThemeProviderProps) => {
 
   const value = useMemo<ThemeContextValue>(
     () => ({
-      theme: mode === 'dark' ? darkTheme : lightTheme,
+      theme: isTransparentMode 
+        ? (mode === 'dark' ? transparentTheme : lightTransparentTheme)
+        : (mode === 'dark' ? darkTheme : lightTheme),
       mode,
       preference,
     }),
-    [mode, preference],
+    [mode, preference, isTransparentMode],
   );
 
   return React.createElement(ThemeContext.Provider, { value }, children);

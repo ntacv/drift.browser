@@ -29,3 +29,5 @@ IA TODO
 -[ ] update the setting appearance section, add "theme" subsection
 
 -[ ] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward
+- [ ] compact tab list mode
+- [ ] 

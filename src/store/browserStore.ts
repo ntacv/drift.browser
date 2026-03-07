@@ -117,6 +117,7 @@ const initialState = {
   urlOverlayOpenRequestId: 0,
   blockTrackers: true,
   isFullscreen: false,
+  isTransparentMode: false,
 };
 
 export const useBrowserStore = create<BrowserStore>()(
@@ -388,6 +389,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setDefaultNewTabUrl: (url) => set({ defaultNewTabUrl: url }),
       setBlockTrackers: (value) => set({ blockTrackers: value }),
       setFullscreen: (value) => set({ isFullscreen: value }),
+      setTransparentMode: (value) => set({ isTransparentMode: value }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
