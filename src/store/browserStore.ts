@@ -151,7 +151,7 @@ export const useBrowserStore = create<BrowserStore>()(
               ...state.workspaces,
               [targetWorkspaceId]: {
                 ...workspace,
-                tabIds: [...workspace.tabIds, tab.id],
+                tabIds: [tab.id, ...workspace.tabIds],
                 activeTabId: tab.id,
               },
             },

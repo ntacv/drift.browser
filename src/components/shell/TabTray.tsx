@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -32,6 +32,9 @@ export const TabTray = () => {
   const tabs = useBrowserStore((state) => state.tabs);
   const expandedHeight = Math.max(300, screenHeight - insets.top);
   const trayHeight = tabListSize === 'expanded' ? expandedHeight : TAB_LIST_HEIGHTS[tabListSize];
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewportHeightRef = useRef(0);
+  const tabLayoutsRef = useRef<Record<string, { y: number; height: number }>>({});
 
   const workspace = workspaces[activeWorkspaceId];
   const gesture = useSheetGesture({
@@ -40,6 +43,28 @@ export const TabTray = () => {
     closedOffset: 96,
     onOpenChange: setTrayOpen,
   });
+
+  useEffect(() => {
+    tabLayoutsRef.current = {};
+  }, [activeWorkspaceId]);
+
+  useEffect(() => {
+    if (isTrayOpen && workspace && scrollViewRef.current) {
+      const activeTabId = workspace.activeTabId;
+      if (activeTabId) {
+        setTimeout(() => {
+          const layout = tabLayoutsRef.current[activeTabId];
+          const viewportHeight = scrollViewportHeightRef.current;
+          if (!layout || viewportHeight <= 0) {
+            return;
+          }
+
+          const scrollY = Math.max(0, layout.y - (viewportHeight - layout.height) / 2);
+          scrollViewRef.current?.scrollTo({ y: scrollY, animated: true });
+        }, 100);
+      }
+    }
+  }, [isTrayOpen, workspace]);
 
   const switchWorkspaceByOffset = (offset: 1 | -1) => {
     const currentIndex = workspaceOrder.indexOf(activeWorkspaceId);
@@ -82,8 +107,12 @@ export const TabTray = () => {
       </GestureDetector>
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.listScroll}
         showsVerticalScrollIndicator
+        onLayout={(event) => {
+          scrollViewportHeightRef.current = event.nativeEvent.layout.height;
+        }}
         contentContainerStyle={[
           styles.cardsColumn,
           {
@@ -91,33 +120,42 @@ export const TabTray = () => {
           },
         ]}
       >
-          {workspace.tabIds.map((tabId) => {
-            const tab = tabs[tabId];
-            if (!tab) {
-              return null;
-            }
-            return (
-              <TabCard
-                key={tab.id}
-                tab={tab}
-                workspaceColor={workspace.color}
-                isActive={workspace.activeTabId === tab.id}
-                onSwipeLeft={() => switchWorkspaceByOffset(1)}
-                onSwipeRight={() => switchWorkspaceByOffset(-1)}
-                onPress={() => {
-                  switchTab(tab.id);
-                  setTrayOpen(false);
-                }}
-                onClose={() => closeTab(tab.id)}
-              />
-            );
-          })}
           <Pressable
             onPress={() => createTab()}
             style={[styles.newCard, { borderColor: theme.border, backgroundColor: theme.surface2 }]}
           >
             <Text style={[styles.newCardText, { color: theme.text }]}>+ New Tab</Text>
           </Pressable>
+          {workspace.tabIds.map((tabId) => {
+            const tab = tabs[tabId];
+            if (!tab) {
+              return null;
+            }
+            return (
+              <View
+                key={tab.id}
+                onLayout={(event) => {
+                  tabLayoutsRef.current[tab.id] = {
+                    y: event.nativeEvent.layout.y,
+                    height: event.nativeEvent.layout.height,
+                  };
+                }}
+              >
+                <TabCard
+                  tab={tab}
+                  workspaceColor={workspace.color}
+                  isActive={workspace.activeTabId === tab.id}
+                  onSwipeLeft={() => switchWorkspaceByOffset(1)}
+                  onSwipeRight={() => switchWorkspaceByOffset(-1)}
+                  onPress={() => {
+                    switchTab(tab.id);
+                    setTrayOpen(false);
+                  }}
+                  onClose={() => closeTab(tab.id)}
+                />
+              </View>
+            );
+          })}
         </ScrollView>
       </Animated.View>
   );
@@ -167,7 +205,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 6,
+    marginBottom: 6,
   },
   newCardText: {
     fontSize: 13,
