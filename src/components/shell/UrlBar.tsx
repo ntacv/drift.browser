@@ -142,6 +142,38 @@ export const UrlBar = () => {
     }
   });
 
+  const controlOrder = isLeftHandMode
+    ? (['workspace', 'menu', 'newTab'] as const)
+    : (['newTab', 'menu', 'workspace'] as const);
+
+  const controls = (
+    <View style={styles.controlsGroup}>
+      {controlOrder.map((controlId) => {
+        if (controlId === 'newTab') {
+          return (
+            <Pressable key={controlId} onPress={() => createTab()} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
+              <Text style={[styles.iconText, { color: theme.text }]}>+</Text>
+            </Pressable>
+          );
+        }
+
+        if (controlId === 'menu') {
+          return (
+            <Pressable key={controlId} onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
+              <Text style={[styles.iconText, styles.menuIconText, { color: theme.text }]}>⋯</Text>
+            </Pressable>
+          );
+        }
+
+        return (
+          <Pressable key={controlId} onPress={() => setTrayOpen(!isTrayOpen)} style={[styles.iconButton, { backgroundColor: workspace?.color ?? theme.accent }]}>
+            <Text style={[styles.iconText, { color: '#FFFFFF' }]}>{workspace?.tabIds.length ?? 0}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+
   return (
     <>
       <GestureDetector gesture={mainBarSwipeGesture}>
@@ -155,15 +187,7 @@ export const UrlBar = () => {
             },
           ]}
         >
-          <Pressable onPress={() => createTab()} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
-            <Text style={[styles.iconText, { color: theme.text }]}>+</Text>
-          </Pressable>
-
-          {isLeftHandMode ? (
-            <Pressable onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
-              <Text style={[styles.iconText, styles.menuIconText, { color: theme.text }]}>⋯</Text>
-            </Pressable>
-          ) : null}
+          {isLeftHandMode ? controls : null}
 
           <Pressable
             onPress={() => {
@@ -177,15 +201,7 @@ export const UrlBar = () => {
             </Text>
           </Pressable>
 
-          <Pressable onPress={() => setTrayOpen(!isTrayOpen)} style={[styles.iconButton, { backgroundColor: workspace?.color ?? theme.accent }]}>
-            <Text style={[styles.iconText, { color: '#FFFFFF' }]}>{workspace?.tabIds.length ?? 0}</Text>
-          </Pressable>
-
-          {!isLeftHandMode ? (
-            <Pressable onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
-              <Text style={[styles.iconText, styles.menuIconText, { color: theme.text }]}>⋯</Text>
-            </Pressable>
-          ) : null}
+          {!isLeftHandMode ? controls : null}
         </View>
       </GestureDetector>
 
@@ -276,6 +292,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 100,
     padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  controlsGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
