@@ -3,13 +3,14 @@ IA TODO
 ## Bugs
 
 - [ ] the menu is not scrollable
-- [ ] in the main bar, the 3 buttons are on the same size, on either side of the url, depending on the hand setting 
+- [x] in the main bar, the 3 buttons are on the same size, on either side of the url, depending on the hand setting 
 
 - [ ] over scrolling the top of the tab list should close it 
 - [x] over scrolling the top of the url edition should close it
-- [ ] add button for "back in history" "forward in history" "refresh" actions
+- [x] add button for "back in history" "forward in history" "refresh" actions
 - [ ] in the tab list, side swip to change workspace is only active on the tabs, it should be over the whole panel
-- [ ] in fullscreen mode,the scroll action brings up the bottom bar, instead of the menu.
+- [x] in fullscreen mode,the scroll action brings up the bottom bar, instead of the menu.
+- [ ] when no fullscreen, overscroll top will refresh the page
 - [ ] new tab open in the top of the list,open the tab list with the current tab in front, and put the new tab always on the top 
 -[ ] can rotate the screen only for the website (like video or games) and keep the browser UI in portrait mode.    
 -[ ] the back system action is not closing the url edition 

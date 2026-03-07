@@ -131,7 +131,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       setFullscreen(true);
       Alert.alert(
         'Fullscreen enabled',
-        'The URL bar is now hidden. To open the app menu again, pull down past the top of the webpage.',
+        'The URL bar is now hidden. Pull down past the top of the webpage to bring it back.',
       );
     } else {
       setFullscreen(false);

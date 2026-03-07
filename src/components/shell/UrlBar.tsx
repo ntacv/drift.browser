@@ -48,7 +48,7 @@ export const UrlBar = () => {
   const [isOverlayOpen, setOverlayOpen] = useState(false);
   const [input, setInput] = useState('');
   const inputRef = useRef<TextInput | null>(null);
-  const lastHandledOverlayRequestId = useRef(0);
+  const lastHandledOverlayRequestId = useRef(urlOverlayOpenRequestId);
 
   const activeTab = useBrowserStore(getActiveTab);
   const workspace = workspaces[activeWorkspaceId];

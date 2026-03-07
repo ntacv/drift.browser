@@ -35,7 +35,7 @@ interface WebViewWrapperProps {
 }
 
 export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
-  const { mode } = useTheme();
+  const { mode, theme } = useTheme();
   const webViewRef = useRef<WebView>(null);
   const lastScrollYRef = useRef<number | null>(null);
   const tab = useBrowserStore((state) => state.tabs[tabId]);
@@ -45,7 +45,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const addHistoryEntry = useBrowserStore((state) => state.addHistoryEntry);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
-  const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
+  const setFullscreen = useBrowserStore((state) => state.setFullscreen);
 
   useEffect(() => {
     if (!tab?.pendingNavAction) {
@@ -92,7 +92,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
       ref={webViewRef}
       source={isBlankPage ? { html: blankHtml } : { uri: tab.url }}
       originWhitelist={['*']}
-      style={[styles.webview, !visible && styles.hidden]}
+      style={[styles.webview, !visible && styles.hidden, { backgroundColor: theme.bg }]}
       onNavigationStateChange={handleNavChange}
       injectedJavaScript={faviconInjectionScript}
       onMessage={(event) => {
@@ -119,8 +119,12 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           return;
         }
 
-        if (message.type === 'overscrollTop' && isFullscreen) {
-          setMenuOpen(true);
+        if (message.type === 'overscrollTop') {
+          if (isFullscreen) {
+            setFullscreen(false);
+          } else {
+            webViewRef.current?.reload();
+          }
         }
       }}
       onShouldStartLoadWithRequest={(request) => {
