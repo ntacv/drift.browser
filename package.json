@@ -1,12 +1,15 @@
 {
   "name": "zen-mobile",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "release:android": "eas build --platform android --profile production",
+    "release:ios": "eas build --platform ios --profile production",
+    "release:all": "eas build --platform all --profile production"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

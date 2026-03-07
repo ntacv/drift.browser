@@ -1,4 +1,4 @@
-# Zen Mobile Browser POC
+# Zen Mobile Browser (Made with AI)
 
 A gesture-first mobile browser proof of concept built with Expo + React Native.
 
@@ -23,6 +23,7 @@ This project focuses on a modern browser shell experience:
 - How to Use the App
 - Features Documentation
 - User Documentation
+- Git and Versioning Workflow
 - Tech Stack
 - Project Structure
 - Troubleshooting
@@ -245,6 +246,30 @@ Injected page script communicates:
 Detailed end-user documentation is available at:
 
 - `docs/USER_GUIDE.md`
+
+## Git and Versioning Workflow
+
+To keep feature history understandable and releases traceable:
+
+- Follow commit and tagging guide: `docs/GIT_VERSIONING_WORKFLOW.md`
+- Review release notes/checklist for current version: `docs/releases/v1.1.0.md`
+- Use semantic version tags like `vX.Y.Z`
+- Push tags to trigger automatic GitHub Releases (release notes are generated from history)
+
+Release workflow file:
+
+- `.github/workflows/release-on-tag.yml`
+
+Packaged release artifacts:
+
+- On each pushed version tag (`v*.*.*`), CI builds:
+  - Android `.apk`
+  - iOS `.ipa`
+- Both files are attached to the GitHub Release automatically.
+
+Required GitHub secret for CI builds:
+
+- `EXPO_TOKEN`: Expo token with access to the EAS project
 
 ## Tech Stack
 
