@@ -20,6 +20,8 @@ export interface Tab {
   isLoading: boolean;
   canGoBack: boolean;
   canGoForward: boolean;
+  pendingNavAction: 'back' | 'forward' | 'reload' | null;
+  pendingNavActionId: number;
   scrollY: number;
   createdAt: number;
 }
@@ -85,6 +87,7 @@ export interface BrowserActions {
   goToNextTab: () => void;
   goToPreviousTab: () => void;
   navigateActiveTab: (nextUrl: string) => void;
+  requestActiveTabNavigation: (action: 'back' | 'forward' | 'reload') => void;
   updateTabMeta: (tabId: string, patch: Partial<Tab>) => void;
 
   switchWorkspace: (workspaceId: string) => void;

@@ -11,6 +11,7 @@ import { useTheme } from '../../theme';
 import * as fxaService from '../../services/fxaService';
 
 const SHEET_HEIGHT = 360;
+const TILE_GAP = 8;
 
 interface MenuSheetProps {
   onOpenSettings: () => void;
@@ -20,21 +21,44 @@ type MenuTileId =
   | 'share'
   | 'settings'
   | 'workspace'
-  | 'fullscreen'
   | 'signout';
+
+type QuickTileId = 'back' | 'forward' | 'refresh' | 'fullscreen';
+type DisplayTileId = QuickTileId | MenuTileId;
+type TileSize = 'half' | 'full';
+
+interface DisplayTile {
+  id: DisplayTileId;
+  name: string;
+  size: TileSize;
+}
 
 const DEFAULT_TILE_ORDER: MenuTileId[] = [
   'share',
   'settings',
   'workspace',
-  'fullscreen',
   'signout',
 ];
+
+const QUICK_TILES: DisplayTile[] = [
+  { id: 'back', name: 'Back', size: 'half' },
+  { id: 'forward', name: 'Forward', size: 'half' },
+  { id: 'refresh', name: 'Refresh', size: 'half' },
+  { id: 'fullscreen', name: 'Fullscreen', size: 'half' },
+];
+
+const MENU_TILE_NAMES: Record<MenuTileId, string> = {
+  share: 'Share URL',
+  settings: 'Settings',
+  workspace: 'New Workspace',
+  signout: 'Sign Out',
+};
 
 export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [draggedTile, setDraggedTile] = useState<MenuTileId | null>(null);
+  const [tileAreaWidth, setTileAreaWidth] = useState(0);
 
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
@@ -46,6 +70,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const createWorkspace = useBrowserStore((state) => state.createWorkspace);
   const isFullscreen = useBrowserStore((state) => state.isFullscreen);
   const setFullscreen = useBrowserStore((state) => state.setFullscreen);
+  const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
   const activeTab = useBrowserStore(getActiveTab);
 
   const gesture = useSheetGesture({
@@ -75,6 +100,45 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     setMenuTileOrder(next);
   };
 
+  const halfTileWidth = useMemo(() => {
+    if (tileAreaWidth <= 0) {
+      return 0;
+    }
+
+    return (tileAreaWidth - TILE_GAP * 3) / 4;
+  }, [tileAreaWidth]);
+
+  const fullTileWidth = useMemo(() => {
+    if (halfTileWidth <= 0) {
+      return 0;
+    }
+
+    return halfTileWidth * 2 + TILE_GAP;
+  }, [halfTileWidth]);
+
+  const tileFrameStyle = (size: TileSize) => {
+    const width = size === 'half' ? halfTileWidth : fullTileWidth;
+
+    if (width <= 0) {
+      return null;
+    }
+
+    return { width };
+  };
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      setFullscreen(true);
+      Alert.alert(
+        'Fullscreen enabled',
+        'The URL bar is now hidden. To open the app menu again, pull down past the top of the webpage.',
+      );
+    } else {
+      setFullscreen(false);
+    }
+    setMenuOpen(false);
+  };
+
   const executeTileAction = (id: MenuTileId) => {
     if (id === 'share') {
       Alert.alert('Share', activeTab?.url ?? 'No active tab');
@@ -84,23 +148,12 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     } else if (id === 'workspace') {
       createWorkspace('New Workspace', '✨', '#7E57C2');
       setMenuOpen(false);
-    } else if (id === 'fullscreen') {
-      if (!isFullscreen) {
-        setFullscreen(true);
-        Alert.alert(
-          'Fullscreen enabled',
-          'The URL bar is now hidden. To open the app menu again, pull down past the top of the webpage.',
-        );
-      } else {
-        setFullscreen(false);
-      }
-      setMenuOpen(false);
     } else if (id === 'signout') {
       fxaService.signOut().then(() => setSyncUser(null));
     }
   };
 
-  const renderTile = (id: MenuTileId, index: number) => {
+  const renderMenuTile = (id: MenuTileId) => {
     const handlePress = () => {
       if (draggedTile && draggedTile !== id) {
         swapTiles(draggedTile, id);
@@ -123,7 +176,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       return (
         <Pressable key={id} {...baseProps}>
           <MaterialIcons name="ios-share" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>Share URL</Text>
+          <Text style={[styles.actionText, { color: theme.text }]}>{MENU_TILE_NAMES[id]}</Text>
         </Pressable>
       );
     }
@@ -132,7 +185,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       return (
         <Pressable key={id} {...baseProps}>
           <MaterialIcons name="settings" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>Settings</Text>
+          <Text style={[styles.actionText, { color: theme.text }]}>{MENU_TILE_NAMES[id]}</Text>
         </Pressable>
       );
     }
@@ -141,23 +194,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       return (
         <Pressable key={id} {...baseProps}>
           <MaterialIcons name="workspaces-outline" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>New Workspace</Text>
-        </Pressable>
-      );
-    }
-
-    if (id === 'fullscreen') {
-      return (
-        <Pressable key={id} {...baseProps}>
-          <MaterialIcons
-            name={isFullscreen ? 'fullscreen-exit' : 'fullscreen'}
-            size={18}
-            color={theme.text}
-            style={styles.actionIcon}
-          />
-          <Text style={[styles.actionText, { color: theme.text }]}>
-            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          </Text>
+          <Text style={[styles.actionText, { color: theme.text }]}>{MENU_TILE_NAMES[id]}</Text>
         </Pressable>
       );
     }
@@ -165,12 +202,70 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     return (
       <Pressable key={id} {...baseProps}>
         <MaterialIcons name="logout" size={18} color={theme.danger} style={styles.actionIcon} />
-        <Text style={[styles.actionText, { color: theme.danger }]}>Sign Out</Text>
+        <Text style={[styles.actionText, { color: theme.danger }]}>{MENU_TILE_NAMES[id]}</Text>
       </Pressable>
     );
   };
 
-  const DraggableTile = ({ id, index }: { id: MenuTileId; index: number }) => {
+  const renderQuickTile = (id: QuickTileId) => {
+    if (id === 'back') {
+      return (
+        <Pressable
+          key={id}
+          onPress={() => requestActiveTabNavigation('back')}
+          disabled={!activeTab?.canGoBack}
+          style={[
+            styles.quickActionButton,
+            { backgroundColor: theme.surface2 },
+            !activeTab?.canGoBack && styles.quickActionDisabled,
+          ]}
+        >
+          <MaterialIcons name="arrow-back" size={18} color={theme.text} />
+        </Pressable>
+      );
+    }
+
+    if (id === 'forward') {
+      return (
+        <Pressable
+          key={id}
+          onPress={() => requestActiveTabNavigation('forward')}
+          disabled={!activeTab?.canGoForward}
+          style={[
+            styles.quickActionButton,
+            { backgroundColor: theme.surface2 },
+            !activeTab?.canGoForward && styles.quickActionDisabled,
+          ]}
+        >
+          <MaterialIcons name="arrow-forward" size={18} color={theme.text} />
+        </Pressable>
+      );
+    }
+
+    if (id === 'refresh') {
+      return (
+        <Pressable
+          key={id}
+          onPress={() => requestActiveTabNavigation('reload')}
+          style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
+        >
+          <MaterialIcons name="refresh" size={18} color={theme.text} />
+        </Pressable>
+      );
+    }
+
+    return (
+      <Pressable
+        key={id}
+        onPress={toggleFullscreen}
+        style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
+      >
+        <MaterialIcons name={isFullscreen ? 'fullscreen-exit' : 'fullscreen'} size={18} color={theme.text} />
+      </Pressable>
+    );
+  };
+
+  const DraggableTile = ({ id }: { id: MenuTileId }) => {
     const scale = useSharedValue(1);
     const isDragging = draggedTile === id;
 
@@ -188,8 +283,8 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
 
     return (
       <GestureDetector gesture={longPress}>
-        <Animated.View style={[styles.tileWrap, animatedStyle]}>
-          {renderTile(id, index)}
+        <Animated.View style={[styles.tileWrap, tileFrameStyle('full'), animatedStyle]}>
+          {renderMenuTile(id)}
           {isDragging && (
             <View style={styles.dragHint}>
               <Text style={[styles.dragHintText, { color: theme.text2 }]}>Tap another tile to swap</Text>
@@ -201,6 +296,16 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   };
 
   const visibleTileOrder = tileOrder.filter((id) => !(id === 'signout' && !syncUser));
+
+  const displayTiles = useMemo<DisplayTile[]>(() => {
+    const menuTiles = visibleTileOrder.map((id) => ({
+      id,
+      name: MENU_TILE_NAMES[id],
+      size: 'full' as TileSize,
+    }));
+
+    return [...QUICK_TILES, ...menuTiles];
+  }, [visibleTileOrder]);
 
   return (
     <GestureDetector gesture={gesture.panGesture}>
@@ -247,10 +352,23 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
             )}
           </View>
 
-          <View style={styles.grid}>
-            {visibleTileOrder.map((id, index) => (
-              <DraggableTile key={id} id={id} index={index} />
-            ))}
+          <View
+            style={styles.tilesGrid}
+            onLayout={(event) => {
+              setTileAreaWidth(event.nativeEvent.layout.width);
+            }}
+          >
+            {displayTiles.map((tile) => {
+              if (tile.size === 'half') {
+                return (
+                  <View key={tile.id} style={[styles.tileWrap, tileFrameStyle('half')]}>
+                    {renderQuickTile(tile.id as QuickTileId)}
+                  </View>
+                );
+              }
+
+              return <DraggableTile key={tile.id} id={tile.id as MenuTileId} />;
+            })}
           </View>
         </ScrollView>
       </Animated.View>
@@ -294,10 +412,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-  grid: {
+  tilesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: TILE_GAP,
+    marginBottom: 10,
+  },
+  quickActionButton: {
+    width: '100%',
+    minHeight: 44,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  quickActionDisabled: {
+    opacity: 0.4,
   },
   actionButton: {
     width: '100%',
@@ -310,7 +440,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   tileWrap: {
-    width: '48%',
+    alignSelf: 'flex-start',
     gap: 6,
   },
   actionIcon: {

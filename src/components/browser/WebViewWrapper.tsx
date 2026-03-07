@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 
@@ -36,6 +36,7 @@ interface WebViewWrapperProps {
 
 export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const { mode } = useTheme();
+  const webViewRef = useRef<WebView>(null);
   const lastScrollYRef = useRef<number | null>(null);
   const tab = useBrowserStore((state) => state.tabs[tabId]);
   const blockTrackers = useBrowserStore((state) => state.blockTrackers);
@@ -45,6 +46,22 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const addHistoryEntry = useBrowserStore((state) => state.addHistoryEntry);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
+
+  useEffect(() => {
+    if (!tab?.pendingNavAction) {
+      return;
+    }
+
+    if (tab.pendingNavAction === 'back') {
+      webViewRef.current?.goBack();
+    } else if (tab.pendingNavAction === 'forward') {
+      webViewRef.current?.goForward();
+    } else {
+      webViewRef.current?.reload();
+    }
+
+    updateTabMeta(tabId, { pendingNavAction: null });
+  }, [tab?.pendingNavActionId, tab?.pendingNavAction, tabId, updateTabMeta]);
 
   if (!tab) {
     return null;
@@ -72,6 +89,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
 
   return (
     <WebView
+      ref={webViewRef}
       source={isBlankPage ? { html: blankHtml } : { uri: tab.url }}
       originWhitelist={['*']}
       style={[styles.webview, !visible && styles.hidden]}

@@ -50,6 +50,8 @@ const makeTab = (workspaceId: string, url = DEFAULT_URL): Tab => ({
   isLoading: false,
   canGoBack: false,
   canGoForward: false,
+  pendingNavAction: null,
+  pendingNavActionId: 0,
   scrollY: 0,
   createdAt: Date.now(),
 });
@@ -262,6 +264,30 @@ export const useBrowserStore = create<BrowserStore>()(
                 ...tab,
                 url: nextUrl,
                 isLoading: true,
+              },
+            },
+          };
+        }),
+
+      requestActiveTabNavigation: (action) =>
+        set((state) => {
+          const workspace = state.workspaces[state.activeWorkspaceId];
+          if (!workspace?.activeTabId) {
+            return state;
+          }
+
+          const tab = state.tabs[workspace.activeTabId];
+          if (!tab) {
+            return state;
+          }
+
+          return {
+            tabs: {
+              ...state.tabs,
+              [tab.id]: {
+                ...tab,
+                pendingNavAction: action,
+                pendingNavActionId: tab.pendingNavActionId + 1,
               },
             },
           };
