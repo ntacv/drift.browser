@@ -16,6 +16,7 @@ This project focuses on a modern browser shell experience:
 ## Table of Contents
 
 - Overview
+- Author Development Setup
 - Download the App (Releases)
 - Quick Start (Run Locally)
 - Build the App
@@ -39,6 +40,20 @@ Key ideas:
 - Gesture interactions for tabs and tray
 - Workspace model to separate contexts (Personal, Work, Research)
 - Smooth transition between browsing and tab management
+
+## Author Development Setup
+
+Current setup used for building this project:
+
+- Editor: VS Code
+- AI coding assistant: GitHub Copilot
+- Copilot mode: Agent mode with Auto model selection
+- Model used most often: GPT-5.3-Codex
+- Terminal: Warp (with AI/agent mode enabled when debugging errors)
+- Runtime testing tool: Expo Go
+- Main test device: Google Pixel 9
+
+This context helps explain implementation style and rapid iteration workflow in this repository.
 
 ## Download the App (Releases)
 

@@ -12,7 +12,7 @@ import { WorkspaceChips } from './WorkspaceChips';
 
 const TAB_LIST_HEIGHTS = {
   compact: 340,
-  comfortable: 420,
+  comfortable: 600,
 } as const;
 
 export const TabTray = () => {

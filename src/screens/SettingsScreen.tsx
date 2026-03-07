@@ -9,11 +9,11 @@ import { useBrowserStore } from '../store/browserStore';
 import type { AppLanguage, SearchEngine, TabListSize, ThemePreference } from '../store/types';
 import { useTheme } from '../theme';
 
-const SEARCH_ENGINES: SearchEngine[] = ['brave', 'duckduckgo', 'google', 'bing'];
+const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
 const LANGUAGES: AppLanguage[] = ['en', 'fr'];
 const TAB_LIST_SIZES: TabListSize[] = ['compact', 'comfortable', 'expanded'];
-const NEW_TAB_PRESETS = ['https://zen-browser.app', 'about:blank', 'https://www.google.com'];
+const NEW_TAB_PRESETS = ['about:blank', 'https://www.google.com'];
 
 export const SettingsScreen = () => {
   const { theme } = useTheme();
