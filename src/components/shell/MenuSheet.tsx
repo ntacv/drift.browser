@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetGesture } from '../../hooks/useGestures';
 import { useBrowserStore, getActiveTab } from '../../store/browserStore';
@@ -16,27 +17,24 @@ interface MenuSheetProps {
 }
 
 type MenuTileId =
-  | 'bookmark'
   | 'share'
   | 'settings'
   | 'workspace'
   | 'fullscreen'
-  | 'reorder'
   | 'signout';
 
 const DEFAULT_TILE_ORDER: MenuTileId[] = [
-  'bookmark',
   'share',
   'settings',
   'workspace',
   'fullscreen',
-  'reorder',
   'signout',
 ];
 
 export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const { theme } = useTheme();
-  const [isReorderMode, setIsReorderMode] = useState(false);
+  const insets = useSafeAreaInsets();
+  const [draggedTile, setDraggedTile] = useState<MenuTileId | null>(null);
 
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
@@ -45,7 +43,6 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const menuTileOrder = useBrowserStore((state) => state.menuTileOrder);
   const setMenuTileOrder = useBrowserStore((state) => state.setMenuTileOrder);
-  const addBookmarkFromActiveTab = useBrowserStore((state) => state.addBookmarkFromActiveTab);
   const createWorkspace = useBrowserStore((state) => state.createWorkspace);
   const isFullscreen = useBrowserStore((state) => state.isFullscreen);
   const setFullscreen = useBrowserStore((state) => state.setFullscreen);
@@ -65,53 +62,66 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     return [...filtered, ...missing];
   }, [menuTileOrder]);
 
-  const moveTile = (id: MenuTileId, direction: -1 | 1) => {
-    const index = tileOrder.indexOf(id);
-    if (index < 0) {
-      return;
-    }
-
-    const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= tileOrder.length) {
+  const swapTiles = (fromId: MenuTileId, toId: MenuTileId) => {
+    const fromIndex = tileOrder.indexOf(fromId);
+    const toIndex = tileOrder.indexOf(toId);
+    
+    if (fromIndex < 0 || toIndex < 0) {
       return;
     }
 
     const next = [...tileOrder];
-    const [item] = next.splice(index, 1);
-    next.splice(targetIndex, 0, item);
+    [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
     setMenuTileOrder(next);
   };
 
-  const renderTile = (id: MenuTileId) => {
-    const baseProps = {
-      style: actionButtonStyle,
+  const executeTileAction = (id: MenuTileId) => {
+    if (id === 'share') {
+      Alert.alert('Share', activeTab?.url ?? 'No active tab');
+    } else if (id === 'settings') {
+      setMenuOpen(false);
+      onOpenSettings();
+    } else if (id === 'workspace') {
+      createWorkspace('New Workspace', '✨', '#7E57C2');
+      setMenuOpen(false);
+    } else if (id === 'fullscreen') {
+      if (!isFullscreen) {
+        setFullscreen(true);
+        Alert.alert(
+          'Fullscreen enabled',
+          'The URL bar is now hidden. To open the app menu again, pull down past the top of the webpage.',
+        );
+      } else {
+        setFullscreen(false);
+      }
+      setMenuOpen(false);
+    } else if (id === 'signout') {
+      fxaService.signOut().then(() => setSyncUser(null));
+    }
+  };
+
+  const renderTile = (id: MenuTileId, index: number) => {
+    const handlePress = () => {
+      if (draggedTile && draggedTile !== id) {
+        swapTiles(draggedTile, id);
+        setDraggedTile(null);
+        return;
+      }
+      
+      // Execute tile action when not in drag mode
+      if (!draggedTile) {
+        executeTileAction(id);
+      }
     };
 
-    if (id === 'bookmark') {
-      return (
-        <Pressable
-          key={id}
-          {...baseProps}
-          onPress={() => {
-            addBookmarkFromActiveTab();
-            Alert.alert('Saved', 'Active tab bookmarked.');
-          }}
-        >
-          <MaterialIcons name="star-border" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>Bookmark</Text>
-        </Pressable>
-      );
-    }
+    const baseProps = {
+      style: actionButtonStyle,
+      onPress: handlePress,
+    };
 
     if (id === 'share') {
       return (
-        <Pressable
-          key={id}
-          {...baseProps}
-          onPress={() => {
-            Alert.alert('Share', activeTab?.url ?? 'No active tab');
-          }}
-        >
+        <Pressable key={id} {...baseProps}>
           <MaterialIcons name="ios-share" size={18} color={theme.text} style={styles.actionIcon} />
           <Text style={[styles.actionText, { color: theme.text }]}>Share URL</Text>
         </Pressable>
@@ -120,14 +130,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
 
     if (id === 'settings') {
       return (
-        <Pressable
-          key={id}
-          {...baseProps}
-          onPress={() => {
-            setMenuOpen(false);
-            onOpenSettings();
-          }}
-        >
+        <Pressable key={id} {...baseProps}>
           <MaterialIcons name="settings" size={18} color={theme.text} style={styles.actionIcon} />
           <Text style={[styles.actionText, { color: theme.text }]}>Settings</Text>
         </Pressable>
@@ -136,14 +139,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
 
     if (id === 'workspace') {
       return (
-        <Pressable
-          key={id}
-          {...baseProps}
-          onPress={() => {
-            createWorkspace('New Workspace', '✨', '#7E57C2');
-            setMenuOpen(false);
-          }}
-        >
+        <Pressable key={id} {...baseProps}>
           <MaterialIcons name="workspaces-outline" size={18} color={theme.text} style={styles.actionIcon} />
           <Text style={[styles.actionText, { color: theme.text }]}>New Workspace</Text>
         </Pressable>
@@ -152,23 +148,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
 
     if (id === 'fullscreen') {
       return (
-        <Pressable
-          key={id}
-          {...baseProps}
-          onPress={() => {
-            if (!isFullscreen) {
-              setFullscreen(true);
-              Alert.alert(
-                'Fullscreen enabled',
-                'The URL bar is now hidden. To open the app menu again, pull down past the top of the webpage.',
-              );
-            } else {
-              setFullscreen(false);
-            }
-
-            setMenuOpen(false);
-          }}
-        >
+        <Pressable key={id} {...baseProps}>
           <MaterialIcons
             name={isFullscreen ? 'fullscreen-exit' : 'fullscreen'}
             size={18}
@@ -182,35 +162,41 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       );
     }
 
-    if (id === 'reorder') {
-      return (
-        <Pressable
-          key={id}
-          {...baseProps}
-          onPress={() => {
-            setIsReorderMode((prev) => !prev);
-          }}
-        >
-          <MaterialIcons name="swap-horiz" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>
-            {isReorderMode ? 'Done Reordering' : 'Reorganize Tiles'}
-          </Text>
-        </Pressable>
-      );
-    }
-
     return (
-      <Pressable
-        key={id}
-        {...baseProps}
-        onPress={async () => {
-          await fxaService.signOut();
-          setSyncUser(null);
-        }}
-      >
+      <Pressable key={id} {...baseProps}>
         <MaterialIcons name="logout" size={18} color={theme.danger} style={styles.actionIcon} />
         <Text style={[styles.actionText, { color: theme.danger }]}>Sign Out</Text>
       </Pressable>
+    );
+  };
+
+  const DraggableTile = ({ id, index }: { id: MenuTileId; index: number }) => {
+    const scale = useSharedValue(1);
+    const isDragging = draggedTile === id;
+
+    const longPress = Gesture.LongPress()
+      .minDuration(400)
+      .onStart(() => {
+        runOnJS(setDraggedTile)(id);
+        scale.value = withSpring(1.05);
+      });
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+      opacity: isDragging ? 0.7 : 1,
+    }));
+
+    return (
+      <GestureDetector gesture={longPress}>
+        <Animated.View style={[styles.tileWrap, animatedStyle]}>
+          {renderTile(id, index)}
+          {isDragging && (
+            <View style={styles.dragHint}>
+              <Text style={[styles.dragHintText, { color: theme.text2 }]}>Tap another tile to swap</Text>
+            </View>
+          )}
+        </Animated.View>
+      </GestureDetector>
     );
   };
 
@@ -228,48 +214,45 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       >
         <View style={styles.handle} />
 
-        <View style={[styles.accountCard, { backgroundColor: theme.surface2 }]}> 
-          {syncUser ? (
-            <>
-              <Text style={[styles.accountTitle, { color: theme.text }]}>{syncUser.email}</Text>
-              <Text style={[styles.accountSub, { color: theme.text2 }]}>Synced</Text>
-              <Text style={[styles.accountSub, { color: theme.text3 }]}>
-                Last sync: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString() : 'never'}
-              </Text>
-            </>
-          ) : (
-            <Pressable
-              onPress={async () => {
-                const user = await fxaService.signIn();
-                if (user) {
-                  setSyncUser(user);
-                } else {
-                  Alert.alert('Firefox sign-in not configured', 'OAuth credentials are not set yet.');
-                }
-              }}
-            >
-              <Text style={[styles.accountTitle, { color: theme.text }]}>Sign in to Firefox</Text>
-            </Pressable>
-          )}
-        </View>
+        <ScrollView
+          style={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          contentContainerStyle={{
+            paddingBottom: Math.max(insets.bottom, 10) + 150,
+          }}
+        >
+          <View style={[styles.accountCard, { backgroundColor: theme.surface2 }]}> 
+            {syncUser ? (
+              <>
+                <Text style={[styles.accountTitle, { color: theme.text }]}>{syncUser.email}</Text>
+                <Text style={[styles.accountSub, { color: theme.text2 }]}>Synced</Text>
+                <Text style={[styles.accountSub, { color: theme.text3 }]}>
+                  Last sync: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString() : 'never'}
+                </Text>
+              </>
+            ) : (
+              <Pressable
+                onPress={async () => {
+                  const user = await fxaService.signIn();
+                  if (user) {
+                    setSyncUser(user);
+                  } else {
+                    Alert.alert('Firefox sign-in not configured', 'OAuth credentials are not set yet.');
+                  }
+                }}
+              >
+                <Text style={[styles.accountTitle, { color: theme.text }]}>Sign in to Firefox</Text>
+              </Pressable>
+            )}
+          </View>
 
-        <View style={styles.grid}>
-          {visibleTileOrder.map((id) => (
-            <View key={id} style={styles.tileWrap}>
-              {renderTile(id)}
-              {isReorderMode ? (
-                <View style={styles.reorderRow}>
-                  <Pressable style={[styles.reorderButton, { backgroundColor: theme.surface2 }]} onPress={() => moveTile(id, -1)}>
-                    <Text style={[styles.reorderLabel, { color: theme.text }]}>◀</Text>
-                  </Pressable>
-                  <Pressable style={[styles.reorderButton, { backgroundColor: theme.surface2 }]} onPress={() => moveTile(id, 1)}>
-                    <Text style={[styles.reorderLabel, { color: theme.text }]}>▶</Text>
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
-          ))}
-        </View>
+          <View style={styles.grid}>
+            {visibleTileOrder.map((id, index) => (
+              <DraggableTile key={id} id={id} index={index} />
+            ))}
+          </View>
+        </ScrollView>
       </Animated.View>
     </GestureDetector>
   );
@@ -294,6 +277,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#7d869f',
     marginBottom: 10,
+  },
+  scrollContent: {
+    flex: 1,
   },
   accountCard: {
     borderRadius: 14,
@@ -335,19 +321,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'left',
   },
-  reorderRow: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  reorderButton: {
-    flex: 1,
-    minHeight: 30,
-    borderRadius: 8,
+  dragHint: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  reorderLabel: {
-    fontSize: 12,
-    fontWeight: '700',
+  dragHintText: {
+    fontSize: 10,
+    fontWeight: '600',
   },
 });

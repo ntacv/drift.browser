@@ -38,6 +38,7 @@ export const UrlBar = () => {
   const goToNextTab = useBrowserStore((state) => state.goToNextTab);
   const goToPreviousTab = useBrowserStore((state) => state.goToPreviousTab);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
+  const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
 
   const [isOverlayOpen, setOverlayOpen] = useState(false);
@@ -142,7 +143,7 @@ export const UrlBar = () => {
           </Pressable>
 
           {isLeftHandMode ? (
-            <Pressable onPress={() => setMenuOpen(true)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
+            <Pressable onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
               <Text style={[styles.iconText, { color: theme.text }]}>⋯</Text>
             </Pressable>
           ) : null}
@@ -170,7 +171,7 @@ export const UrlBar = () => {
           </Pressable>
 
           {!isLeftHandMode ? (
-            <Pressable onPress={() => setMenuOpen(true)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
+            <Pressable onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
               <Text style={[styles.iconText, { color: theme.text }]}>⋯</Text>
             </Pressable>
           ) : null}

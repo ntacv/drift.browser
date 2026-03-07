@@ -19,12 +19,10 @@ const DEFAULT_URL = 'https://zen-browser.app';
 const UNSORTED_FOLDER_ID = 'folder-unsorted';
 const HISTORY_CAP = 500;
 const DEFAULT_MENU_TILE_ORDER = [
-  'bookmark',
   'share',
   'settings',
   'workspace',
   'fullscreen',
-  'reorder',
   'signout',
 ];
 
