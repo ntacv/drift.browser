@@ -1,16 +1,17 @@
 IA TODO
 
-- remove the bookmark button
-
 ## Bugs
 
+add the same effect to the url panel 
+
 -[ ] the menu is not scrollable
+
 -[ ] over scrolling the top of the tab list should close it 
 -[ ] over scrolling the top of the url edition should close it
 -[ ] add button for "back in history" "forward in history" "refresh" actions
 -[ ] in the tab list, side swip to change workspace is only active on the tabs, it should be over the whole panel
 -[ ] in fullscreen mode,the scroll action brings up the bottom bar, instead of the menu. 
--[ ] new tab open in the bottom of the list,open the tab list with the current tab in front (so at the bottom of the list)
+-[ ] new tab open in the top of the list,open the tab list with the current tab in front, and put the new tab always on the top 
 -[ ] can rotate the screen only for the website (like video or games) and keep the browser UI in portrait mode.    
 -[ ] the back system action is not closing the url edition 
 -[ ] the back button on the browser view should return to the last visited page
@@ -26,3 +27,5 @@ IA TODO
 -[ ] add setting to import data from a firefox understable format
 -[ ] change the design of the close tab button, use icon, dont use red, make it recttangular
 -[ ] update the setting appearance section, add "theme" subsection
+
+-[ ] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward

@@ -1,188 +1,169 @@
-# Zen Mobile Browser POC - User Guide
+# Zen Mobile Browser - User Guide and Development Process
 
-This guide explains how to use each feature currently available in the app.
+This document contains:
 
-## Table of Contents
+- User guide for day-to-day app usage
+- Development process and architecture notes for contributors
 
-- Getting Started
-- Main Browser Controls
-- URL Editor
-- Tabs and Workspaces
-- Fullscreen Mode
-- Menu Tiles
-- Settings
-- Gestures Summary
-- Troubleshooting
+## 1. User Guide
 
-## Getting Started
+### 1.1 Main Controls
 
-1. Launch the app.
-2. Use the bottom URL bar to browse, manage tabs, and open menu/settings.
-3. Open Settings to configure language, tab list size, and preferred behavior.
+Bottom bar controls:
 
-## Main Browser Controls
+- `+`: create a new tab
+- URL/domain pill: open URL editor
+- Colored tab count button: open/close tab tray
+- `...`: open/close menu sheet
 
-The bottom bar contains:
+In left-hand mode, the menu button is shown on the left side.
 
-- `+` Create a new tab
-- URL/domain pill: Open URL editor
-- Tab count button: Open tab tray
-- Menu button (`...`): Open menu sheet
+### 1.2 URL Editor Panel
 
-In left-hand mode, the menu button is moved to the left side.
-
-## URL Editor
-
-Open URL editor by tapping the URL/domain pill.
+Open by tapping the URL/domain pill.
 
 Capabilities:
 
-- Enter full URLs or search text
-- View recent history suggestions
-- Clear input with `x` button
-- Submit to navigate active tab
+- Enter URL or search text
+- Keyboard opens automatically when panel opens
+- Suggestions/history list is shown below input
+- `x` button clears current input
+- `Close` button closes the panel
 
-Close URL editor by:
+Close methods:
 
-- Tapping `Close`
-- Swiping up or down on the editor header
-- Tapping outside the sheet
-- Pressing Android device back button
+- Tap `Close`
+- Drag the panel down using the handle area
+- Tap outside (backdrop)
+- Android hardware back button
 
-## Tabs and Workspaces
+### 1.3 Tabs and Workspaces
 
-### Tab navigation
+Gestures and actions:
 
-- Swipe left/right on the bottom URL bar to switch to next/previous tab.
-- Swipe up on bottom URL bar to open vertical tab tray.
+- Swipe left/right on bottom bar: previous/next tab
+- Swipe up on bottom bar: open tab tray
+- Tap tab count button: toggle tab tray
 
-### Tab tray
+Tab tray behavior:
 
-- Vertical list of tabs in active workspace
-- Always-visible close-tab button on each tab row
-- `+ New Tab` button at end of list
-- Adjustable tray size from settings:
-  - `compact`
-  - `comfortable`
-  - `expanded` (full-height tray)
+- Vertical list of tabs in current workspace
+- Tap tab to activate
+- Tap close on a tab card to close
+- Tap `+ New Tab` to create a new tab
 
-Behavior notes:
+Workspace behavior:
 
-- Switching workspaces from tray does not close the tray.
-- Scrolling the background webpage while tray is open closes the tray.
+- Workspace chips at the top of tray
+- Switch workspace without closing tray
+- Swipe on tab cards to change workspace context
 
-### Workspaces
+### 1.4 Menu Sheet
 
-Default workspaces:
+Menu is a bottom sheet and supports drag-to-close.
 
-- Personal
-- Work
-- Research
+Current actions include:
 
-In tray:
-
-- Tap workspace chip to switch workspace.
-- Swipe tab row left/right to move between workspace contexts quickly.
-
-## Fullscreen Mode
-
-Open Menu -> `Fullscreen`.
-
-When enabled:
-
-- Browser chrome is minimized
-- System status bar is hidden
-- Website content extends to top edge
-
-To access menu again in fullscreen:
-
-- Pull down beyond top of webpage (overscroll gesture)
-
-## Menu Tiles
-
-Menu actions are displayed as tiles with Material icons.
-
-Common actions:
-
-- Bookmark active tab
 - Share URL
-- Open Settings
-- Create Workspace
-- Toggle Fullscreen
-- Reorganize Tiles
-- Sign Out (when signed in)
+- Open settings
+- Create workspace
+- Toggle fullscreen
+- Sign out (if signed in)
 
-### Reorganize menu tiles
+### 1.5 Settings Overview
 
-1. Open Menu.
-2. Tap `Reorganize Tiles`.
-3. Use left/right controls under each tile to move position.
-4. Tap `Done Reordering`.
+Settings include:
 
-Tile order is persisted.
+- Search engine
+- Default new tab URL
+- Tracker blocking toggle
+- Tab list size
+- Left-hand mode
+- Language
+- Theme
 
-## Settings
+## 2. Development Process Explanation
 
-Settings are grouped into sections:
+### 2.1 Architecture Overview
 
-### Account
+Primary layers:
 
-- Sign in/out (Firefox auth scaffold)
-- Shows sync status and last sync timestamp
+- UI shell components: `src/components/shell/`
+- Browser/webview components: `src/components/browser/`
+- State and actions: `src/store/`
+- Shared hooks and gesture logic: `src/hooks/`
+- Theme and i18n: `src/theme/`, `src/i18n/`
 
-### Privacy
+Key pattern:
 
-- Toggle tracker blocking
-- Select default search engine (`brave`, `duckduckgo`, `google`, `bing`)
+- App-level state is centralized in Zustand store
+- UI components subscribe to minimal slices of state
+- Gesture behaviors are extracted to reusable hooks (for example `useSheetGesture`)
 
-### New Tabs
+### 2.2 State and Persistence
 
-- Set default new tab URL
-- Quick presets available
-- Optional blank mode behavior:
-  - Leave default new tab field empty
-  - New tabs open blank page
-  - URL editor opens automatically with keyboard
-  - Blank page follows current theme
+State is managed in `browserStore` and persisted using AsyncStorage.
 
-### Tabs
+Persisted domains include:
 
-- Left hand mode toggle
-- Vertical tab list size selector
+- Tabs/workspaces
+- History/bookmarks
+- Preferences and UI state
 
-### Appearance
+When adding new persisted fields:
 
-- Language: `EN` or `FR`
-- Theme: `system`, `dark`, `light`
+1. Add schema/default values in store
+2. Add migration handling if format changes
+3. Verify hydration behavior on cold app start
 
-## Gestures Summary
+### 2.3 Gesture-Driven Sheet Process
 
-- URL bar swipe left/right: next/previous tab
-- URL bar swipe up: open tab tray
-- URL editor header swipe up/down: close editor
-- Tab row swipe left/right: switch workspace
-- Fullscreen top overscroll: reopen menu
+Bottom sheets (menu, tab tray, URL editor) should follow the same lifecycle:
 
-## Troubleshooting
+1. Boolean open state in store or local state
+2. `useSheetGesture` for animated `translateY`
+3. Handle area for close drag affordance
+4. Backdrop press closes the sheet
+5. Android hardware back closes topmost sheet first
 
-### URL panel does not close
+For input sheets (URL editor):
 
-- Try swiping on the panel header (not suggestion list area).
-- On Android, use hardware back button.
+- Focus input when opening
+- Dismiss keyboard when closing
 
-### Tab tray closes unexpectedly
+### 2.4 Feature Development Workflow
 
-- Background webpage scrolling closes tray by design.
+Recommended loop for each feature/fix:
 
-### Language did not update expected text
+1. Implement minimal code change
+2. Type-check: `npx tsc --noEmit`
+3. Test on Android with `npm run android` (or Expo Go path)
+4. Validate gesture edge cases and back button behavior
+5. Update docs when behavior changes
 
-- Core screens are localized first; some labels may still be in default language if not yet mapped.
+### 2.5 Release and Versioning Process
 
-### Build/type issues
+Use the detailed workflow in `docs/GIT_VERSIONING_WORKFLOW.md`.
 
-Run:
+High-level release flow:
 
-```bash
-npm install
-npx tsc --noEmit
-```
+1. Merge to `main`
+2. Bump version metadata
+3. Create and push `vX.Y.Z` tag
+4. CI builds artifacts and publishes release assets
+
+### 2.6 Debugging Checklist
+
+When behavior is incorrect:
+
+1. Type-check: `npx tsc --noEmit`
+2. Clear Metro cache: `npx expo start -c`
+3. Reinstall dependencies if needed: `npm install`
+4. Validate gesture boundaries in affected sheet component
+5. Confirm keyboard focus/dismiss behavior on Android device
+
+## 3. Related Documentation
+
+- Technical run/build instructions: `README.md`
+- Release and tag workflow: `docs/GIT_VERSIONING_WORKFLOW.md`
+- Version notes: `docs/releases/`

@@ -69,26 +69,28 @@ export const TabTray = () => {
         gesture.animatedStyle,
       ]}
     >
-        <GestureDetector gesture={gesture.panGesture}>
+      <GestureDetector gesture={gesture.panGesture}>
+        <View>
           <View style={styles.handleTouchArea}>
             <View style={styles.handle} />
           </View>
-        </GestureDetector>
-        <View style={styles.headerRow}>
-          <WorkspaceChips />
-          <Text style={[styles.count, { color: theme.text2 }]}>{workspace.tabIds.length} tabs</Text>
+          <View style={styles.headerRow}>
+            <WorkspaceChips />
+            <Text style={[styles.count, { color: theme.text2 }]}>{workspace.tabIds.length} tabs</Text>
+          </View>
         </View>
+      </GestureDetector>
 
-        <ScrollView
-          style={styles.listScroll}
-          showsVerticalScrollIndicator
-          contentContainerStyle={[
-            styles.cardsColumn,
-            {
-              paddingBottom: Math.max(insets.bottom, 10) + 90,
-            },
-          ]}
-        >
+      <ScrollView
+        style={styles.listScroll}
+        showsVerticalScrollIndicator
+        contentContainerStyle={[
+          styles.cardsColumn,
+          {
+            paddingBottom: Math.max(insets.bottom, 10) + 90,
+          },
+        ]}
+      >
           {workspace.tabIds.map((tabId) => {
             const tab = tabs[tabId];
             if (!tab) {

@@ -1,30 +1,33 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useSheetGesture } from '../../hooks/useGestures';
 import { useI18n } from '../../i18n/useI18n';
 import { getActiveTab, useBrowserStore } from '../../store/browserStore';
 import type { HistoryEntry } from '../../store/types';
 import { useTheme } from '../../theme';
 import { normalizeInputToUrl, toDomain } from '../../hooks/useWebView';
 
+const DISPLAYED_SUGGESTIONS_COUNT = 5;
+
 export const UrlBar = () => {
   const { theme } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
 
   const activeWorkspaceId = useBrowserStore((state) => state.activeWorkspaceId);
   const workspaces = useBrowserStore((state) => state.workspaces);
@@ -37,6 +40,7 @@ export const UrlBar = () => {
   const navigateActiveTab = useBrowserStore((state) => state.navigateActiveTab);
   const goToNextTab = useBrowserStore((state) => state.goToNextTab);
   const goToPreviousTab = useBrowserStore((state) => state.goToPreviousTab);
+  const isTrayOpen = useBrowserStore((state) => state.isTrayOpen);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
@@ -48,6 +52,14 @@ export const UrlBar = () => {
 
   const activeTab = useBrowserStore(getActiveTab);
   const workspace = workspaces[activeWorkspaceId];
+
+  const overlayHeight = Math.min(screenHeight * 0.78, screenHeight - insets.top - 20);
+  const overlayGesture = useSheetGesture({
+    isOpen: isOverlayOpen,
+    sheetHeight: overlayHeight,
+    closedOffset: 0,
+    onOpenChange: setOverlayOpen,
+  });
 
   useEffect(() => {
     if (urlOverlayOpenRequestId <= 0 || !activeTab || urlOverlayOpenRequestId === lastHandledOverlayRequestId.current) {
@@ -61,7 +73,20 @@ export const UrlBar = () => {
   }, [activeTab, defaultNewTabUrl, urlOverlayOpenRequestId]);
 
   useEffect(() => {
-    if (!isOverlayOpen || Platform.OS !== 'android') {
+    const timer = setTimeout(() => {
+      if (isOverlayOpen) {
+        inputRef.current?.focus();
+      } else {
+        inputRef.current?.blur();
+        Keyboard.dismiss();
+      }
+    }, 70);
+
+    return () => clearTimeout(timer);
+  }, [isOverlayOpen]);
+
+  useEffect(() => {
+    if (!isOverlayOpen) {
       return;
     }
 
@@ -73,14 +98,15 @@ export const UrlBar = () => {
     return () => sub.remove();
   }, [isOverlayOpen]);
 
-  const suggestions = useMemo(() => {
+  const suggestions = useMemo<HistoryEntry[]>(() => {
     const q = input.trim().toLowerCase();
     if (!q) {
-      return history.slice(0, 20);
+      return history.slice(0, DISPLAYED_SUGGESTIONS_COUNT);
     }
+
     return history
       .filter((entry) => entry.url.toLowerCase().includes(q) || entry.title.toLowerCase().includes(q))
-      .slice(0, 20);
+      .slice(0, DISPLAYED_SUGGESTIONS_COUNT);
   }, [history, input]);
 
   const submitInput = (value: string) => {
@@ -116,15 +142,6 @@ export const UrlBar = () => {
     }
   });
 
-  const dismissOverlayGesture = Gesture.Pan()
-    .activeOffsetY([-6, 6])
-    .failOffsetX([-40, 40])
-    .onEnd((event) => {
-      if (Math.abs(event.translationY) > 18 || Math.abs(event.velocityY) > 180) {
-        runOnJS(setOverlayOpen)(false);
-      }
-    });
-
   return (
     <>
       <GestureDetector gesture={mainBarSwipeGesture}>
@@ -137,14 +154,14 @@ export const UrlBar = () => {
               bottom: 12 + Math.max(insets.bottom, 4),
             },
           ]}
-        > 
+        >
           <Pressable onPress={() => createTab()} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
             <Text style={[styles.iconText, { color: theme.text }]}>+</Text>
           </Pressable>
 
           {isLeftHandMode ? (
             <Pressable onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
-              <Text style={[styles.iconText, { color: theme.text }]}>⋯</Text>
+              <Text style={[styles.iconText, styles.menuIconText, { color: theme.text }]}>⋯</Text>
             </Pressable>
           ) : null}
 
@@ -158,118 +175,94 @@ export const UrlBar = () => {
             <Text numberOfLines={1} style={[styles.domain, { color: theme.text }]}>
               {domain}
             </Text>
-            <Pressable
-              onPress={() => setTrayOpen(true)}
-              style={[styles.workspaceBadge, { backgroundColor: workspace?.color ?? theme.accent }]}
-            >
-              <Text style={styles.workspaceEmoji}>{workspace?.emoji ?? '🌐'}</Text>
-            </Pressable>
           </Pressable>
 
-          <Pressable onPress={() => setTrayOpen(true)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
-            <Text style={[styles.iconText, { color: theme.text }]}>{workspace?.tabIds.length ?? 0}</Text>
+          <Pressable onPress={() => setTrayOpen(!isTrayOpen)} style={[styles.iconButton, { backgroundColor: workspace?.color ?? theme.accent }]}>
+            <Text style={[styles.iconText, { color: '#FFFFFF' }]}>{workspace?.tabIds.length ?? 0}</Text>
           </Pressable>
 
           {!isLeftHandMode ? (
             <Pressable onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
-              <Text style={[styles.iconText, { color: theme.text }]}>⋯</Text>
+              <Text style={[styles.iconText, styles.menuIconText, { color: theme.text }]}>⋯</Text>
             </Pressable>
           ) : null}
         </View>
       </GestureDetector>
 
-      <Modal
-        visible={isOverlayOpen}
-        animationType="slide"
-        transparent
-        statusBarTranslucent
-        onShow={() => {
-          setTimeout(() => inputRef.current?.focus(), 60);
-        }}
-      >
-        <View style={styles.modalRoot}>
-          <Pressable style={styles.overlayBackdrop} onPress={() => setOverlayOpen(false)} />
+      {isOverlayOpen ? <Pressable style={styles.overlayBackdrop} onPress={() => setOverlayOpen(false)} /> : null}
 
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
-            style={styles.sheetWrap}
-          >
-            <View
-              style={[
-                styles.overlayCard,
-                {
-                  backgroundColor: theme.surface,
-                  paddingTop: 10,
-                  paddingBottom: Math.max(insets.bottom, 10),
-                },
-              ]}
-            >
-              <GestureDetector gesture={dismissOverlayGesture}>
-                <View style={styles.dismissZone}>
-                  <View style={[styles.dragHandle, { backgroundColor: theme.border }]} />
+      <GestureDetector gesture={overlayGesture.panGesture}>
+        <Animated.View
+          pointerEvents={isOverlayOpen ? 'auto' : 'none'}
+          style={[
+            styles.overlayCard,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              paddingTop: 10,
+              paddingBottom: Math.max(insets.bottom, 10),
+              height: overlayHeight,
+            },
+            overlayGesture.animatedStyle,
+          ]}
+        >
+          <View style={styles.dismissZone}>
+            <View style={[styles.dragHandle, { backgroundColor: theme.border }]} />
 
-                  <View style={styles.overlayHeader}>
-                    <Text style={[styles.overlayTitle, { color: theme.text }]}>{t('address')}</Text>
-                    <Pressable onPress={() => setOverlayOpen(false)} style={styles.closeTapTarget}>
-                      <Text style={[styles.closeText, { color: theme.text2 }]}>{t('close')}</Text>
-                    </Pressable>
-                  </View>
-
-                </View>
-              </GestureDetector>
-
-              <View style={styles.inputWrap}>
-                <TextInput
-                  ref={(node) => {
-                    inputRef.current = node;
-                  }}
-                  value={input}
-                  onChangeText={setInput}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  style={[
-                    styles.input,
-                    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface2 },
-                  ]}
-                  placeholder={t('searchOrEnterAddress')}
-                  placeholderTextColor={theme.text2}
-                  onSubmitEditing={(event) => submitInput(event.nativeEvent.text)}
-                />
-
-                {input.length > 0 ? (
-                  <Pressable onPress={() => setInput('')} style={styles.clearInputButton} hitSlop={8}>
-                    <Text style={[styles.clearInputText, { color: theme.text2 }]}>×</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-
-              <FlatList<HistoryEntry>
-                style={styles.suggestionsList}
-                data={suggestions}
-                keyExtractor={(item) => item.id}
-                keyboardShouldPersistTaps="always"
-                renderItem={({ item }) => (
-                  <Pressable
-                    style={styles.suggestionRow}
-                    onPress={() => {
-                      setInput(item.url);
-                      submitInput(item.url);
-                    }}
-                  >
-                    <Text numberOfLines={1} style={[styles.suggestionTitle, { color: theme.text }]}>
-                      {item.title}
-                    </Text>
-                    <Text numberOfLines={1} style={[styles.suggestionUrl, { color: theme.text2 }]}>
-                      {item.url}
-                    </Text>
-                  </Pressable>
-                )}
-              />
+            <View style={styles.overlayHeader}>
+              <Text style={[styles.overlayTitle, { color: theme.text }]}>{t('address')}</Text>
+              <Pressable onPress={() => setOverlayOpen(false)} style={styles.closeTapTarget}>
+                <Text style={[styles.closeText, { color: theme.text2 }]}>{t('close')}</Text>
+              </Pressable>
             </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+          </View>
+
+          <View style={styles.inputWrap}>
+            <TextInput
+              ref={(node) => {
+                inputRef.current = node;
+              }}
+              value={input}
+              onChangeText={setInput}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={[
+                styles.input,
+                { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface2 },
+              ]}
+              placeholder={t('searchOrEnterAddress')}
+              placeholderTextColor={theme.text2}
+              onSubmitEditing={(event) => submitInput(event.nativeEvent.text)}
+            />
+
+            {input.length > 0 ? (
+              <Pressable onPress={() => setInput('')} style={styles.clearInputButton} hitSlop={8}>
+                <Text style={[styles.clearInputText, { color: theme.text2 }]}>x</Text>
+              </Pressable>
+            ) : null}
+          </View>
+
+          <View style={styles.suggestionsList}>
+            {suggestions.map((item) => (
+              <Pressable
+                key={item.id}
+                style={styles.suggestionRow}
+                onPress={() => {
+                  setInput(item.url);
+                  submitInput(item.url);
+                }}
+              >
+                <Text numberOfLines={1} style={[styles.suggestionTitle, { color: theme.text }]}>
+                  {item.title}
+                </Text>
+                <Text numberOfLines={1} style={[styles.suggestionUrl, { color: theme.text2 }]}>
+                  {item.url}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Animated.View>
+      </GestureDetector>
     </>
   );
 };
@@ -298,6 +291,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+  menuIconText: {
+    textAlign: 'center',
+    minWidth: 16,
+  },
   pill: {
     flex: 1,
     minHeight: 34,
@@ -314,30 +311,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  workspaceBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  workspaceEmoji: {
-    fontSize: 13,
-  },
-  modalRoot: {
-    flex: 1,
-  },
   overlayBackdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  sheetWrap: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
   overlayCard: {
-    height: '78%',
-    maxHeight: '92%',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopWidth: 1,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 14,
@@ -395,7 +378,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   suggestionsList: {
-    flex: 1,
+    paddingTop: 4,
   },
   suggestionRow: {
     paddingVertical: 10,

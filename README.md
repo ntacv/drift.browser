@@ -1,127 +1,52 @@
-# Zen Mobile Browser (Made with AI)
+# Zen Mobile Browser
 
-A gesture-first mobile browser proof of concept built with Expo + React Native.
+Technical setup and run instructions for the Expo/React Native workspace.
 
-This project focuses on a modern browser shell experience:
-- Workspace-based tab organization
-- Vertical tab tray
-- Fast URL entry and history suggestions
-- Optional fullscreen browsing mode
-- Left-hand mode layout option
-- Language support (English/French)
-- Reorderable menu tiles with Material icons
-- Themed UI (light/dark/system)
-- Local persistence (tabs, settings, history, bookmarks)
+## Requirements
 
-## Table of Contents
-
-- Overview
-- Author Development Setup
-- Download the App (Releases)
-- Quick Start (Run Locally)
-- Build the App
-- Project Scripts
-- How to Use the App
-- Features Documentation
-- User Documentation
-- Git and Versioning Workflow
-- Tech Stack
-- Project Structure
-- Troubleshooting
-- Contributing
-- License
-
-## Overview
-
-Zen Mobile Browser POC is a React Native app designed to test a mobile-first browser UX.
-
-Key ideas:
-- Bottom URL bar as the central interaction point
-- Gesture interactions for tabs and tray
-- Workspace model to separate contexts (Personal, Work, Research)
-- Smooth transition between browsing and tab management
-
-## Author Development Setup
-
-Current setup used for building this project:
-
-- Editor: VS Code
-- AI coding assistant: GitHub Copilot
-- Copilot mode: Agent mode with Auto model selection
-- Model used most often: GPT-5.3-Codex
-- Terminal: Warp (with AI/agent mode enabled when debugging errors)
-- Runtime testing tool: Expo Go
-- Main test device: Google Pixel 9
-
-This context helps explain implementation style and rapid iteration workflow in this repository.
-
-## Download the App (Releases)
-
-If you just want to install and test, use GitHub Releases.
-
-1. Go to the repository Releases page.
-2. Download the latest build artifacts.
-3. Install based on your platform:
-
-- Android:
-  - Download `.apk` (or `.aab` if your release process provides Play-distributed bundles).
-  - Enable installation from unknown sources if required.
-  - Open the APK on your device and install.
-- iOS:
-  - Use TestFlight invite/build from the release notes when available.
-
-If your repository does not yet publish binaries, follow the build steps below.
-
-## Quick Start (Run Locally)
-
-### Prerequisites
-
-- Node.js 20+ recommended
+- Node.js 20+
 - npm 10+
-- Android Studio (for Android emulator/device builds)
-- Xcode (for iOS simulator/device builds, macOS only)
-- Expo CLI via `npx expo` (no global install required)
+- Android Studio for Android SDK/emulator
+- Xcode for iOS builds (macOS only)
 
-### Install
+## Install
 
 ```bash
 npm install
 ```
 
-### Start development server
+## Run (Development)
+
+Start Metro/Expo:
 
 ```bash
 npm run start
 ```
 
-Then open:
-- Android emulator/device: press `a` in Expo terminal or run `npm run android`
-- iOS simulator/device (macOS): press `i` or run `npm run ios`
-- Web preview: `npm run web`
+Targets:
 
-## Build the App
+- Android: `npm run android`
+- iOS (macOS): `npm run ios`
+- Web: `npm run web`
 
-This project can be built with either EAS Build (recommended for distribution) or local native builds.
+## Type Check
 
-### Option A: EAS Build (recommended for release)
+```bash
+npx tsc --noEmit
+```
 
-1. Login and configure EAS:
+## Build
+
+### EAS Cloud Builds (recommended)
 
 ```bash
 npx eas login
 npx eas build:configure
-```
-
-2. Create builds:
-
-```bash
 npx eas build --platform android
 npx eas build --platform ios
 ```
 
-3. Download artifacts from EAS dashboard or attach them to GitHub Releases.
-
-### Option B: Local native build
+### Local Native Builds
 
 Android:
 
@@ -129,188 +54,42 @@ Android:
 npx expo run:android
 ```
 
-iOS (macOS only):
+iOS (macOS):
 
 ```bash
 npx expo run:ios
 ```
 
-## Project Scripts
+## Core Scripts
 
-From `package.json`:
+- `npm run start`
+- `npm run android`
+- `npm run ios`
+- `npm run web`
 
-- `npm run start`: Start Expo dev server
-- `npm run android`: Launch Android target from Expo
-- `npm run ios`: Launch iOS target from Expo
-- `npm run web`: Launch web preview
-
-## How to Use the App
-
-### Main Browser Screen
-
-- The website fills the main viewport.
-- Bottom URL bar is your primary control strip.
-- Bottom controls include:
-  - New tab (`+`)
-  - URL/domain pill
-  - Tab count button
-  - Menu button (`...`)
-
-### Open and Use URL Input
-
-- Tap the URL/domain pill to open address editing.
-- Type URL or search text, then submit.
-- History suggestions appear below the input.
-- On Android, pressing the device back button closes the URL panel if it is open.
-- Close methods:
-  - Tap `Close`
-  - Swipe up or down in the overlay header zone
-  - Tap outside the sheet backdrop
-- Input tools:
-  - Right-side `x` button clears current text
-
-### Tab Navigation and Management
-
-- Swipe left/right on the main URL bar to move to next/previous tab.
-- Swipe up on main URL bar to open vertical tab tray.
-- Vertical tab tray:
-  - Shows tabs as a scrollable vertical list
-  - Always shows close-tab button per row
-  - Tray remains open while switching workspaces
-  - Scrolling the background webpage dismisses tray
-  - Tap a tab to switch
-  - Tap `+ New Tab` at bottom to create a tab
-
-### Workspaces
-
-- Tabs are grouped by workspace (Personal, Work, Research by default).
-- In tab tray, workspace chips appear at the top.
-- Swipe on a tab row left/right to switch workspace quickly.
-
-### Fullscreen Mode
-
-- Open menu and enable fullscreen.
-- In fullscreen:
-  - Browser UI overlays are minimized
-  - System status bar is hidden
-  - Web content reaches top of the screen
-- To reopen controls/menu in fullscreen, use top overscroll gesture behavior in the webpage.
-
-### Settings
-
-Settings include:
-- Account sign-in/out (Firefox account flow scaffold)
-- Tracker blocking toggle
-- Default search engine
-- Default new tab page
-- Language setting (`EN`, `FR`)
-- Tab list size (`compact`, `comfortable`, `expanded`)
-- Left hand mode toggle
-- Theme preference
-- Menu tile reordering mode
-
-Default New Tab behavior:
-- If default new tab value is a URL, new tabs open that URL.
-- If set to `about:blank`, tabs open a blank page.
-- If left empty:
-  - New tabs open a blank page
-  - URL editor opens automatically
-  - Keyboard is focused for immediate typing
-  - Blank page respects app theme (dark in dark mode)
-
-## Features Documentation
-
-### 1) URL + Search Handling
-
-- Input is normalized to URL or search query based on selected engine.
-- Suggestions use recent browsing history.
-
-### 2) Persistent Browser State
-
-Stored locally:
-- Workspaces and tab tree
-- Active tab/workspace
-- Bookmarks and history
-- Preferences (theme, search engine, language, tracker blocking, default new-tab URL, fullscreen, tab list size, left-hand mode, menu tile order)
-
-### 3) WebView Bridge
-
-Injected page script communicates:
-- Favicon discovery
-- Scroll position updates
-- Overscroll events used by shell interactions
-
-### 4) Tracker Blocking (POC level)
-
-- Uses host-based checks for selected known trackers.
-- Current approach primarily affects navigations and is intentionally simple for POC scope.
-
-### 5) Theming
-
-- `system`, `dark`, and `light` modes
-- Shared design tokens for backgrounds, surfaces, text, accents, and spacing
-
-### 6) Menu Tiles
-
-- Menu actions are shown as tiles with Google Material icons.
-- Tile order can be reorganized from inside the menu via `Reorganize Tiles`.
-- Reordered layout is persisted across app restarts.
-
-## User Documentation
-
-Detailed end-user documentation is available at:
-
-- `docs/USER_GUIDE.md`
-
-## Git and Versioning Workflow
-
-To keep feature history understandable and releases traceable:
-
-- Follow commit and tagging guide: `docs/GIT_VERSIONING_WORKFLOW.md`
-- Review release notes/checklist for current version: `docs/releases/v1.1.0.md`
-- Use semantic version tags like `vX.Y.Z`
-- Push tags to trigger automatic GitHub Releases (release notes are generated from history)
-
-Release workflow file:
-
-- `.github/workflows/release-on-tag.yml`
-
-Packaged release artifacts:
-
-- On each pushed version tag (`v*.*.*`), CI builds:
-  - Android `.apk`
-  - iOS `.ipa`
-- Both files are attached to the GitHub Release automatically.
-
-Required GitHub secret for CI builds:
-
-- `EXPO_TOKEN`: Expo token with access to the EAS project
-
-## Tech Stack
+## Stack
 
 - Expo SDK 55
 - React Native 0.83
 - React 19
 - TypeScript
-- Zustand + AsyncStorage persistence
-- React Navigation
+- Zustand + AsyncStorage
 - React Native WebView
-- Gesture Handler + Reanimated
-- Safe Area Context
-- Expo Vector Icons (Material Icons)
+- React Native Gesture Handler + Reanimated
+- React Navigation
 
-## Project Structure
+## Project Layout
 
 ```text
 .
 |- App.tsx
 |- app.json
 |- docs/
-|  \- USER_GUIDE.md
+|  |- USER_GUIDE.md
+|  |- GIT_VERSIONING_WORKFLOW.md
+|  \- releases/
 |- src/
 |  |- components/
-|  |  |- browser/
-|  |  \- shell/
 |  |- hooks/
 |  |- i18n/
 |  |- screens/
@@ -323,37 +102,21 @@ Required GitHub secret for CI builds:
 
 ## Troubleshooting
 
-### Metro or Babel preset errors
+Clear Metro cache:
 
 ```bash
-npm install
 npx expo start -c
 ```
 
-### Type-check project
+Reinstall dependencies:
 
 ```bash
-npx tsc --noEmit
+npm install
 ```
 
-### WebView or gesture oddities
+Verify Reanimated plugin in `babel.config.js` if gesture animations fail.
 
-- Close and relaunch Metro.
-- Rebuild app after native dependency updates.
-- Confirm `react-native-reanimated` plugin is present in `babel.config.js`.
+## Documentation
 
-## Contributing
-
-1. Fork and create a feature branch.
-2. Keep PRs focused and small.
-3. Run type checks before opening PR:
-
-```bash
-npx tsc --noEmit
-```
-
-4. Add screenshots or short clips for UI/gesture changes.
-
-## License
-
-Choose and add a license file if this repository is public (for example MIT).
+- User + development process guide: `docs/USER_GUIDE.md`
+- Git/versioning workflow: `docs/GIT_VERSIONING_WORKFLOW.md`
