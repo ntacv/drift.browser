@@ -140,7 +140,7 @@ export const translations = {
     cancel: 'Annuler',
     save: 'Enregistrer',
     supportAndAbout: 'Support et à propos',
-    contactSupport: 'Contacter le support',
+    contactSupport: 'Contacter pour une requête',
     sourceCode: 'Code source',
   },
 } as const;

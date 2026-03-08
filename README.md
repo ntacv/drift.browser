@@ -4,6 +4,14 @@ WARNING: This application has been developed by ai agents. It may contain bugs, 
 
 Technical setup and run instructions for the Expo/React Native workspace.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/images/screenshot1.png" width="250" alt="Screenshot 1">
+  <img src="docs/images/screenshot2.png" width="250" alt="Screenshot 2">
+  <img src="docs/images/screenshot3.png" width="250" alt="Screenshot 3">
+</p>
+
 ## Documentation
 
 - User + development process guide: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
