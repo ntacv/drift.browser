@@ -16,7 +16,7 @@ IA TODO
 - [ ] the back button on the browser view should return to the last visited page
 - [x] the list of workspace should not be a scrollable list, put it in a flexbox, it will make rows of workspace, dont force them to take the full width.
 - [x] remove the emoji from the workspace 
-- [ ] transparent mode is not saved like the other settings, it reset when restarting
+- [x] transparent mode is not saved like the other settings, it reset when restarting
 - [x] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
 
 ## Technical

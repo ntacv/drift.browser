@@ -507,6 +507,7 @@ export const useBrowserStore = create<BrowserStore>()(
         defaultNewTabUrl: state.defaultNewTabUrl,
         blockTrackers: state.blockTrackers,
         isFullscreen: state.isFullscreen,
+        isTransparentMode: state.isTransparentMode,
       }),
     },
   ),
