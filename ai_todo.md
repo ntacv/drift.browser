@@ -1,7 +1,7 @@
 IA TODO
 
-change name
-add a support button
+add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed
+also add "source code" to link to the github
 
 
 ## Bugs

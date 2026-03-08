@@ -1,4 +1,4 @@
-# Drift - User Guide and Development Process
+# Drift Browser - User Guide and Development Process
 
 This document contains:
 
@@ -84,7 +84,7 @@ Settings include:
 
 ### 1.6 Fullscreen Modes
 
-Drift supports two types of fullscreen modes:
+Drift Browser supports two types of fullscreen modes:
 
 #### User Fullscreen
 
