@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetGesture } from '../../hooks/useGestures';
@@ -36,6 +36,7 @@ export const TabTray = () => {
   const scrollViewportHeightRef = useRef(0);
   const tabLayoutsRef = useRef<Record<string, { y: number; height: number }>>({});
   const centerRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollViewNativeGestureRef = useRef(Gesture.Native());
 
   const workspace = workspaces[activeWorkspaceId];
   const gesture = useSheetGesture({
@@ -94,6 +95,21 @@ export const TabTray = () => {
     switchWorkspace(nextWorkspaceId);
   };
 
+  const horizontalPanGesture = Gesture.Pan()
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-12, 12])
+    .simultaneousWithExternalGesture(scrollViewNativeGestureRef.current)
+    .onEnd((event) => {
+      if (event.translationX < -50 || event.velocityX < -260) {
+        runOnJS(switchWorkspaceByOffset)(1);
+        return;
+      }
+
+      if (event.translationX > 50 || event.velocityX > 260) {
+        runOnJS(switchWorkspaceByOffset)(-1);
+      }
+    });
+
   if (!workspace) {
     return null;
   }
@@ -123,24 +139,26 @@ export const TabTray = () => {
         </View>
       </GestureDetector>
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.listScroll}
-        showsVerticalScrollIndicator
-        onLayout={(event) => {
-          scrollViewportHeightRef.current = event.nativeEvent.layout.height;
-          centerActiveTab(0);
-        }}
-        onContentSizeChange={() => {
-          centerActiveTab(0);
-        }}
-        contentContainerStyle={[
-          styles.cardsColumn,
-          {
-            paddingBottom: Math.max(insets.bottom, 10) + 90,
-          },
-        ]}
-      >
+      <GestureDetector gesture={horizontalPanGesture}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.listScroll}
+          showsVerticalScrollIndicator
+          simultaneousHandlers={scrollViewNativeGestureRef}
+          onLayout={(event) => {
+            scrollViewportHeightRef.current = event.nativeEvent.layout.height;
+            centerActiveTab(0);
+          }}
+          onContentSizeChange={() => {
+            centerActiveTab(0);
+          }}
+          contentContainerStyle={[
+            styles.cardsColumn,
+            {
+              paddingBottom: Math.max(insets.bottom, 10) + 90,
+            },
+          ]}
+        >
           <Pressable
             onPress={() => createTab()}
             style={[styles.newCard, { borderColor: theme.border, backgroundColor: theme.surface2 }]}
@@ -166,8 +184,6 @@ export const TabTray = () => {
                   tab={tab}
                   workspaceColor={workspace.color}
                   isActive={workspace.activeTabId === tab.id}
-                  onSwipeLeft={() => switchWorkspaceByOffset(1)}
-                  onSwipeRight={() => switchWorkspaceByOffset(-1)}
                   onPress={() => {
                     switchTab(tab.id);
                     setTrayOpen(false);
@@ -178,7 +194,8 @@ export const TabTray = () => {
             );
           })}
         </ScrollView>
-      </Animated.View>
+      </GestureDetector>
+    </Animated.View>
   );
 };
 

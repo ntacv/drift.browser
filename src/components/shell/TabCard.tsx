@@ -1,8 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import React, { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { runOnJS } from 'react-native-reanimated';
 
 import { useBrowserStore } from '../../store/browserStore';
 import type { Tab } from '../../store/types';
@@ -12,8 +10,6 @@ interface TabCardProps {
   tab: Tab;
   isActive: boolean;
   workspaceColor: string;
-  onSwipeLeft?: () => void;
-  onSwipeRight?: () => void;
   onPress: () => void;
   onClose: () => void;
 }
@@ -22,8 +18,6 @@ export const TabCard = ({
   tab,
   isActive,
   workspaceColor,
-  onSwipeLeft,
-  onSwipeRight,
   onPress,
   onClose,
 }: TabCardProps) => {
@@ -38,84 +32,64 @@ export const TabCard = ({
     }
   }, [tab.url]);
 
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-20, 20])
-    .failOffsetY([-12, 12])
-    .onEnd((event) => {
-      if (event.translationX < -50 || event.velocityX < -260) {
-        if (onSwipeLeft) {
-          runOnJS(onSwipeLeft)();
-        }
-        return;
-      }
-
-      if (event.translationX > 50 || event.velocityX > 260) {
-        if (onSwipeRight) {
-          runOnJS(onSwipeRight)();
-        }
-      }
-    });
-
   return (
-    <GestureDetector gesture={swipeGesture}>
-      <Pressable
-        onPress={onPress}
-        style={[
-          styles.card,
-          {
-            backgroundColor: theme.surface2,
-            borderColor: isActive ? workspaceColor : theme.border,
-          },
-        ]}
-      >
-        <View style={[styles.activeBar, { backgroundColor: isActive ? workspaceColor : 'transparent' }]} />
-        <View style={styles.contentRow}>
-          {isLeftHandMode ? (
-            <Pressable
-              onPress={() => {
-                onClose();
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
-              }}
-              style={[styles.closeButton, { backgroundColor: theme.danger }]}
-            >
-              <Text style={styles.closeLabel}>x</Text>
-            </Pressable>
-          ) : null}
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.surface2,
+          borderColor: isActive ? workspaceColor : theme.border,
+        },
+      ]}
+    >
+      <View style={[styles.activeBar, { backgroundColor: isActive ? workspaceColor : 'transparent' }]} />
+      <View style={styles.contentRow}>
+        {isLeftHandMode ? (
+          <Pressable
+            onPress={() => {
+              onClose();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+            }}
+            style={[styles.closeButton, { backgroundColor: theme.danger }]}
+          >
+            <Text style={styles.closeLabel}>x</Text>
+          </Pressable>
+        ) : null}
 
-          {tab.favicon ? (
-            <Image source={{ uri: tab.favicon }} style={styles.favicon} />
-          ) : (
-            <View style={[styles.fallbackIcon, { backgroundColor: workspaceColor }]}>
-              <Text style={styles.fallbackText}>{domain.slice(0, 1).toUpperCase()}</Text>
-            </View>
-          )}
-
-          <View style={styles.textBlock}>
-            <View style={styles.titleRow}>
-              <Text numberOfLines={1} style={[styles.title, { color: theme.text }]}>
-                {tab.title || 'Untitled'}
-              </Text>
-              {tab.isPinned ? <Text style={[styles.pin, { color: theme.text2 }]}>PIN</Text> : null}
-            </View>
-            <Text numberOfLines={1} style={[styles.domain, { color: theme.text2 }]}>
-              {domain}
-            </Text>
+        {tab.favicon ? (
+          <Image source={{ uri: tab.favicon }} style={styles.favicon} />
+        ) : (
+          <View style={[styles.fallbackIcon, { backgroundColor: workspaceColor }]}>
+            <Text style={styles.fallbackText}>{domain.slice(0, 1).toUpperCase()}</Text>
           </View>
+        )}
 
-          {!isLeftHandMode ? (
-            <Pressable
-              onPress={() => {
-                onClose();
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
-              }}
-              style={[styles.closeButton, { backgroundColor: theme.danger }]}
-            >
-              <Text style={styles.closeLabel}>x</Text>
-            </Pressable>
-          ) : null}
+        <View style={styles.textBlock}>
+          <View style={styles.titleRow}>
+            <Text numberOfLines={1} style={[styles.title, { color: theme.text }]}>
+              {tab.title || 'Untitled'}
+            </Text>
+            {tab.isPinned ? <Text style={[styles.pin, { color: theme.text2 }]}>PIN</Text> : null}
+          </View>
+          <Text numberOfLines={1} style={[styles.domain, { color: theme.text2 }]}>
+            {domain}
+          </Text>
         </View>
-      </Pressable>
-    </GestureDetector>
+
+        {!isLeftHandMode ? (
+          <Pressable
+            onPress={() => {
+              onClose();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+            }}
+            style={[styles.closeButton, { backgroundColor: theme.danger }]}
+          >
+            <Text style={styles.closeLabel}>x</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    </Pressable>
   );
 };
 
