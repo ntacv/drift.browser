@@ -2,6 +2,11 @@
 
 Technical setup and run instructions for the Expo/React Native workspace.
 
+## Documentation
+
+- User + development process guide: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
+- Git/versioning workflow: [docs/GIT_VERSIONING_WORKFLOW.md](docs/GIT_VERSIONING_WORKFLOW.md)
+
 ## Requirements
 
 - Node.js 20+
@@ -115,8 +120,3 @@ npm install
 ```
 
 Verify Reanimated plugin in `babel.config.js` if gesture animations fail.
-
-## Documentation
-
-- User + development process guide: `docs/USER_GUIDE.md`
-- Git/versioning workflow: `docs/GIT_VERSIONING_WORKFLOW.md`
