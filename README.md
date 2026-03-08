@@ -1,5 +1,7 @@
 # Zen Mobile Browser
 
+WARNING: This application has been developed by ai agents. It may contain bugs, security vulnerabilities, and other issues. Use at your own risk.
+
 Technical setup and run instructions for the Expo/React Native workspace.
 
 ## Documentation

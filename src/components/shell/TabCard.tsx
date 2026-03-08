@@ -3,6 +3,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
 import type { Tab } from '../../store/types';
 import { useTheme } from '../../theme';
@@ -23,6 +24,7 @@ export const TabCard = ({
   onClose,
 }: TabCardProps) => {
   const { theme } = useTheme();
+  const { t } = useI18n();
   const isLeftHandMode = useBrowserStore((state) => state.isLeftHandMode);
   const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
 
@@ -75,9 +77,9 @@ export const TabCard = ({
         <View style={styles.textBlock}>
           <View style={styles.titleRow}>
             <Text numberOfLines={1} style={[styles.title, isCompactTabList && styles.titleCompact, { color: theme.text }]}>
-              {tab.title || 'Untitled'}
+              {tab.title === 'New Tab' ? t('newTabLabel') : tab.title || t('untitled')}
             </Text>
-            {tab.isPinned ? <Text style={[styles.pin, { color: theme.text2 }]}>PIN</Text> : null}
+            {tab.isPinned ? <Text style={[styles.pin, { color: theme.text2 }]}>{t('pinnedShort')}</Text> : null}
           </View>
           <Text numberOfLines={1} style={[styles.domain, isCompactTabList && styles.domainCompact, { color: theme.text2 }]}>
             {domain}

@@ -5,6 +5,7 @@ import Animated, { runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetGesture } from '../../hooks/useGestures';
+import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import { TabCard } from './TabCard';
@@ -17,6 +18,7 @@ const TAB_LIST_HEIGHTS = {
 
 export const TabTray = () => {
   const { theme } = useTheme();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const isTrayOpen = useBrowserStore((state) => state.isTrayOpen);
@@ -135,7 +137,7 @@ export const TabTray = () => {
           </View>
           <View style={styles.headerRow}>
             <WorkspaceChips />
-            <Text style={[styles.count, { color: theme.text2 }]}>{workspace.tabIds.length} tabs</Text>
+            <Text style={[styles.count, { color: theme.text2 }]}>{workspace.tabIds.length} {t('tabs')}</Text>
           </View>
         </View>
       </GestureDetector>
@@ -165,7 +167,7 @@ export const TabTray = () => {
             onPress={() => createTab()}
             style={[styles.newCard, isCompactTabList && styles.newCardCompact, { borderColor: theme.border, backgroundColor: theme.surface2 }]}
           >
-            <Text style={[styles.newCardText, isCompactTabList && styles.newCardTextCompact, { color: theme.text }]}>+ New Tab</Text>
+            <Text style={[styles.newCardText, isCompactTabList && styles.newCardTextCompact, { color: theme.text }]}>+ {t('newTabLabel')}</Text>
           </Pressable>
           {workspace.tabIds.map((tabId) => {
             const tab = tabs[tabId];

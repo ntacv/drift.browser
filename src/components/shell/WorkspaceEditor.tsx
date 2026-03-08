@@ -3,6 +3,7 @@ import { Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
+import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import type { Workspace } from '../../store/types';
@@ -10,7 +11,7 @@ import type { Workspace } from '../../store/types';
 interface WorkspaceEditorProps {
   visible: boolean;
   workspace: Workspace | null;
-  onClose: () => void; 
+  onClose: () => void;
 }
 
 const ICON_OPTIONS: Array<{ name: keyof typeof MaterialIcons.glyphMap | null; label: string }> = [
@@ -44,6 +45,7 @@ const COLOR_OPTIONS = [
 
 export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditorProps) => {
   const { theme } = useTheme();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const workspaceOrder = useBrowserStore((state) => state.workspaceOrder);
   const translateY = useRef(new Animated.Value(0)).current;
@@ -186,17 +188,17 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
             {/* Header */}
             <View style={styles.header} {...panResponder.panHandlers}>
               <View style={[styles.handle, { backgroundColor: theme.border }]} />
-              <Text style={[styles.title, { color: theme.text }]}>Edit Workspace</Text>
+              <Text style={[styles.title, { color: theme.text }]}>{t('editWorkspace')}</Text>
             </View>
 
             {/* Name Input */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>Name</Text>
+              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>{t('workspaceName')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.bg, color: theme.text, borderColor: theme.border }]}
                 value={label}
                 onChangeText={setLabel}
-                placeholder="Workspace name"
+                placeholder={t('workspaceNamePlaceholder')}
                 placeholderTextColor={theme.text3}
                 maxLength={20}
               />
@@ -204,7 +206,7 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
 
             {/* Icon Picker */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>Icon</Text>
+              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>{t('workspaceIcon')}</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -232,7 +234,7 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
 
             {/* Color Picker */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>Color</Text>
+              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>{t('workspaceColor')}</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -256,7 +258,7 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
 
             {/* Reorder */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>Order</Text>
+              <Text style={[styles.sectionLabel, { color: theme.text2 }]}>{t('workspaceOrder')}</Text>
               <View style={styles.reorderRow}>
                 <Pressable
                   style={[
@@ -267,7 +269,7 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
                   disabled={!canMoveLeft}
                 >
                   <MaterialIcons name="chevron-left" size={20} color={theme.text} />
-                  <Text style={[styles.reorderText, { color: theme.text }]}>Move Left</Text>
+                  <Text style={[styles.reorderText, { color: theme.text }]}>{t('moveLeft')}</Text>
                 </Pressable>
 
                 <Pressable
@@ -278,7 +280,7 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
                   onPress={() => handleMoveWorkspace('right')}
                   disabled={!canMoveRight}
                 >
-                  <Text style={[styles.reorderText, { color: theme.text }]}>Move Right</Text>
+                  <Text style={[styles.reorderText, { color: theme.text }]}>{t('moveRight')}</Text>
                   <MaterialIcons name="chevron-right" size={20} color={theme.text} />
                 </Pressable>
               </View>
@@ -290,14 +292,14 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
                 style={[styles.button, styles.cancelButton, { backgroundColor: theme.bg, borderColor: theme.border }]}
                 onPress={handleCancel}
               >
-                <Text style={[styles.buttonText, { color: theme.text }]}>Cancel</Text>
+                <Text style={[styles.buttonText, { color: theme.text }]}>{t('cancel')}</Text>
               </Pressable>
               <Pressable
                 style={[styles.button, styles.saveButton, { backgroundColor: color, opacity: !label.trim() ? 0.5 : 1 }]}
                 onPress={handleSave}
                 disabled={!label.trim()}
               >
-                <Text style={[styles.buttonText, { color: '#fff' }]}>Save</Text>
+                <Text style={[styles.buttonText, { color: '#fff' }]}>{t('save')}</Text>
               </Pressable>
             </View>
           </ScrollView>

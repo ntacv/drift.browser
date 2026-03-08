@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useI18n } from '../i18n/useI18n';
 import { useBrowserStore } from '../store/browserStore';
 import { useTheme } from '../theme';
 
@@ -11,12 +12,13 @@ interface NewTabScreenProps {
 
 export const NewTabScreen = ({ onDone }: NewTabScreenProps) => {
   const { theme } = useTheme();
+  const { t } = useI18n();
   const createTab = useBrowserStore((state) => state.createTab);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={['top', 'left', 'right']}>
-      <View style={styles.root}> 
-        <Text style={[styles.title, { color: theme.text }]}>Create a New Tab</Text>
+      <View style={styles.root}>
+        <Text style={[styles.title, { color: theme.text }]}>{t('createNewTabTitle')}</Text>
         <Pressable
           style={[styles.button, { backgroundColor: theme.accent }]}
           onPress={() => {
@@ -24,7 +26,7 @@ export const NewTabScreen = ({ onDone }: NewTabScreenProps) => {
             onDone();
           }}
         >
-          <Text style={styles.buttonLabel}>Open New Tab</Text>
+          <Text style={styles.buttonLabel}>{t('openNewTab')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

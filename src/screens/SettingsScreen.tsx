@@ -15,6 +15,30 @@ const LANGUAGES: AppLanguage[] = ['en', 'fr'];
 const TAB_LIST_SIZES: TabListSize[] = ['compact', 'comfortable', 'expanded'];
 const NEW_TAB_PRESETS = ['about:blank', 'https://www.google.com'];
 
+const THEME_LABEL_KEY: Record<ThemePreference, 'themeSystem' | 'themeDark' | 'themeLight'> = {
+  system: 'themeSystem',
+  dark: 'themeDark',
+  light: 'themeLight',
+};
+
+const TAB_SIZE_LABEL_KEY: Record<TabListSize, 'tabSizeCompact' | 'tabSizeComfortable' | 'tabSizeExpanded'> = {
+  compact: 'tabSizeCompact',
+  comfortable: 'tabSizeComfortable',
+  expanded: 'tabSizeExpanded',
+};
+
+const SEARCH_ENGINE_LABEL_KEY: Record<SearchEngine, 'searchEngineGoogle' | 'searchEngineBrave' | 'searchEngineDuckduckgo' | 'searchEngineBing'> = {
+  google: 'searchEngineGoogle',
+  brave: 'searchEngineBrave',
+  duckduckgo: 'searchEngineDuckduckgo',
+  bing: 'searchEngineBing',
+};
+
+const LANGUAGE_LABEL_KEY: Record<AppLanguage, 'languageEnglish' | 'languageFrench'> = {
+  en: 'languageEnglish',
+  fr: 'languageFrench',
+};
+
 export const SettingsScreen = () => {
   const { theme } = useTheme();
   const { language, t } = useI18n();
@@ -67,7 +91,7 @@ export const SettingsScreen = () => {
               onPress={() => navigation.goBack()}
               style={[styles.backButton, { backgroundColor: theme.surface2, borderColor: theme.border }]}
             >
-              <Text style={[styles.backButtonText, { color: theme.text }]}>{t('back')}</Text>
+              <Text style={[styles.backButtonText, { color: theme.text }]}>{t('close')}</Text>
             </Pressable>
             <Text style={[styles.header, { color: theme.text }]}>{t('settingsTitle')}</Text>
             <View style={styles.headerSpacer} />
@@ -127,7 +151,7 @@ export const SettingsScreen = () => {
                     },
                   ]}
                 >
-                  <Text style={[styles.chipLabel, { color: searchEngine === engine ? '#fff' : theme.text }]}>{engine}</Text>
+                  <Text style={[styles.chipLabel, { color: searchEngine === engine ? '#fff' : theme.text }]}>{t(SEARCH_ENGINE_LABEL_KEY[engine])}</Text>
                 </Pressable>
               ))}
             </View>
@@ -193,7 +217,7 @@ export const SettingsScreen = () => {
                   onPress={() => setTabListSize(size)}
                   style={[styles.chip, { backgroundColor: tabListSize === size ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: tabListSize === size ? '#fff' : theme.text }]}>{size}</Text>
+                  <Text style={[styles.chipLabel, { color: tabListSize === size ? '#fff' : theme.text }]}>{t(TAB_SIZE_LABEL_KEY[size])}</Text>
                 </Pressable>
               ))}
             </View>
@@ -217,13 +241,13 @@ export const SettingsScreen = () => {
                   onPress={() => setLanguage(lang)}
                   style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: language === lang ? '#fff' : theme.text }]}>{lang.toUpperCase()}</Text>
+                  <Text style={[styles.chipLabel, { color: language === lang ? '#fff' : theme.text }]}>{t(LANGUAGE_LABEL_KEY[lang])}</Text>
                 </Pressable>
               ))}
             </View>
 
             <View style={styles.switchRow}>
-              <Text style={[styles.rowText, { color: theme.text }]}>Transparent Mode</Text>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('transparentMode')}</Text>
               <Switch value={isTransparentMode} onValueChange={setTransparentMode} />
             </View>
 
@@ -234,7 +258,7 @@ export const SettingsScreen = () => {
                   onPress={() => setThemePreference(pref)}
                   style={[styles.chip, { backgroundColor: themePreference === pref ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: themePreference === pref ? '#fff' : theme.text }]}>{pref}</Text>
+                  <Text style={[styles.chipLabel, { color: themePreference === pref ? '#fff' : theme.text }]}>{t(THEME_LABEL_KEY[pref])}</Text>
                 </Pressable>
               ))}
             </View>

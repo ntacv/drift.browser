@@ -6,6 +6,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetGesture } from '../../hooks/useGestures';
+import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore, getActiveTab } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import * as fxaService from '../../services/fxaService';
@@ -29,7 +30,6 @@ type TileSize = 'half' | 'full';
 
 interface DisplayTile {
   id: DisplayTileId;
-  name: string;
   size: TileSize;
 }
 
@@ -41,21 +41,15 @@ const DEFAULT_TILE_ORDER: MenuTileId[] = [
 ];
 
 const QUICK_TILES: DisplayTile[] = [
-  { id: 'back', name: 'Back', size: 'half' },
-  { id: 'forward', name: 'Forward', size: 'half' },
-  { id: 'refresh', name: 'Refresh', size: 'half' },
-  { id: 'fullscreen', name: 'Fullscreen', size: 'half' },
+  { id: 'back', size: 'half' },
+  { id: 'forward', size: 'half' },
+  { id: 'refresh', size: 'half' },
+  { id: 'fullscreen', size: 'half' },
 ];
-
-const MENU_TILE_NAMES: Record<MenuTileId, string> = {
-  share: 'Share URL',
-  settings: 'Settings',
-  workspace: 'New Workspace',
-  signout: 'Sign Out',
-};
 
 export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const { theme } = useTheme();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [draggedTile, setDraggedTile] = useState<MenuTileId | null>(null);
   const [tileAreaWidth, setTileAreaWidth] = useState(0);
@@ -80,6 +74,19 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   });
 
   const actionButtonStyle = [styles.actionButton, { backgroundColor: theme.surface2 }];
+
+  const getMenuTileLabel = (id: MenuTileId): string => {
+    if (id === 'share') {
+      return t('menuShareUrl');
+    }
+    if (id === 'settings') {
+      return t('menuSettings');
+    }
+    if (id === 'workspace') {
+      return t('menuNewWorkspace');
+    }
+    return t('menuSignOut');
+  };
 
   const tileOrder = useMemo<MenuTileId[]>(() => {
     const filtered = (menuTileOrder as MenuTileId[]).filter((id) => DEFAULT_TILE_ORDER.includes(id));
@@ -130,8 +137,8 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     if (!isUserFullscreen) {
       setUserFullscreen(true);
       Alert.alert(
-        'Fullscreen enabled',
-        'The URL bar is now hidden. Pull down past the top of the webpage to bring it back.',
+        t('fullscreenEnabledTitle'),
+        t('fullscreenEnabledMessage'),
       );
     } else {
       setUserFullscreen(false);
@@ -141,12 +148,12 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
 
   const executeTileAction = (id: MenuTileId) => {
     if (id === 'share') {
-      Alert.alert('Share', activeTab?.url ?? 'No active tab');
+      Alert.alert(t('share'), activeTab?.url ?? t('noActiveTab'));
     } else if (id === 'settings') {
       setMenuOpen(false);
       onOpenSettings();
     } else if (id === 'workspace') {
-      createWorkspace('New Workspace', 'star', '#7E57C2');
+      createWorkspace(t('menuNewWorkspace'), 'star', '#7E57C2');
       setMenuOpen(false);
     } else if (id === 'signout') {
       fxaService.signOut().then(() => setSyncUser(null));
@@ -176,7 +183,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       return (
         <Pressable key={id} {...baseProps}>
           <MaterialIcons name="ios-share" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>{MENU_TILE_NAMES[id]}</Text>
+          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
         </Pressable>
       );
     }
@@ -185,7 +192,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       return (
         <Pressable key={id} {...baseProps}>
           <MaterialIcons name="settings" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>{MENU_TILE_NAMES[id]}</Text>
+          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
         </Pressable>
       );
     }
@@ -194,7 +201,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       return (
         <Pressable key={id} {...baseProps}>
           <MaterialIcons name="workspaces-outline" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>{MENU_TILE_NAMES[id]}</Text>
+          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
         </Pressable>
       );
     }
@@ -202,7 +209,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     return (
       <Pressable key={id} {...baseProps}>
         <MaterialIcons name="logout" size={18} color={theme.danger} style={styles.actionIcon} />
-        <Text style={[styles.actionText, { color: theme.danger }]}>{MENU_TILE_NAMES[id]}</Text>
+        <Text style={[styles.actionText, { color: theme.danger }]}>{getMenuTileLabel(id)}</Text>
       </Pressable>
     );
   };
@@ -287,7 +294,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
           {renderMenuTile(id)}
           {isDragging && (
             <View style={styles.dragHint}>
-              <Text style={[styles.dragHintText, { color: theme.text2 }]}>Tap another tile to swap</Text>
+              <Text style={[styles.dragHintText, { color: theme.text2 }]}>{t('menuDragHint')}</Text>
             </View>
           )}
         </Animated.View>
@@ -298,11 +305,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const visibleTileOrder = tileOrder.filter((id) => !(id === 'signout' && !syncUser));
 
   const displayTiles = useMemo<DisplayTile[]>(() => {
-    const menuTiles = visibleTileOrder.map((id) => ({
-      id,
-      name: MENU_TILE_NAMES[id],
-      size: 'full' as TileSize,
-    }));
+    const menuTiles = visibleTileOrder.map((id) => ({ id, size: 'full' as TileSize }));
 
     return [...QUICK_TILES, ...menuTiles];
   }, [visibleTileOrder]);
@@ -331,9 +334,9 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
             {syncUser ? (
               <>
                 <Text style={[styles.accountTitle, { color: theme.text }]}>{syncUser.email}</Text>
-                <Text style={[styles.accountSub, { color: theme.text2 }]}>Synced</Text>
+                <Text style={[styles.accountSub, { color: theme.text2 }]}>{t('synced')}</Text>
                 <Text style={[styles.accountSub, { color: theme.text3 }]}>
-                  Last sync: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString() : 'never'}
+                  {t('lastSync')}: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString() : t('never')}
                 </Text>
               </>
             ) : (
@@ -343,11 +346,11 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
                   if (user) {
                     setSyncUser(user);
                   } else {
-                    Alert.alert('Firefox sign-in not configured', 'OAuth credentials are not set yet.');
+                    Alert.alert(t('firefoxSignInNotConfiguredTitle'), t('firefoxSignInNotConfiguredMessage'));
                   }
                 }}
               >
-                <Text style={[styles.accountTitle, { color: theme.text }]}>Sign in to Firefox</Text>
+                <Text style={[styles.accountTitle, { color: theme.text }]}>{t('signInToFirefox')}</Text>
               </Pressable>
             )}
           </View>
