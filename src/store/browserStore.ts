@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import type {
   AppLanguage,
@@ -25,6 +26,26 @@ const DEFAULT_MENU_TILE_ORDER = [
   'fullscreen',
   'signout',
 ];
+
+const LEGACY_WORKSPACE_ICON_MAP: Record<string, string> = {
+  '🏠': 'home',
+  '💼': 'work',
+  '🔬': 'science',
+  '✨': 'star',
+};
+
+const normalizeWorkspaceIcon = (icon: unknown): string | null => {
+  if (typeof icon !== 'string' || icon.length === 0) {
+    return null;
+  }
+
+  const mapped = LEGACY_WORKSPACE_ICON_MAP[icon] ?? icon;
+  if (Object.prototype.hasOwnProperty.call(MaterialIcons.glyphMap, mapped)) {
+    return mapped;
+  }
+
+  return null;
+};
 
 const normalizeDefaultNewTabUrl = (value: string): string => {
   const trimmed = value.trim();
@@ -54,12 +75,13 @@ const makeTab = (workspaceId: string, url = DEFAULT_URL): Tab => ({
   pendingNavActionId: 0,
   scrollY: 0,
   createdAt: Date.now(),
+  webContentFullscreen: false,
 });
 
 const createWorkspaceWithTab = (
   id: string,
   label: string,
-  emoji: string,
+  emoji: string | null,
   color: string,
 ): { workspace: Workspace; tab: Tab } => {
   const tab = makeTab(id);
@@ -81,9 +103,9 @@ const unsortedFolder: BookmarkFolder = {
   label: 'Unsorted',
 };
 
-const personal = createWorkspaceWithTab('ws-personal', 'Personal', '🏠', '#4B8BFF');
-const work = createWorkspaceWithTab('ws-work', 'Work', '💼', '#5965FF');
-const research = createWorkspaceWithTab('ws-research', 'Research', '🔬', '#2AB673');
+const personal = createWorkspaceWithTab('ws-personal', 'Personal', 'home', '#4B8BFF');
+const work = createWorkspaceWithTab('ws-work', 'Work', 'work', '#5965FF');
+const research = createWorkspaceWithTab('ws-research', 'Research', 'science', '#2AB673');
 
 const initialState = {
   workspaces: {
@@ -339,6 +361,43 @@ export const useBrowserStore = create<BrowserStore>()(
           };
         }),
 
+      updateWorkspace: (workspaceId, updates) =>
+        set((state) => {
+          const workspace = state.workspaces[workspaceId];
+          if (!workspace) {
+            return state;
+          }
+          return {
+            workspaces: {
+              ...state.workspaces,
+              [workspaceId]: {
+                ...workspace,
+                ...updates,
+              },
+            },
+          };
+        }),
+
+      moveWorkspace: (workspaceId, direction) =>
+        set((state) => {
+          const fromIndex = state.workspaceOrder.indexOf(workspaceId);
+          if (fromIndex < 0) {
+            return state;
+          }
+
+          const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+          if (toIndex < 0 || toIndex >= state.workspaceOrder.length) {
+            return state;
+          }
+
+          const nextOrder = [...state.workspaceOrder];
+          [nextOrder[fromIndex], nextOrder[toIndex]] = [nextOrder[toIndex], nextOrder[fromIndex]];
+
+          return {
+            workspaceOrder: nextOrder,
+          };
+        }),
+
       setTrayOpen: (isOpen) => set({ isTrayOpen: isOpen }),
       setMenuOpen: (isOpen) => set({ isMenuOpen: isOpen }),
 
@@ -395,8 +454,37 @@ export const useBrowserStore = create<BrowserStore>()(
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
     }),
     {
-      name: 'zen-mobile-browser-store',
+      name: 'zen-mobile-browser-store-v2',
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState: any, version: number) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return persistedState;
+        }
+
+        const workspaces = persistedState.workspaces;
+        if (!workspaces || typeof workspaces !== 'object') {
+          return persistedState;
+        }
+
+        const normalizedWorkspaces = Object.fromEntries(
+          Object.entries(workspaces).map(([id, workspace]) => {
+            const typedWorkspace = workspace as Workspace;
+            return [
+              id,
+              {
+                ...typedWorkspace,
+                emoji: normalizeWorkspaceIcon(typedWorkspace.emoji),
+              },
+            ];
+          }),
+        );
+
+        return {
+          ...persistedState,
+          workspaces: normalizedWorkspaces,
+        };
+      },
       partialize: (state) => ({
         workspaces: state.workspaces,
         workspaceOrder: state.workspaceOrder,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -35,6 +35,7 @@ export const TabTray = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollViewportHeightRef = useRef(0);
   const tabLayoutsRef = useRef<Record<string, { y: number; height: number }>>({});
+  const centerRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const workspace = workspaces[activeWorkspaceId];
   const gesture = useSheetGesture({
@@ -48,23 +49,39 @@ export const TabTray = () => {
     tabLayoutsRef.current = {};
   }, [activeWorkspaceId]);
 
-  useEffect(() => {
-    if (isTrayOpen && workspace && scrollViewRef.current) {
-      const activeTabId = workspace.activeTabId;
-      if (activeTabId) {
-        setTimeout(() => {
-          const layout = tabLayoutsRef.current[activeTabId];
-          const viewportHeight = scrollViewportHeightRef.current;
-          if (!layout || viewportHeight <= 0) {
-            return;
-          }
-
-          const scrollY = Math.max(0, layout.y - (viewportHeight - layout.height) / 2);
-          scrollViewRef.current?.scrollTo({ y: scrollY, animated: true });
-        }, 100);
+  const centerActiveTab = useCallback(
+    (attempt = 0) => {
+      if (!isTrayOpen || !workspace?.activeTabId || !scrollViewRef.current) {
+        return;
       }
-    }
-  }, [isTrayOpen, workspace]);
+
+      const layout = tabLayoutsRef.current[workspace.activeTabId];
+      const viewportHeight = scrollViewportHeightRef.current;
+      if (!layout || viewportHeight <= 0) {
+        if (attempt < 6) {
+          if (centerRetryTimeoutRef.current) {
+            clearTimeout(centerRetryTimeoutRef.current);
+          }
+          centerRetryTimeoutRef.current = setTimeout(() => centerActiveTab(attempt + 1), 60);
+        }
+        return;
+      }
+
+      const scrollY = Math.max(0, layout.y - (viewportHeight - layout.height) / 2);
+      scrollViewRef.current.scrollTo({ y: scrollY, animated: true });
+    },
+    [isTrayOpen, workspace],
+  );
+
+  useEffect(() => {
+    centerActiveTab(0);
+    return () => {
+      if (centerRetryTimeoutRef.current) {
+        clearTimeout(centerRetryTimeoutRef.current);
+        centerRetryTimeoutRef.current = null;
+      }
+    };
+  }, [centerActiveTab, activeWorkspaceId, workspace?.activeTabId, workspace?.tabIds.length]);
 
   const switchWorkspaceByOffset = (offset: 1 | -1) => {
     const currentIndex = workspaceOrder.indexOf(activeWorkspaceId);
@@ -112,6 +129,10 @@ export const TabTray = () => {
         showsVerticalScrollIndicator
         onLayout={(event) => {
           scrollViewportHeightRef.current = event.nativeEvent.layout.height;
+          centerActiveTab(0);
+        }}
+        onContentSizeChange={() => {
+          centerActiveTab(0);
         }}
         contentContainerStyle={[
           styles.cardsColumn,

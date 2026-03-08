@@ -1,9 +1,30 @@
 import * as Haptics from 'expo-haptics';
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
+import type { Workspace } from '../../store/types';
+import { WorkspaceEditor } from './WorkspaceEditor';
+
+const LEGACY_WORKSPACE_ICON_MAP: Record<string, string> = {
+  '🏠': 'home',
+  '💼': 'work',
+  '🔬': 'science',
+  '✨': 'star',
+};
+
+const getValidWorkspaceIcon = (icon: string | null): keyof typeof MaterialIcons.glyphMap | null => {
+  if (!icon) {
+    return null;
+  }
+  const mapped = LEGACY_WORKSPACE_ICON_MAP[icon] ?? icon;
+  if (Object.prototype.hasOwnProperty.call(MaterialIcons.glyphMap, mapped)) {
+    return mapped as keyof typeof MaterialIcons.glyphMap;
+  }
+  return null;
+};
 
 export const WorkspaceChips = () => {
   const { theme } = useTheme();
@@ -12,8 +33,18 @@ export const WorkspaceChips = () => {
   const activeWorkspaceId = useBrowserStore((state) => state.activeWorkspaceId);
   const switchWorkspace = useBrowserStore((state) => state.switchWorkspace);
 
+  const [editorVisible, setEditorVisible] = useState(false);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+
+  const handleLongPress = (workspace: Workspace) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+    setEditingWorkspace(workspace);
+    setEditorVisible(true);
+  };
+
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+    <>
+      <View style={styles.row}>
       {workspaceOrder.map((workspaceId) => {
         const workspace = workspaces[workspaceId];
         if (!workspace) {
@@ -21,6 +52,7 @@ export const WorkspaceChips = () => {
         }
 
         const isActive = workspaceId === activeWorkspaceId;
+        const iconName = getValidWorkspaceIcon(workspace.emoji);
         return (
           <Pressable
             key={workspaceId}
@@ -28,15 +60,23 @@ export const WorkspaceChips = () => {
               switchWorkspace(workspaceId);
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
             }}
+            onLongPress={() => handleLongPress(workspace)}
             style={[
               styles.chip,
               {
                 backgroundColor: isActive ? workspace.color : theme.surface2,
                 borderColor: isActive ? workspace.color : theme.border,
               },
+              !iconName && styles.chipNoIcon,
             ]}
           >
-            <Text style={styles.emoji}>{workspace.emoji}</Text>
+            {iconName && (
+              <MaterialIcons 
+                name={iconName}
+                size={18} 
+                color={isActive ? '#fff' : theme.text} 
+              />
+            )}
             <Text style={[styles.label, { color: isActive ? '#fff' : theme.text }]}>{workspace.label}</Text>
             <View style={styles.countWrap}>
               <Text style={styles.count}>{workspace.tabIds.length}</Text>
@@ -44,12 +84,20 @@ export const WorkspaceChips = () => {
           </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
+    <WorkspaceEditor
+      visible={editorVisible}
+      workspace={editingWorkspace}
+      onClose={() => setEditorVisible(false)}
+    />
+  </>
   );
 };
 
 const styles = StyleSheet.create({
   row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     paddingVertical: 4,
   },
@@ -62,8 +110,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     gap: 6,
   },
-  emoji: {
-    fontSize: 15,
+  chipNoIcon: {
+    paddingHorizontal: 12,
   },
   label: {
     fontSize: 13,

@@ -24,12 +24,13 @@ export interface Tab {
   pendingNavActionId: number;
   scrollY: number;
   createdAt: number;
+  webContentFullscreen: boolean;
 }
 
 export interface Workspace {
   id: string;
   label: string;
-  emoji: string;
+  emoji: string | null;
   color: string;
   tabIds: string[];
   activeTabId: string | null;
@@ -92,7 +93,9 @@ export interface BrowserActions {
   updateTabMeta: (tabId: string, patch: Partial<Tab>) => void;
 
   switchWorkspace: (workspaceId: string) => void;
-  createWorkspace: (label: string, emoji: string, color: string) => void;
+  createWorkspace: (label: string, emoji: string | null, color: string) => void;
+  updateWorkspace: (workspaceId: string, updates: Partial<Pick<Workspace, 'label' | 'emoji' | 'color'>>) => void;
+  moveWorkspace: (workspaceId: string, direction: 'left' | 'right') => void;
 
   setTrayOpen: (isOpen: boolean) => void;
   setMenuOpen: (isOpen: boolean) => void;

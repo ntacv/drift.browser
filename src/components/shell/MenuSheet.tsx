@@ -146,7 +146,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       setMenuOpen(false);
       onOpenSettings();
     } else if (id === 'workspace') {
-      createWorkspace('New Workspace', '✨', '#7E57C2');
+      createWorkspace('New Workspace', 'star', '#7E57C2');
       setMenuOpen(false);
     } else if (id === 'signout') {
       fxaService.signOut().then(() => setSyncUser(null));
