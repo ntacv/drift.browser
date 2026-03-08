@@ -17,7 +17,8 @@ IA TODO
 - [x] transparent mode is not saved like the other settings, it reset when restarting
 - [x] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
 - [ ] when closeing the app, if its in fullscreen mode, exit the fullscreen mode so when reopening the app, it will be in normal mode, and not stuck in fullscreen mode without any way to exit it
-- [ ] reduce time of animation for new tab url panel oppening
+- [x] reduce time of animation for new tab url panel oppening
+- [x] when pull overscroll for refresh, add a pull animation to explain whats going to happen
 
 ## Technical
 
@@ -25,6 +26,7 @@ IA TODO
 
 ## Feature 
 
+- [ ] touching the top safezone (notification bar) should scroll the page to the top
 - [ ] long click on any web link opens a panel like the menu, with options like "open in new tab", "copy link", "share link" (2 tiles should fit a row)
 - [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
 - [ ] when sharing a link, open the native share menu with the current page link
@@ -33,7 +35,6 @@ IA TODO
 - [ ] add a tab counter of the all app, it will be placed at the end of the workspace list
 - [ ] add setting to export all data (bookmarks, history, workspaces, tabs, preferences) as a firefox understable format
 - [ ] add setting to import data from a firefox understable format
-- [ ] change the design of the close tab button, use icon, dont use red, make it rectangular
 - [ ] update the setting appearance section, add "theme" subsection
 
 - [x] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward
@@ -41,7 +42,7 @@ IA TODO
 - [ ] add a setting "display full url in the main bar and the tab list"
 
 
-- [ ] check secrets and push public
+- [ ] check secrets and ready to push public
 - [x] in readme, add doc link
 - [ ] history page, add a "clear history" button, when clicking on a link in the history list, open the page and close the history page
 - [ ] updated alerts like full screen (material 3, ios glass)

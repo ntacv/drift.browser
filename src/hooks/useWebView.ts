@@ -7,6 +7,9 @@ const SEARCH_ENGINES: Record<SearchEngine, string> = {
   bing: 'https://www.bing.com/search?q=',
 };
 
+// Pull distance (in pixels) required to trigger refresh
+const PULL_TO_REFRESH_THRESHOLD = 200;
+
 export const toDomain = (rawUrl: string): string => {
   try {
     const url = new URL(rawUrl);
@@ -34,6 +37,8 @@ export type WebViewBridgeMessage =
   | { type: 'favicon'; favicon: string | null }
   | { type: 'scrollY'; value: number }
   | { type: 'overscrollTop' }
+  | { type: 'overscrollProgress'; value: number }
+  | { type: 'overscrollEnd' }
   | { type: 'fullscreenEnter' }
   | { type: 'fullscreenExit' };
 
@@ -58,6 +63,17 @@ export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage
 
     if (parsed.type === 'overscrollTop') {
       return { type: 'overscrollTop' };
+    }
+
+    if (parsed.type === 'overscrollProgress') {
+      return {
+        type: 'overscrollProgress',
+        value: typeof parsed.value === 'number' ? parsed.value : 0,
+      };
+    }
+
+    if (parsed.type === 'overscrollEnd') {
+      return { type: 'overscrollEnd' };
     }
 
     if (parsed.type === 'fullscreenEnter') {
@@ -154,29 +170,51 @@ export const faviconInjectionScript = `
 
     var touchStartY = 0;
     var armed = false;
-    var fired = false;
+    var currentPullDown = 0;
 
     window.addEventListener('touchstart', function(event) {
       var y = window.scrollY || window.pageYOffset || 0;
       if (y <= 1 && event.touches && event.touches.length > 0) {
         touchStartY = event.touches[0].clientY;
         armed = true;
-        fired = false;
+        currentPullDown = 0;
+        post({ type: 'overscrollProgress', value: 0 });
       } else {
         armed = false;
       }
     }, { passive: true });
 
     window.addEventListener('touchmove', function(event) {
-      if (!armed || fired || !event.touches || event.touches.length === 0) {
+      if (!armed || !event.touches || event.touches.length === 0) {
         return;
       }
 
       var y = window.scrollY || window.pageYOffset || 0;
       var pullDown = event.touches[0].clientY - touchStartY;
-      if (y <= 1 && pullDown > 80) {
-        fired = true;
-        post({ type: 'overscrollTop' });
+      
+      if (y <= 1) {
+        currentPullDown = pullDown;
+        var progress = Math.min(1, Math.max(0, pullDown / ${PULL_TO_REFRESH_THRESHOLD}));
+        post({ type: 'overscrollProgress', value: progress });
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', function() {
+      if (armed) {
+        if (currentPullDown > ${PULL_TO_REFRESH_THRESHOLD}) {
+          post({ type: 'overscrollTop' });
+        }
+        post({ type: 'overscrollEnd' });
+        armed = false;
+        currentPullDown = 0;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchcancel', function() {
+      if (armed) {
+        post({ type: 'overscrollEnd' });
+        armed = false;
+        currentPullDown = 0;
       }
     }, { passive: true });
   })();

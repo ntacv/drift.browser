@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
+import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 import { faviconInjectionScript, parseWebViewBridgeMessage } from '../../hooks/useWebView';
 import { useBrowserStore } from '../../store/browserStore';
@@ -34,10 +36,16 @@ interface WebViewWrapperProps {
   visible: boolean;
 }
 
+const AnimatedMaterialIcon = Animated.createAnimatedComponent(MaterialIcons);
+
 export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const { mode, theme } = useTheme();
   const webViewRef = useRef<WebView>(null);
   const lastScrollYRef = useRef<number | null>(null);
+  const overscrollProgress = useRef(new Animated.Value(0)).current;
+  const refreshSpin = useRef(new Animated.Value(0)).current;
+  const [refreshing, setRefreshing] = useState(false);
+  const [showRefreshIndicator, setShowRefreshIndicator] = useState(false);
   const tab = useBrowserStore((state) => state.tabs[tabId]);
   const blockTrackers = useBrowserStore((state) => state.blockTrackers);
   const isUserFullscreen = useBrowserStore((state) => state.isUserFullscreen);
@@ -94,79 +102,186 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
+  const startRefreshSpin = () => {
+    refreshSpin.setValue(0);
+    Animated.loop(
+      Animated.timing(refreshSpin, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      })
+    ).start();
+  };
+
+  const stopRefreshSpin = () => {
+    refreshSpin.stopAnimation();
+    refreshSpin.setValue(0);
+  };
+
+  const translateY = overscrollProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-28, 10],
+  });
+
+  const scale = overscrollProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.7, 1],
+  });
+
+  const pullRotate = overscrollProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['-80deg', '0deg'],
+  });
+
+  const spinRotate = refreshSpin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const opacity = overscrollProgress.interpolate({
+    inputRange: [0, 0.2, 1],
+    outputRange: [0, 1, 1],
+  });
+
+  const bubbleBackgroundOpacity = overscrollProgress.interpolate({
+    inputRange: [0, 0.8, 1],
+    outputRange: [0.2, 0.2, 0.75],
+  });
+
   return (
-    <WebView
-      ref={webViewRef}
-      source={isBlankPage ? { html: blankHtml } : { uri: tab.url }}
-      originWhitelist={['*']}
-      javaScriptEnabled
-      domStorageEnabled
-      allowsFullscreenVideo
-      allowsInlineMediaPlayback
-      allowsProtectedMedia
-      setSupportMultipleWindows={false}
-      style={[styles.webview, !visible && styles.hidden, { backgroundColor: hexToRgba(theme.bg, 0.15) }]}
-      onNavigationStateChange={handleNavChange}
-      injectedJavaScriptBeforeContentLoaded={faviconInjectionScript}
-      onMessage={(event) => {
-        const message = parseWebViewBridgeMessage(event.nativeEvent.data);
-        if (!message) {
-          return;
-        }
-
-        if (message.type === 'favicon') {
-          if (message.favicon) {
-            updateTabMeta(tabId, { favicon: message.favicon });
+    <View style={styles.webview}>
+      {showRefreshIndicator && (
+        <Animated.View style={[styles.refreshIndicatorOverlay, { opacity }]}>
+          <Animated.View
+            style={[
+              styles.refreshIndicatorBubble,
+              {
+                backgroundColor: bubbleBackgroundOpacity.interpolate({
+                  inputRange: [0.2, 0.75],
+                  outputRange: ['rgba(128, 128, 128, 0.2)', 'rgba(128, 128, 128, 0.75)'],
+                }),
+                transform: [
+                  { translateY },
+                  { scale },
+                  { rotate: refreshing ? spinRotate : pullRotate },
+                ],
+              },
+            ]}
+          >
+            <AnimatedMaterialIcon
+              name="refresh"
+              size={24}
+              color={theme.text}
+            />
+          </Animated.View>
+        </Animated.View>
+      )}
+      <WebView
+        ref={webViewRef}
+        source={isBlankPage ? { html: blankHtml } : { uri: tab.url }}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        domStorageEnabled
+        allowsFullscreenVideo
+        allowsInlineMediaPlayback
+        allowsProtectedMedia
+        setSupportMultipleWindows={false}
+        style={[styles.webview, !visible && styles.hidden, { backgroundColor: hexToRgba(theme.bg, 0.15) }]}
+        onNavigationStateChange={handleNavChange}
+        injectedJavaScriptBeforeContentLoaded={faviconInjectionScript}
+        onMessage={(event) => {
+          const message = parseWebViewBridgeMessage(event.nativeEvent.data);
+          if (!message) {
+            return;
           }
-          return;
-        }
 
-        if (message.type === 'scrollY') {
-          updateTabMeta(tabId, { scrollY: message.value });
-          const previous = lastScrollYRef.current;
-          lastScrollYRef.current = message.value;
-
-          if (isTrayOpen && previous !== null && Math.abs(message.value - previous) > 3) {
-            setTrayOpen(false);
+          if (message.type === 'favicon') {
+            if (message.favicon) {
+              updateTabMeta(tabId, { favicon: message.favicon });
+            }
+            return;
           }
-          return;
-        }
 
-        if (message.type === 'overscrollTop') {
-          // Exit fullscreen on overscroll, or reload if not in fullscreen
-          if (isUserFullscreen) {
-            setUserFullscreen(false);
-          } else if (tab.webContentFullscreen) {
+          if (message.type === 'scrollY') {
+            updateTabMeta(tabId, { scrollY: message.value });
+            const previous = lastScrollYRef.current;
+            lastScrollYRef.current = message.value;
+
+            if (isTrayOpen && previous !== null && Math.abs(message.value - previous) > 3) {
+              setTrayOpen(false);
+            }
+            return;
+          }
+
+          if (message.type === 'overscrollProgress') {
+            setShowRefreshIndicator(true);
+            Animated.timing(overscrollProgress, {
+              toValue: message.value,
+              duration: 0,
+              useNativeDriver: true,
+            }).start();
+            return;
+          }
+
+          if (message.type === 'overscrollEnd') {
+            Animated.timing(overscrollProgress, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }).start(() => {
+              if (!refreshing) {
+                setShowRefreshIndicator(false);
+              }
+            });
+            return;
+          }
+
+          if (message.type === 'overscrollTop') {
+            // Trigger haptic feedback on reload
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+            // Exit fullscreen on overscroll, or reload if not in fullscreen
+            if (isUserFullscreen) {
+              setUserFullscreen(false);
+            } else if (tab.webContentFullscreen) {
+              updateTabMeta(tabId, { webContentFullscreen: false });
+            } else {
+              setRefreshing(true);
+              startRefreshSpin();
+              webViewRef.current?.reload();
+              setTimeout(() => {
+                stopRefreshSpin();
+                setRefreshing(false);
+                setShowRefreshIndicator(false);
+              }, 1200);
+            }
+            return;
+          }
+
+          if (message.type === 'fullscreenEnter') {
+            updateTabMeta(tabId, { webContentFullscreen: true });
+            return;
+          }
+
+          if (message.type === 'fullscreenExit') {
             updateTabMeta(tabId, { webContentFullscreen: false });
-          } else {
-            webViewRef.current?.reload();
           }
-          return;
-        }
+        }}
+        onShouldStartLoadWithRequest={(request) => {
+          if (!blockTrackers) {
+            return true;
+          }
 
-        if (message.type === 'fullscreenEnter') {
-          updateTabMeta(tabId, { webContentFullscreen: true });
-          return;
-        }
-
-        if (message.type === 'fullscreenExit') {
-          updateTabMeta(tabId, { webContentFullscreen: false });
-        }
-      }}
-      onShouldStartLoadWithRequest={(request) => {
-        if (!blockTrackers) {
-          return true;
-        }
-
-        try {
-          const host = new URL(request.url).hostname;
-          // TODO: This only blocks top-level navigations, not subresource requests.
-          return !TRACKER_HOSTS.has(host);
-        } catch {
-          return true;
-        }
-      }}
-    />
+          try {
+            const host = new URL(request.url).hostname;
+            // TODO: This only blocks top-level navigations, not subresource requests.
+            return !TRACKER_HOSTS.has(host);
+          } catch {
+            return true;
+          }
+        }}
+      />
+    </View>
   );
 };
 
@@ -179,5 +294,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 0,
     height: 0,
+  },
+  refreshIndicatorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  refreshIndicatorBubble: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
