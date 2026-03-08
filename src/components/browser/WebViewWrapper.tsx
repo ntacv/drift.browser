@@ -40,12 +40,12 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const lastScrollYRef = useRef<number | null>(null);
   const tab = useBrowserStore((state) => state.tabs[tabId]);
   const blockTrackers = useBrowserStore((state) => state.blockTrackers);
-  const isFullscreen = useBrowserStore((state) => state.isFullscreen);
+  const isUserFullscreen = useBrowserStore((state) => state.isUserFullscreen);
   const isTrayOpen = useBrowserStore((state) => state.isTrayOpen);
   const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const addHistoryEntry = useBrowserStore((state) => state.addHistoryEntry);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
-  const setFullscreen = useBrowserStore((state) => state.setFullscreen);
+  const setUserFullscreen = useBrowserStore((state) => state.setUserFullscreen);
 
   useEffect(() => {
     if (!tab?.pendingNavAction) {
@@ -133,8 +133,11 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
         }
 
         if (message.type === 'overscrollTop') {
-          if (isFullscreen) {
-            setFullscreen(false);
+          // Exit fullscreen on overscroll, or reload if not in fullscreen
+          if (isUserFullscreen) {
+            setUserFullscreen(false);
+          } else if (tab.webContentFullscreen) {
+            updateTabMeta(tabId, { webContentFullscreen: false });
           } else {
             webViewRef.current?.reload();
           }
@@ -142,12 +145,12 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
         }
 
         if (message.type === 'fullscreenEnter') {
-          setFullscreen(true);
+          updateTabMeta(tabId, { webContentFullscreen: true });
           return;
         }
 
         if (message.type === 'fullscreenExit') {
-          setFullscreen(false);
+          updateTabMeta(tabId, { webContentFullscreen: false });
         }
       }}
       onShouldStartLoadWithRequest={(request) => {

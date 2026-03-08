@@ -68,8 +68,8 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const menuTileOrder = useBrowserStore((state) => state.menuTileOrder);
   const setMenuTileOrder = useBrowserStore((state) => state.setMenuTileOrder);
   const createWorkspace = useBrowserStore((state) => state.createWorkspace);
-  const isFullscreen = useBrowserStore((state) => state.isFullscreen);
-  const setFullscreen = useBrowserStore((state) => state.setFullscreen);
+  const isUserFullscreen = useBrowserStore((state) => state.isUserFullscreen);
+  const setUserFullscreen = useBrowserStore((state) => state.setUserFullscreen);
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
   const activeTab = useBrowserStore(getActiveTab);
 
@@ -90,7 +90,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const swapTiles = (fromId: MenuTileId, toId: MenuTileId) => {
     const fromIndex = tileOrder.indexOf(fromId);
     const toIndex = tileOrder.indexOf(toId);
-    
+
     if (fromIndex < 0 || toIndex < 0) {
       return;
     }
@@ -127,14 +127,14 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   };
 
   const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      setFullscreen(true);
+    if (!isUserFullscreen) {
+      setUserFullscreen(true);
       Alert.alert(
         'Fullscreen enabled',
         'The URL bar is now hidden. Pull down past the top of the webpage to bring it back.',
       );
     } else {
-      setFullscreen(false);
+      setUserFullscreen(false);
     }
     setMenuOpen(false);
   };
@@ -160,7 +160,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
         setDraggedTile(null);
         return;
       }
-      
+
       // Execute tile action when not in drag mode
       if (!draggedTile) {
         executeTileAction(id);
@@ -260,7 +260,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
         onPress={toggleFullscreen}
         style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
       >
-        <MaterialIcons name={isFullscreen ? 'fullscreen-exit' : 'fullscreen'} size={18} color={theme.text} />
+        <MaterialIcons name={isUserFullscreen ? 'fullscreen-exit' : 'fullscreen'} size={18} color={theme.text} />
       </Pressable>
     );
   };
@@ -327,7 +327,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
             paddingBottom: Math.max(insets.bottom, 10) + 150,
           }}
         >
-          <View style={[styles.accountCard, { backgroundColor: theme.surface2 }]}> 
+          <View style={[styles.accountCard, { backgroundColor: theme.surface2 }]}>
             {syncUser ? (
               <>
                 <Text style={[styles.accountTitle, { color: theme.text }]}>{syncUser.email}</Text>

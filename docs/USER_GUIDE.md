@@ -82,6 +82,63 @@ Settings include:
 - Language
 - Theme
 
+### 1.6 Fullscreen Modes
+
+Zen Mobile supports two types of fullscreen modes:
+
+#### User Fullscreen
+
+- Activated by tapping the fullscreen button in the menu sheet
+- Hides the browser UI (URL bar, tab tray, menu)
+- Removes top safe area for immersive viewing
+- **Does not** change screen orientation
+- Useful for distraction-free reading
+
+Exit methods:
+- Android hardware back button (highest priority)
+- Pull down past the top of the webpage (overscroll)
+- Tap the fullscreen button in menu again (if you can open menu)
+
+#### Website Fullscreen
+
+- Activated when a website requests fullscreen (e.g., YouTube videos, HTML5 games)
+- Automatically locks screen to landscape orientation
+- Hides all browser UI
+- Enables fullscreen video playback
+
+Exit methods:
+- Android hardware back button (highest priority)
+- Pull down past the top of the webpage (overscroll)
+- Website's native fullscreen exit button
+
+**Note**: Both fullscreen modes can be active simultaneously, though this is rare.
+
+### 1.7 Screen Rotation
+
+Screen rotation behavior:
+
+- **Default**: Free rotation enabled (portrait and landscape)
+- **In website fullscreen**: Locked to landscape orientation
+- **In user fullscreen**: Free rotation maintained
+- **UI behavior in landscape**: Browser UI automatically hides when device is rotated to landscape (width > height)
+
+The automatic UI hiding in landscape provides a clean viewing experience for wide content without requiring manual fullscreen activation.
+
+### 1.8 Android Back Button Priority
+
+The Android hardware back button follows this priority order:
+
+1. **Exit user fullscreen** - If user activated fullscreen via menu
+2. **Exit website fullscreen** - If website requested fullscreen
+3. **Close URL overlay** - If URL editor is open
+4. **Close settings** - If settings screen is open
+5. **Close menu sheet** - If menu is open
+6. **Close tab tray** - If workspace/tab panel is open
+7. **Navigate back in web history** - If current tab can go back
+8. **Exit app** - Let system handle (double-tap to exit)
+
+This priority ensures a predictable and intuitive navigation experience.
+
 ## 2. Development Process Explanation
 
 ### 2.1 Architecture Overview
@@ -161,6 +218,62 @@ When behavior is incorrect:
 3. Reinstall dependencies if needed: `npm install`
 4. Validate gesture boundaries in affected sheet component
 5. Confirm keyboard focus/dismiss behavior on Android device
+
+### 2.7 Fullscreen and Rotation Implementation
+
+#### State Management
+
+Two separate fullscreen states are tracked:
+
+1. **`isUserFullscreen`** (global state in `browserStore`)
+   - Toggled by menu button
+   - Hides UI but preserves orientation settings
+   - Persisted across app restarts
+
+2. **`tab.webContentFullscreen`** (per-tab state)
+   - Set by WebView Fullscreen API interception
+   - Triggers landscape orientation lock
+   - Not persisted (tab-specific runtime state)
+
+#### Orientation Control
+
+Managed via `expo-screen-orientation`:
+
+- **Website fullscreen**: `ScreenOrientation.lockAsync(LANDSCAPE)`
+- **Outside website fullscreen**: `ScreenOrientation.unlockAsync()` (allows free rotation)
+- Android requires `screenOrientation="sensor"` in `AndroidManifest.xml`
+- iOS requires `UISupportedInterfaceOrientations` array in `app.json`
+
+#### UI Visibility Logic
+
+UI components (URL bar, tab tray, menu) are hidden when:
+
+```typescript
+const shouldHideUI = isUserFullscreen || isWebContentFullscreen || isLandscape;
+```
+
+This provides automatic landscape UI hiding for better viewing experience.
+
+#### WebView Fullscreen API Bridge
+
+The `useWebView` hook injects JavaScript that intercepts:
+
+- `Element.requestFullscreen()` → posts `fullscreenEnter` message
+- `Document.exitFullscreen()` → posts `fullscreenExit` message
+- WebKit prefixed variants (`webkitRequestFullscreen`, etc.)
+
+The WebViewWrapper listens for these messages and updates `tab.webContentFullscreen` accordingly.
+
+#### Back Button Handling
+
+Implemented in `BrowserScreen.tsx` using `BackHandler.addEventListener`:
+
+- Uses `useIsFocused()` hook to prevent handling when screen is not active
+- Checks each priority condition in order
+- Returns `true` to consume the event, `false` to let system handle
+- Settings screen has its own focused back handler to navigate back
+
+This architecture ensures fullscreen modes work correctly across different content types while maintaining user control.
 
 ## 3. Related Documentation
 

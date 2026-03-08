@@ -19,32 +19,34 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
   const { theme } = useTheme();
   const isFocused = useIsFocused();
   const { width, height } = useWindowDimensions();
-  const isFullscreen = useBrowserStore((state) => state.isFullscreen);
+  const isUserFullscreen = useBrowserStore((state) => state.isUserFullscreen);
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const isTrayOpen = useBrowserStore((state) => state.isTrayOpen);
   const isUrlOverlayOpen = useBrowserStore((state) => state.isUrlOverlayOpen);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
-  const setFullscreen = useBrowserStore((state) => state.setFullscreen);
+  const setUserFullscreen = useBrowserStore((state) => state.setUserFullscreen);
   const requestCloseUrlOverlay = useBrowserStore((state) => state.requestCloseUrlOverlay);
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
+  const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const activeTab = useBrowserStore(getActiveTab);
 
   // Calculate orientation and determine if UI should be hidden
   const isLandscape = width > height;
-  const shouldHideUI = isLandscape;
+  const isWebContentFullscreen = activeTab?.webContentFullscreen ?? false;
+  const shouldHideUI = isUserFullscreen || isWebContentFullscreen || isLandscape;
 
   useEffect(() => {
-    if (isFullscreen && isTrayOpen) {
+    if (isUserFullscreen && isTrayOpen) {
       setTrayOpen(false);
     }
-  }, [isFullscreen, isTrayOpen, setTrayOpen]);
+  }, [isUserFullscreen, isTrayOpen, setTrayOpen]);
 
-  // Fullscreen forces landscape; outside fullscreen we always allow free rotation.
+  // Website fullscreen forces landscape; otherwise we always allow free rotation.
   useEffect(() => {
     const applyOrientationPolicy = async () => {
       try {
-        if (isFullscreen) {
+        if (isWebContentFullscreen) {
           await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
           return;
         }
@@ -56,7 +58,7 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
     };
 
     applyOrientationPolicy();
-  }, [isFullscreen]);
+  }, [isWebContentFullscreen]);
 
   const handleBackPress = useCallback(() => {
     // Ignore hardware back while another screen (e.g. Settings) is on top.
@@ -64,31 +66,37 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
       return false;
     }
 
-    // Priority 1: Exit fullscreen mode first.
-    if (isFullscreen) {
-      setFullscreen(false);
+    // Priority 1: Exit user fullscreen mode first.
+    if (isUserFullscreen) {
+      setUserFullscreen(false);
       return true;
     }
 
-    // Priority 2: Close URL overlay if open
+    // Priority 2: Exit website fullscreen mode.
+    if (isWebContentFullscreen && activeTab) {
+      updateTabMeta(activeTab.id, { webContentFullscreen: false });
+      return true;
+    }
+
+    // Priority 3: Close URL overlay if open
     if (isUrlOverlayOpen) {
       requestCloseUrlOverlay();
       return true;
     }
 
-    // Priority 3: Close menu
+    // Priority 4: Close menu
     if (isMenuOpen) {
       setMenuOpen(false);
       return true;
     }
 
-    // Priority 4: Close tab tray (workspace panel)
+    // Priority 5: Close tab tray (workspace panel)
     if (isTrayOpen) {
       setTrayOpen(false);
       return true;
     }
 
-    // Priority 5: Navigate back in web history
+    // Priority 6: Navigate back in web history
     if (activeTab?.canGoBack) {
       requestActiveTabNavigation('back');
       return true;
@@ -98,12 +106,14 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
     return false;
   }, [
     isFocused,
-    isFullscreen,
+    isUserFullscreen,
+    isWebContentFullscreen,
     isUrlOverlayOpen,
     isTrayOpen,
     isMenuOpen,
     activeTab,
-    setFullscreen,
+    setUserFullscreen,
+    updateTabMeta,
     requestCloseUrlOverlay,
     setTrayOpen,
     setMenuOpen,
@@ -117,15 +127,15 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={shouldHideUI ? ['left', 'right'] : ['top', 'left', 'right']}>
-      <StatusBar hidden={shouldHideUI || isFullscreen} translucent backgroundColor="transparent" />
+      <StatusBar hidden={shouldHideUI} translucent backgroundColor="transparent" />
       <View style={styles.root}>
         <View style={styles.websiteLayer}>
           <BrowserView />
         </View>
 
-        {!shouldHideUI && !isFullscreen ? <TabTray /> : null}
-        {!shouldHideUI && !isFullscreen ? <MenuSheet onOpenSettings={onOpenSettings} /> : null}
-        {!shouldHideUI && !isFullscreen ? <UrlBar /> : null}
+        {!shouldHideUI ? <TabTray /> : null}
+        {!shouldHideUI ? <MenuSheet onOpenSettings={onOpenSettings} /> : null}
+        {!shouldHideUI ? <UrlBar /> : null}
       </View>
     </SafeAreaView>
   );

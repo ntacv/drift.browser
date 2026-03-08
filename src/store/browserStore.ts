@@ -122,6 +122,7 @@ const initialState = {
   activeWorkspaceId: personal.workspace.id,
   isTrayOpen: false,
   isMenuOpen: false,
+  isUrlOverlayOpen: false,
   syncUser: null,
   lastSyncedAt: null,
   bookmarks: {},
@@ -139,7 +140,7 @@ const initialState = {
   urlOverlayOpenRequestId: 0,
   urlOverlayCloseRequestId: 0,
   blockTrackers: true,
-  isFullscreen: false,
+  isUserFullscreen: false,
   isTransparentMode: false,
 };
 
@@ -450,7 +451,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setLeftHandMode: (value) => set({ isLeftHandMode: value }),
       setDefaultNewTabUrl: (url) => set({ defaultNewTabUrl: url }),
       setBlockTrackers: (value) => set({ blockTrackers: value }),
-      setFullscreen: (value) => set({ isFullscreen: value }),
+      setUserFullscreen: (value) => set({ isUserFullscreen: value }),
       setTransparentMode: (value) => set({ isTransparentMode: value }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
@@ -483,9 +484,25 @@ export const useBrowserStore = create<BrowserStore>()(
           }),
         );
 
+        // Reset fullscreen state for all tabs on app restart
+        const tabs = persistedState.tabs;
+        const normalizedTabs =
+          tabs && typeof tabs === 'object'
+            ? Object.fromEntries(
+              Object.entries(tabs).map(([id, tab]) => [
+                id,
+                {
+                  ...(tab as Tab),
+                  webContentFullscreen: false,
+                },
+              ]),
+            )
+            : tabs;
+
         return {
           ...persistedState,
           workspaces: normalizedWorkspaces,
+          tabs: normalizedTabs,
         };
       },
       partialize: (state) => ({
@@ -506,7 +523,6 @@ export const useBrowserStore = create<BrowserStore>()(
         isLeftHandMode: state.isLeftHandMode,
         defaultNewTabUrl: state.defaultNewTabUrl,
         blockTrackers: state.blockTrackers,
-        isFullscreen: state.isFullscreen,
         isTransparentMode: state.isTransparentMode,
       }),
     },

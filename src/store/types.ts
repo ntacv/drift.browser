@@ -80,7 +80,7 @@ export interface BrowserState {
   urlOverlayOpenRequestId: number;
   urlOverlayCloseRequestId: number;
   blockTrackers: boolean;
-  isFullscreen: boolean;
+  isUserFullscreen: boolean;
   isTransparentMode: boolean;
 }
 
@@ -116,7 +116,7 @@ export interface BrowserActions {
   setLeftHandMode: (value: boolean) => void;
   setDefaultNewTabUrl: (url: string) => void;
   setBlockTrackers: (value: boolean) => void;
-  setFullscreen: (value: boolean) => void;
+  setUserFullscreen: (value: boolean) => void;
   setTransparentMode: (value: boolean) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
