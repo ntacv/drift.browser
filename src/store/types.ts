@@ -82,6 +82,7 @@ export interface BrowserState {
   blockTrackers: boolean;
   isUserFullscreen: boolean;
   isTransparentMode: boolean;
+  isCompactTabList: boolean;
 }
 
 export interface BrowserActions {
@@ -118,6 +119,7 @@ export interface BrowserActions {
   setBlockTrackers: (value: boolean) => void;
   setUserFullscreen: (value: boolean) => void;
   setTransparentMode: (value: boolean) => void;
+  setCompactTabList: (value: boolean) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;

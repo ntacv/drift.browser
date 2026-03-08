@@ -21,6 +21,7 @@ export const TabTray = () => {
   const { height: screenHeight } = useWindowDimensions();
   const isTrayOpen = useBrowserStore((state) => state.isTrayOpen);
   const tabListSize = useBrowserStore((state) => state.tabListSize);
+  const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const createTab = useBrowserStore((state) => state.createTab);
   const switchTab = useBrowserStore((state) => state.switchTab);
@@ -144,7 +145,6 @@ export const TabTray = () => {
           ref={scrollViewRef}
           style={styles.listScroll}
           showsVerticalScrollIndicator
-          simultaneousHandlers={scrollViewNativeGestureRef}
           onLayout={(event) => {
             scrollViewportHeightRef.current = event.nativeEvent.layout.height;
             centerActiveTab(0);
@@ -154,16 +154,18 @@ export const TabTray = () => {
           }}
           contentContainerStyle={[
             styles.cardsColumn,
+            isCompactTabList && styles.cardsColumnCompact,
             {
               paddingBottom: Math.max(insets.bottom, 10) + 90,
+              gap: isCompactTabList ? 4 : 6,
             },
           ]}
         >
           <Pressable
             onPress={() => createTab()}
-            style={[styles.newCard, { borderColor: theme.border, backgroundColor: theme.surface2 }]}
+            style={[styles.newCard, isCompactTabList && styles.newCardCompact, { borderColor: theme.border, backgroundColor: theme.surface2 }]}
           >
-            <Text style={[styles.newCardText, { color: theme.text }]}>+ New Tab</Text>
+            <Text style={[styles.newCardText, isCompactTabList && styles.newCardTextCompact, { color: theme.text }]}>+ New Tab</Text>
           </Pressable>
           {workspace.tabIds.map((tabId) => {
             const tab = tabs[tabId];
@@ -233,6 +235,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingBottom: 24,
   },
+  cardsColumnCompact: {
+    paddingVertical: 4,
+  },
   listScroll: {
     flex: 1,
   },
@@ -243,10 +248,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+  },
+  newCardCompact: {
+    minHeight: 44,
+    borderRadius: 10,
+    marginBottom: 4,
   },
   newCardText: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  newCardTextCompact: {
+    fontSize: 12,
   },
 });

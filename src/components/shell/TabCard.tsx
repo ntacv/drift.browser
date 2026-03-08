@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { MaterialIcons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -23,6 +24,7 @@ export const TabCard = ({
 }: TabCardProps) => {
   const { theme } = useTheme();
   const isLeftHandMode = useBrowserStore((state) => state.isLeftHandMode);
+  const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
 
   const domain = useMemo(() => {
     try {
@@ -37,6 +39,7 @@ export const TabCard = ({
       onPress={onPress}
       style={[
         styles.card,
+        isCompactTabList && styles.cardCompact,
         {
           backgroundColor: theme.surface2,
           borderColor: isActive ? workspaceColor : theme.border,
@@ -44,35 +47,39 @@ export const TabCard = ({
       ]}
     >
       <View style={[styles.activeBar, { backgroundColor: isActive ? workspaceColor : 'transparent' }]} />
-      <View style={styles.contentRow}>
+      <View style={[styles.contentRow, isCompactTabList && styles.contentRowCompact]}>
         {isLeftHandMode ? (
           <Pressable
             onPress={() => {
               onClose();
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
             }}
-            style={[styles.closeButton, { backgroundColor: theme.danger }]}
+            style={[
+              styles.closeButton,
+              isCompactTabList && styles.closeButtonCompact,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+            ]}
           >
-            <Text style={styles.closeLabel}>x</Text>
+            <MaterialIcons name="close" size={isCompactTabList ? 14 : 16} color={theme.text2} />
           </Pressable>
         ) : null}
 
         {tab.favicon ? (
-          <Image source={{ uri: tab.favicon }} style={styles.favicon} />
+          <Image source={{ uri: tab.favicon }} style={[styles.favicon, isCompactTabList && styles.faviconCompact]} />
         ) : (
-          <View style={[styles.fallbackIcon, { backgroundColor: workspaceColor }]}>
-            <Text style={styles.fallbackText}>{domain.slice(0, 1).toUpperCase()}</Text>
+          <View style={[styles.fallbackIcon, isCompactTabList && styles.fallbackIconCompact, { backgroundColor: workspaceColor }]}>
+            <Text style={[styles.fallbackText, isCompactTabList && styles.fallbackTextCompact]}>{domain.slice(0, 1).toUpperCase()}</Text>
           </View>
         )}
 
         <View style={styles.textBlock}>
           <View style={styles.titleRow}>
-            <Text numberOfLines={1} style={[styles.title, { color: theme.text }]}>
+            <Text numberOfLines={1} style={[styles.title, isCompactTabList && styles.titleCompact, { color: theme.text }]}>
               {tab.title || 'Untitled'}
             </Text>
             {tab.isPinned ? <Text style={[styles.pin, { color: theme.text2 }]}>PIN</Text> : null}
           </View>
-          <Text numberOfLines={1} style={[styles.domain, { color: theme.text2 }]}>
+          <Text numberOfLines={1} style={[styles.domain, isCompactTabList && styles.domainCompact, { color: theme.text2 }]}>
             {domain}
           </Text>
         </View>
@@ -83,9 +90,13 @@ export const TabCard = ({
               onClose();
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
             }}
-            style={[styles.closeButton, { backgroundColor: theme.danger }]}
+            style={[
+              styles.closeButton,
+              isCompactTabList && styles.closeButtonCompact,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+            ]}
           >
-            <Text style={styles.closeLabel}>x</Text>
+            <MaterialIcons name="close" size={isCompactTabList ? 14 : 16} color={theme.text2} />
           </Pressable>
         ) : null}
       </View>
@@ -95,12 +106,15 @@ export const TabCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 64,
+    minHeight: 60,
     borderRadius: 12,
     borderWidth: 1,
-    marginBottom: 8,
     flexDirection: 'row',
     overflow: 'hidden',
+  },
+  cardCompact: {
+    minHeight: 42,
+    borderRadius: 10,
   },
   activeBar: {
     width: 3,
@@ -109,14 +123,24 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
     gap: 10,
+  },
+  contentRowCompact: {
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    gap: 8,
   },
   favicon: {
     width: 28,
     height: 28,
     borderRadius: 6,
+  },
+  faviconCompact: {
+    width: 22,
+    height: 22,
+    borderRadius: 5,
   },
   fallbackIcon: {
     width: 28,
@@ -125,10 +149,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  fallbackIconCompact: {
+    width: 22,
+    height: 22,
+    borderRadius: 5,
+  },
   fallbackText: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 11,
+  },
+  fallbackTextCompact: {
+    fontSize: 10,
   },
   pin: {
     fontSize: 10,
@@ -149,19 +181,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 2,
   },
+  titleCompact: {
+    fontSize: 12,
+    marginBottom: 1,
+  },
   domain: {
     fontSize: 11,
   },
+  domainCompact: {
+    fontSize: 10,
+  },
   closeButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 30,
+    height: 30,
+    borderRadius: 7,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeLabel: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 12,
+  closeButtonCompact: {
+    width: 24,
+    height: 22,
+    borderRadius: 6,
   },
 });

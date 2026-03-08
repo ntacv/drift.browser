@@ -46,3 +46,4 @@ IA TODO
 - [ ] history page, add a "clear history" button, when clicking on a link in the history list, open the page and close the history page
 - [ ] updated alerts like full screen (material 3, ios glass)
 - [ ] picture in picture mode for videos, with a toggle in the video right click menu, and a setting to always open videos in picture in picture mode
+- [ ] remove the tabs count between workspace and list, but add a new workspacethat has all the tabs together, and put the number of tabs in it, and when clicking on it, open the tab list with all the tabs of all workspaces. when long click on it open a menu with "close all tabs" and "save all tabs as workspace" options

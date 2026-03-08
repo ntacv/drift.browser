@@ -30,6 +30,7 @@ export const SettingsScreen = () => {
   const isLeftHandMode = useBrowserStore((state) => state.isLeftHandMode);
   const defaultNewTabUrl = useBrowserStore((state) => state.defaultNewTabUrl);
   const isTransparentMode = useBrowserStore((state) => state.isTransparentMode);
+  const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
 
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
@@ -40,6 +41,7 @@ export const SettingsScreen = () => {
   const setDefaultNewTabUrl = useBrowserStore((state) => state.setDefaultNewTabUrl);
   const setBlockTrackers = useBrowserStore((state) => state.setBlockTrackers);
   const setTransparentMode = useBrowserStore((state) => state.setTransparentMode);
+  const setCompactTabList = useBrowserStore((state) => state.setCompactTabList);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -199,6 +201,14 @@ export const SettingsScreen = () => {
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('appearance')}</Text>
+            <View style={styles.switchRow}>
+              <View>
+                <Text style={[styles.rowText, { color: theme.text }]}>{t('compactTabList')}</Text>
+                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('compactTabListHint')}</Text>
+              </View>
+              <Switch value={isCompactTabList} onValueChange={setCompactTabList} />
+            </View>
+
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
             <View style={styles.chipsRow}>
               {LANGUAGES.map((lang) => (
@@ -296,6 +306,10 @@ const styles = StyleSheet.create({
   rowText: {
     fontSize: 13,
     marginBottom: 6,
+  },
+  helperText: {
+    fontSize: 11,
+    marginBottom: 8,
   },
   switchRow: {
     flexDirection: 'row',

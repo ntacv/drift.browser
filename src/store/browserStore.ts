@@ -142,6 +142,7 @@ const initialState = {
   blockTrackers: true,
   isUserFullscreen: false,
   isTransparentMode: false,
+  isCompactTabList: false,
 };
 
 export const useBrowserStore = create<BrowserStore>()(
@@ -453,6 +454,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setBlockTrackers: (value) => set({ blockTrackers: value }),
       setUserFullscreen: (value) => set({ isUserFullscreen: value }),
       setTransparentMode: (value) => set({ isTransparentMode: value }),
+      setCompactTabList: (value) => set({ isCompactTabList: value }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
@@ -524,6 +526,7 @@ export const useBrowserStore = create<BrowserStore>()(
         defaultNewTabUrl: state.defaultNewTabUrl,
         blockTrackers: state.blockTrackers,
         isTransparentMode: state.isTransparentMode,
+        isCompactTabList: state.isCompactTabList,
       }),
     },
   ),
