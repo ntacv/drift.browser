@@ -99,9 +99,15 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
       ref={webViewRef}
       source={isBlankPage ? { html: blankHtml } : { uri: tab.url }}
       originWhitelist={['*']}
+      javaScriptEnabled
+      domStorageEnabled
+      allowsFullscreenVideo
+      allowsInlineMediaPlayback
+      allowsProtectedMedia
+      setSupportMultipleWindows={false}
       style={[styles.webview, !visible && styles.hidden, { backgroundColor: hexToRgba(theme.bg, 0.15) }]}
       onNavigationStateChange={handleNavChange}
-      injectedJavaScript={faviconInjectionScript}
+      injectedJavaScriptBeforeContentLoaded={faviconInjectionScript}
       onMessage={(event) => {
         const message = parseWebViewBridgeMessage(event.nativeEvent.data);
         if (!message) {
@@ -132,6 +138,16 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           } else {
             webViewRef.current?.reload();
           }
+          return;
+        }
+
+        if (message.type === 'fullscreenEnter') {
+          setFullscreen(true);
+          return;
+        }
+
+        if (message.type === 'fullscreenExit') {
+          setFullscreen(false);
         }
       }}
       onShouldStartLoadWithRequest={(request) => {

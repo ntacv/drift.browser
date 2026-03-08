@@ -11,13 +11,12 @@ IA TODO
 - [x] when no fullscreen, overscroll top will refresh the page
 - [x] new tab open in the top of the list,open the tab list with the current tab in front, and put the new tab always on the top 
 - [x] in the tab list, side swip to change workspace is only active on the tabs, it should be over the whole panel, while keeping the list scroll
-- [ ] can rotate the screen only for the website (like video or games) and keep the browser UI in portrait mode 
-- [x] the back system action is not closing the url edition 
-- [ ] the back button on the browser view should return to the last visited page
+- [x] can rotate the screen only for the website (like video or games) and keep the browser UI in portrait mode. You can allow the app to rotate, all ui will hide when in landscape, and only be used in portrait mode
 - [x] the list of workspace should not be a scrollable list, put it in a flexbox, it will make rows of workspace, dont force them to take the full width.
 - [x] remove the emoji from the workspace 
 - [x] transparent mode is not saved like the other settings, it reset when restarting
 - [x] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
+- [ ] when closeing the app, if its in fullscreen mode, exit the fullscreen mode so when reopening the app, it will be in normal mode, and not stuck in fullscreen mode without any way to exit it
 
 ## Technical
 
@@ -25,6 +24,7 @@ IA TODO
 
 ## Feature 
 
+- [ ] long click on any web link opens a panel like the menu, with options like "open in new tab", "copy link", "share link" (2 tiles should fit a row)
 - [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
 - [ ] when sharing a link, open the native share menu with the current page link
 - [ ] update readme and documentation recursively
@@ -44,3 +44,4 @@ IA TODO
 - [x] in readme, add doc link
 - [ ] history page, add a "clear history" button, when clicking on a link in the history list, open the page and close the history page
 - [ ] updated alerts like full screen (material 3, ios glass)
+- [ ] picture in picture mode for videos, with a toggle in the video right click menu, and a setting to always open videos in picture in picture mode

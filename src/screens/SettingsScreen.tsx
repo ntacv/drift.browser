@@ -48,177 +48,177 @@ export const SettingsScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
       >
-      <View style={[styles.fixedHeader, { borderBottomColor: theme.border, backgroundColor: theme.bg }]}> 
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={[styles.backButton, { backgroundColor: theme.surface2, borderColor: theme.border }]}
-          >
-            <Text style={[styles.backButtonText, { color: theme.text }]}>{t('back')}</Text>
-          </Pressable>
-          <Text style={[styles.header, { color: theme.text }]}>{t('settingsTitle')}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 12) + 120 }]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      >
-      <View style={[styles.card, { backgroundColor: theme.surface }]}> 
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('account')}</Text>
-        <Text style={[styles.rowText, { color: theme.text2 }]}>
-          {syncUser ? syncUser.email : t('notSignedIn')}
-        </Text>
-        <Text style={[styles.rowText, { color: theme.text3 }]}>
-          {t('lastSynced')}: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleString() : t('never')}
-        </Text>
-
-        <Pressable
-          style={[styles.button, { backgroundColor: theme.surface2 }]}
-          onPress={async () => {
-            if (syncUser) {
-              await signOut();
-              setSyncUser(null);
-              return;
-            }
-
-            const user = await signIn();
-            if (user) {
-              setSyncUser(user);
-            }
-          }}
-        >
-          <Text style={[styles.buttonLabel, { color: theme.text }]}>{syncUser ? t('signOut') : t('signInFirefox')}</Text>
-        </Pressable>
-      </View>
-
-      <View style={[styles.card, { backgroundColor: theme.surface }]}> 
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('privacy')}</Text>
-        <View style={styles.switchRow}>
-          <Text style={[styles.rowText, { color: theme.text }]}>{t('blockTrackers')}</Text>
-          <Switch value={blockTrackers} onValueChange={setBlockTrackers} />
-        </View>
-
-        <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('defaultSearchEngine')}</Text>
-        <View style={styles.chipsRow}>
-          {SEARCH_ENGINES.map((engine) => (
+        <View style={[styles.fixedHeader, { borderBottomColor: theme.border, backgroundColor: theme.bg }]}>
+          <View style={styles.headerRow}>
             <Pressable
-              key={engine}
-              onPress={() => setSearchEngine(engine)}
+              onPress={() => navigation.goBack()}
+              style={[styles.backButton, { backgroundColor: theme.surface2, borderColor: theme.border }]}
+            >
+              <Text style={[styles.backButtonText, { color: theme.text }]}>{t('back')}</Text>
+            </Pressable>
+            <Text style={[styles.header, { color: theme.text }]}>{t('settingsTitle')}</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 12) + 120 }]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('account')}</Text>
+            <Text style={[styles.rowText, { color: theme.text2 }]}>
+              {syncUser ? syncUser.email : t('notSignedIn')}
+            </Text>
+            <Text style={[styles.rowText, { color: theme.text3 }]}>
+              {t('lastSynced')}: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleString() : t('never')}
+            </Text>
+
+            <Pressable
+              style={[styles.button, { backgroundColor: theme.surface2 }]}
+              onPress={async () => {
+                if (syncUser) {
+                  await signOut();
+                  setSyncUser(null);
+                  return;
+                }
+
+                const user = await signIn();
+                if (user) {
+                  setSyncUser(user);
+                }
+              }}
+            >
+              <Text style={[styles.buttonLabel, { color: theme.text }]}>{syncUser ? t('signOut') : t('signInFirefox')}</Text>
+            </Pressable>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('privacy')}</Text>
+            <View style={styles.switchRow}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('blockTrackers')}</Text>
+              <Switch value={blockTrackers} onValueChange={setBlockTrackers} />
+            </View>
+
+            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('defaultSearchEngine')}</Text>
+            <View style={styles.chipsRow}>
+              {SEARCH_ENGINES.map((engine) => (
+                <Pressable
+                  key={engine}
+                  onPress={() => setSearchEngine(engine)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: searchEngine === engine ? theme.accent : theme.surface2,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.chipLabel, { color: searchEngine === engine ? '#fff' : theme.text }]}>{engine}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('newTabs')}</Text>
+            <Text style={[styles.rowText, { color: theme.text2 }]}>{t('defaultPageForNewTabs')}</Text>
+
+            <TextInput
+              value={defaultNewTabUrl}
+              onChangeText={setDefaultNewTabUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
               style={[
-                styles.chip,
+                styles.input,
                 {
-                  backgroundColor: searchEngine === engine ? theme.accent : theme.surface2,
+                  color: theme.text,
+                  borderColor: theme.border,
+                  backgroundColor: theme.surface2,
                 },
               ]}
-            >
-              <Text style={[styles.chipLabel, { color: searchEngine === engine ? '#fff' : theme.text }]}>{engine}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+              placeholder={t('newTabPlaceholder')}
+              placeholderTextColor={theme.text3}
+            />
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}> 
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('newTabs')}</Text>
-        <Text style={[styles.rowText, { color: theme.text2 }]}>{t('defaultPageForNewTabs')}</Text>
-
-        <TextInput
-          value={defaultNewTabUrl}
-          onChangeText={setDefaultNewTabUrl}
-          autoCapitalize="none"
-          autoCorrect={false}
-          style={[
-            styles.input,
-            {
-              color: theme.text,
-              borderColor: theme.border,
-              backgroundColor: theme.surface2,
-            },
-          ]}
-          placeholder={t('newTabPlaceholder')}
-          placeholderTextColor={theme.text3}
-        />
-
-        <Pressable
-          onPress={() => setDefaultNewTabUrl('')}
-          style={[styles.inlineButton, { backgroundColor: theme.surface2 }]}
-        >
-          <Text style={[styles.inlineButtonText, { color: theme.text2 }]}>{t('useBlankAndOpenInput')}</Text>
-        </Pressable>
-
-        <View style={styles.chipsRow}>
-          {NEW_TAB_PRESETS.map((preset) => (
             <Pressable
-              key={preset}
-              onPress={() => setDefaultNewTabUrl(preset)}
-              style={[
-                styles.chip,
-                {
-                  backgroundColor: defaultNewTabUrl === preset ? theme.accent : theme.surface2,
-                },
-              ]}
+              onPress={() => setDefaultNewTabUrl('')}
+              style={[styles.inlineButton, { backgroundColor: theme.surface2 }]}
             >
-              <Text style={[styles.chipLabel, { color: defaultNewTabUrl === preset ? '#fff' : theme.text }]}>{preset}</Text>
+              <Text style={[styles.inlineButtonText, { color: theme.text2 }]}>{t('useBlankAndOpenInput')}</Text>
             </Pressable>
-          ))}
-        </View>
-      </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}> 
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('tabs')}</Text>
-        <View style={styles.switchRow}>
-          <Text style={[styles.rowText, { color: theme.text }]}>{t('leftHandMode')}</Text>
-          <Switch value={isLeftHandMode} onValueChange={setLeftHandMode} />
-        </View>
-        <Text style={[styles.rowText, { color: theme.text2 }]}>{t('verticalTabListSize')}</Text>
-        <View style={styles.chipsRow}>
-          {TAB_LIST_SIZES.map((size) => (
-            <Pressable
-              key={size}
-              onPress={() => setTabListSize(size)}
-              style={[styles.chip, { backgroundColor: tabListSize === size ? theme.accent : theme.surface2 }]}
-            >
-              <Text style={[styles.chipLabel, { color: tabListSize === size ? '#fff' : theme.text }]}>{size}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
-        <View style={[styles.card, { backgroundColor: theme.surface }]}> 
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('appearance')}</Text>
-          <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
-          <View style={styles.chipsRow}>
-            {LANGUAGES.map((lang) => (
-              <Pressable
-                key={lang}
-                onPress={() => setLanguage(lang)}
-                style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
-              >
-                <Text style={[styles.chipLabel, { color: language === lang ? '#fff' : theme.text }]}>{lang.toUpperCase()}</Text>
-              </Pressable>
-            ))}
+            <View style={styles.chipsRow}>
+              {NEW_TAB_PRESETS.map((preset) => (
+                <Pressable
+                  key={preset}
+                  onPress={() => setDefaultNewTabUrl(preset)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: defaultNewTabUrl === preset ? theme.accent : theme.surface2,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.chipLabel, { color: defaultNewTabUrl === preset ? '#fff' : theme.text }]}>{preset}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
-          <View style={styles.switchRow}>
-            <Text style={[styles.rowText, { color: theme.text }]}>Transparent Mode</Text>
-            <Switch value={isTransparentMode} onValueChange={setTransparentMode} />
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('tabs')}</Text>
+            <View style={styles.switchRow}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('leftHandMode')}</Text>
+              <Switch value={isLeftHandMode} onValueChange={setLeftHandMode} />
+            </View>
+            <Text style={[styles.rowText, { color: theme.text2 }]}>{t('verticalTabListSize')}</Text>
+            <View style={styles.chipsRow}>
+              {TAB_LIST_SIZES.map((size) => (
+                <Pressable
+                  key={size}
+                  onPress={() => setTabListSize(size)}
+                  style={[styles.chip, { backgroundColor: tabListSize === size ? theme.accent : theme.surface2 }]}
+                >
+                  <Text style={[styles.chipLabel, { color: tabListSize === size ? '#fff' : theme.text }]}>{size}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
-          <View style={styles.chipsRow}>
-            {THEMES.map((pref) => (
-              <Pressable
-                key={pref}
-                onPress={() => setThemePreference(pref)}
-                style={[styles.chip, { backgroundColor: themePreference === pref ? theme.accent : theme.surface2 }]}
-              >
-                <Text style={[styles.chipLabel, { color: themePreference === pref ? '#fff' : theme.text }]}>{pref}</Text>
-              </Pressable>
-            ))}
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('appearance')}</Text>
+            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
+            <View style={styles.chipsRow}>
+              {LANGUAGES.map((lang) => (
+                <Pressable
+                  key={lang}
+                  onPress={() => setLanguage(lang)}
+                  style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
+                >
+                  <Text style={[styles.chipLabel, { color: language === lang ? '#fff' : theme.text }]}>{lang.toUpperCase()}</Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.switchRow}>
+              <Text style={[styles.rowText, { color: theme.text }]}>Transparent Mode</Text>
+              <Switch value={isTransparentMode} onValueChange={setTransparentMode} />
+            </View>
+
+            <View style={styles.chipsRow}>
+              {THEMES.map((pref) => (
+                <Pressable
+                  key={pref}
+                  onPress={() => setThemePreference(pref)}
+                  style={[styles.chip, { backgroundColor: themePreference === pref ? theme.accent : theme.surface2 }]}
+                >
+                  <Text style={[styles.chipLabel, { color: themePreference === pref ? '#fff' : theme.text }]}>{pref}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

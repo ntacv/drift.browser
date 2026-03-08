@@ -33,7 +33,9 @@ export const normalizeInputToUrl = (input: string, searchEngine: SearchEngine): 
 export type WebViewBridgeMessage =
   | { type: 'favicon'; favicon: string | null }
   | { type: 'scrollY'; value: number }
-  | { type: 'overscrollTop' };
+  | { type: 'overscrollTop' }
+  | { type: 'fullscreenEnter' }
+  | { type: 'fullscreenExit' };
 
 export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage | null => {
   try {
@@ -58,6 +60,14 @@ export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage
       return { type: 'overscrollTop' };
     }
 
+    if (parsed.type === 'fullscreenEnter') {
+      return { type: 'fullscreenEnter' };
+    }
+
+    if (parsed.type === 'fullscreenExit') {
+      return { type: 'fullscreenExit' };
+    }
+
     return null;
   } catch {
     return null;
@@ -75,6 +85,58 @@ export const faviconInjectionScript = `
     const candidate = document.querySelector('link[rel~="icon"]');
     const favicon = candidate ? candidate.href : null;
     post({ type: 'favicon', favicon: favicon });
+
+    var signalFullscreenState = function() {
+      var active = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+      post({ type: active ? 'fullscreenEnter' : 'fullscreenExit' });
+    };
+
+    var wrapRequest = function(name) {
+      var original = Element.prototype[name];
+      if (typeof original !== 'function') {
+        return;
+      }
+
+      Element.prototype[name] = function() {
+        post({ type: 'fullscreenEnter' });
+        try {
+          return original.apply(this, arguments);
+        } catch (error) {
+          return Promise.resolve();
+        }
+      };
+    };
+
+    var wrapExit = function(target, name) {
+      var original = target && target[name];
+      if (typeof original !== 'function') {
+        return;
+      }
+
+      target[name] = function() {
+        post({ type: 'fullscreenExit' });
+        try {
+          return original.apply(this, arguments);
+        } catch (error) {
+          return Promise.resolve();
+        }
+      };
+    };
+
+    wrapRequest('requestFullscreen');
+    wrapRequest('webkitRequestFullscreen');
+    wrapRequest('webkitRequestFullScreen');
+    wrapExit(document, 'exitFullscreen');
+    wrapExit(document, 'webkitExitFullscreen');
+    wrapExit(document, 'webkitCancelFullScreen');
+
+    document.addEventListener('fullscreenchange', signalFullscreenState);
+    document.addEventListener('webkitfullscreenchange', signalFullscreenState);
 
     var lastScrollSentAt = 0;
     var sendScroll = function() {
