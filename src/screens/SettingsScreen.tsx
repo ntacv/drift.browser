@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -262,6 +262,24 @@ export const SettingsScreen = () => {
                 </Pressable>
               ))}
             </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('supportAndAbout')}</Text>
+
+            <Pressable
+              style={[styles.button, { backgroundColor: theme.surface2 }]}
+              onPress={() => Linking.openURL('mailto:drift.browser@gmail.com')}
+            >
+              <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('contactSupport')}</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.button, { backgroundColor: theme.surface2 }]}
+              onPress={() => Linking.openURL('https://github.com/ntacv/drift.browser')}
+            >
+              <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('sourceCode')}</Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

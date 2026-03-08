@@ -2,6 +2,14 @@
   "name": "drift",
   "version": "1.1.0",
   "main": "index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ntacv/drift.browser.git"
+  },
+  "bugs": {
+    "email": "drift.browser@gmail.com",
+    "url": "https://github.com/ntacv/drift.browser/issues"
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",

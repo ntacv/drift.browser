@@ -3,6 +3,10 @@ IA TODO
 add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed
 also add "source code" to link to the github
 
+screenshots 
+app icon 
+
+
 
 ## Bugs
 
@@ -54,4 +58,4 @@ also add "source code" to link to the github
 - [ ] remove the tabs count between workspace and list, but add a new workspacethat has all the tabs together, and put the number of tabs in it, and when clicking on it, open the tab list with all the tabs of all workspaces. when long click on it open a menu with "close all tabs" and "save all tabs as workspace" options
 
 - [ ] add extension support with claude, make a second version of the app that only packs basic features to keep it lightest
-- 
+- [ ] onboarding: choose language, choose theme, explain the main features of the app with a quick tutorial (swipe to change workspace, long click on a link, etc)

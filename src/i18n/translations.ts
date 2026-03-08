@@ -67,6 +67,9 @@ export const translations = {
     moveRight: 'Move Right',
     cancel: 'Cancel',
     save: 'Save',
+    supportAndAbout: 'Support & About',
+    contactSupport: 'Contact for request',
+    sourceCode: 'Source Code',
   },
   fr: {
     settingsTitle: 'Parametres',
@@ -136,6 +139,9 @@ export const translations = {
     moveRight: 'Deplacer a droite',
     cancel: 'Annuler',
     save: 'Enregistrer',
+    supportAndAbout: 'Support et à propos',
+    contactSupport: 'Contacter le support',
+    sourceCode: 'Code source',
   },
 } as const;
 
