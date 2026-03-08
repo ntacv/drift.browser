@@ -17,6 +17,7 @@ IA TODO
 - [x] transparent mode is not saved like the other settings, it reset when restarting
 - [x] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
 - [ ] when closeing the app, if its in fullscreen mode, exit the fullscreen mode so when reopening the app, it will be in normal mode, and not stuck in fullscreen mode without any way to exit it
+- [ ] reduce time of animation for new tab url panel oppening
 
 ## Technical
 

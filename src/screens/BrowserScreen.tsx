@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { BackHandler, StatusBar, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
@@ -16,6 +17,7 @@ interface BrowserScreenProps {
 
 export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
   const { theme } = useTheme();
+  const isFocused = useIsFocused();
   const { width, height } = useWindowDimensions();
   const isFullscreen = useBrowserStore((state) => state.isFullscreen);
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
@@ -57,6 +59,11 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
   }, [isFullscreen]);
 
   const handleBackPress = useCallback(() => {
+    // Ignore hardware back while another screen (e.g. Settings) is on top.
+    if (!isFocused) {
+      return false;
+    }
+
     // Priority 1: Exit fullscreen mode first.
     if (isFullscreen) {
       setFullscreen(false);
@@ -69,15 +76,15 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
       return true;
     }
 
-    // Priority 3: Close tab tray
-    if (isTrayOpen) {
-      setTrayOpen(false);
+    // Priority 3: Close menu
+    if (isMenuOpen) {
+      setMenuOpen(false);
       return true;
     }
 
-    // Priority 4: Close menu
-    if (isMenuOpen) {
-      setMenuOpen(false);
+    // Priority 4: Close tab tray (workspace panel)
+    if (isTrayOpen) {
+      setTrayOpen(false);
       return true;
     }
 
@@ -90,6 +97,7 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
     // Let system handle (exit app or other default behavior)
     return false;
   }, [
+    isFocused,
     isFullscreen,
     isUrlOverlayOpen,
     isTrayOpen,

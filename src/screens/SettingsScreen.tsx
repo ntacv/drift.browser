@@ -1,6 +1,6 @@
 import React from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { signIn, signOut } from '../services/fxaService';
@@ -40,6 +40,17 @@ export const SettingsScreen = () => {
   const setDefaultNewTabUrl = useBrowserStore((state) => state.setDefaultNewTabUrl);
   const setBlockTrackers = useBrowserStore((state) => state.setBlockTrackers);
   const setTransparentMode = useBrowserStore((state) => state.setTransparentMode);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        navigation.goBack();
+        return true;
+      });
+
+      return () => subscription.remove();
+    }, [navigation]),
+  );
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]} edges={['top', 'left', 'right']}>
