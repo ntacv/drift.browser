@@ -36,6 +36,7 @@ export const UrlBar = () => {
   const isLeftHandMode = useBrowserStore((state) => state.isLeftHandMode);
   const defaultNewTabUrl = useBrowserStore((state) => state.defaultNewTabUrl);
   const urlOverlayOpenRequestId = useBrowserStore((state) => state.urlOverlayOpenRequestId);
+  const urlOverlayCloseRequestId = useBrowserStore((state) => state.urlOverlayCloseRequestId);
   const createTab = useBrowserStore((state) => state.createTab);
   const navigateActiveTab = useBrowserStore((state) => state.navigateActiveTab);
   const goToNextTab = useBrowserStore((state) => state.goToNextTab);
@@ -44,11 +45,13 @@ export const UrlBar = () => {
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
+  const setUrlOverlayOpen = useBrowserStore((state) => state.setUrlOverlayOpen);
 
   const [isOverlayOpen, setOverlayOpen] = useState(false);
   const [input, setInput] = useState('');
   const inputRef = useRef<TextInput | null>(null);
   const lastHandledOverlayRequestId = useRef(urlOverlayOpenRequestId);
+  const lastHandledCloseRequestId = useRef(urlOverlayCloseRequestId);
 
   const activeTab = useBrowserStore(getActiveTab);
   const workspace = workspaces[activeWorkspaceId];
@@ -58,7 +61,10 @@ export const UrlBar = () => {
     isOpen: isOverlayOpen,
     sheetHeight: overlayHeight,
     closedOffset: 0,
-    onOpenChange: setOverlayOpen,
+    onOpenChange: (isOpen) => {
+      setOverlayOpen(isOpen);
+      setUrlOverlayOpen(isOpen);
+    },
   });
 
   useEffect(() => {
@@ -70,7 +76,20 @@ export const UrlBar = () => {
     const shouldStartEmpty = activeTab.url === 'about:blank' && defaultNewTabUrl.trim().length === 0;
     setInput(shouldStartEmpty ? '' : activeTab.url);
     setOverlayOpen(true);
-  }, [activeTab, defaultNewTabUrl, urlOverlayOpenRequestId]);
+    setUrlOverlayOpen(true);
+  }, [activeTab, defaultNewTabUrl, urlOverlayOpenRequestId, setUrlOverlayOpen]);
+
+  useEffect(() => {
+    if (urlOverlayCloseRequestId <= 0 || urlOverlayCloseRequestId === lastHandledCloseRequestId.current) {
+      return;
+    }
+
+    lastHandledCloseRequestId.current = urlOverlayCloseRequestId;
+    if (isOverlayOpen) {
+      setOverlayOpen(false);
+      setUrlOverlayOpen(false);
+    }
+  }, [urlOverlayCloseRequestId, isOverlayOpen, setUrlOverlayOpen]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -83,19 +102,6 @@ export const UrlBar = () => {
     }, 70);
 
     return () => clearTimeout(timer);
-  }, [isOverlayOpen]);
-
-  useEffect(() => {
-    if (!isOverlayOpen) {
-      return;
-    }
-
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setOverlayOpen(false);
-      return true;
-    });
-
-    return () => sub.remove();
   }, [isOverlayOpen]);
 
   const suggestions = useMemo<HistoryEntry[]>(() => {
@@ -117,6 +123,7 @@ export const UrlBar = () => {
 
     navigateActiveTab(url);
     setOverlayOpen(false);
+    setUrlOverlayOpen(false);
   };
 
   const domain = activeTab ? toDomain(activeTab.url) : t('newTabLabel');
@@ -193,6 +200,7 @@ export const UrlBar = () => {
             onPress={() => {
               setInput(activeTab?.url ?? '');
               setOverlayOpen(true);
+              setUrlOverlayOpen(true);
             }}
             style={[styles.pill, { backgroundColor: theme.surface2 }]}
           >
@@ -205,7 +213,15 @@ export const UrlBar = () => {
         </View>
       </GestureDetector>
 
-      {isOverlayOpen ? <Pressable style={styles.overlayBackdrop} onPress={() => setOverlayOpen(false)} /> : null}
+      {isOverlayOpen ? (
+        <Pressable
+          style={styles.overlayBackdrop}
+          onPress={() => {
+            setOverlayOpen(false);
+            setUrlOverlayOpen(false);
+          }}
+        />
+      ) : null}
 
       <GestureDetector gesture={overlayGesture.panGesture}>
         <Animated.View
@@ -227,7 +243,13 @@ export const UrlBar = () => {
 
             <View style={styles.overlayHeader}>
               <Text style={[styles.overlayTitle, { color: theme.text }]}>{t('address')}</Text>
-              <Pressable onPress={() => setOverlayOpen(false)} style={styles.closeTapTarget}>
+              <Pressable
+                onPress={() => {
+                  setOverlayOpen(false);
+                  setUrlOverlayOpen(false);
+                }}
+                style={styles.closeTapTarget}
+              >
                 <Text style={[styles.closeText, { color: theme.text2 }]}>{t('close')}</Text>
               </Pressable>
             </View>

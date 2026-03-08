@@ -64,6 +64,7 @@ export interface BrowserState {
   activeWorkspaceId: string;
   isTrayOpen: boolean;
   isMenuOpen: boolean;
+  isUrlOverlayOpen: boolean;
   syncUser: SyncUser | null;
   lastSyncedAt: number | null;
   bookmarks: Record<string, Bookmark>;
@@ -77,6 +78,7 @@ export interface BrowserState {
   isLeftHandMode: boolean;
   defaultNewTabUrl: string;
   urlOverlayOpenRequestId: number;
+  urlOverlayCloseRequestId: number;
   blockTrackers: boolean;
   isFullscreen: boolean;
   isTransparentMode: boolean;
@@ -99,6 +101,8 @@ export interface BrowserActions {
 
   setTrayOpen: (isOpen: boolean) => void;
   setMenuOpen: (isOpen: boolean) => void;
+  setUrlOverlayOpen: (isOpen: boolean) => void;
+  requestCloseUrlOverlay: () => void;
 
   addBookmarkFromActiveTab: () => void;
   addHistoryEntry: (entry: Omit<HistoryEntry, 'id' | 'visitedAt'>) => void;

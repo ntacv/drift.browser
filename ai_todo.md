@@ -12,12 +12,12 @@ IA TODO
 - [x] new tab open in the top of the list,open the tab list with the current tab in front, and put the new tab always on the top 
 - [x] in the tab list, side swip to change workspace is only active on the tabs, it should be over the whole panel, while keeping the list scroll
 - [ ] can rotate the screen only for the website (like video or games) and keep the browser UI in portrait mode 
-- [ ] the back system action is not closing the url edition 
+- [x] the back system action is not closing the url edition 
 - [ ] the back button on the browser view should return to the last visited page
 - [x] the list of workspace should not be a scrollable list, put it in a flexbox, it will make rows of workspace, dont force them to take the full width.
 - [x] remove the emoji from the workspace 
-- [ ] transparent mode is not saved like the other settings
-- [ ] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
+- [ ] transparent mode is not saved like the other settings, it reset when restarting
+- [x] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
 
 ## Technical
 
@@ -32,7 +32,7 @@ IA TODO
 - [ ] add a tab counter of the all app, it will be placed at the end of the workspace list
 - [ ] add setting to export all data (bookmarks, history, workspaces, tabs, preferences) as a firefox understable format
 - [ ] add setting to import data from a firefox understable format
-- [ ] change the design of the close tab button, use icon, dont use red, make it recttangular
+- [ ] change the design of the close tab button, use icon, dont use red, make it rectangular
 - [ ] update the setting appearance section, add "theme" subsection
 
 - [x] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward

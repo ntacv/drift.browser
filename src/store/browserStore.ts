@@ -137,6 +137,7 @@ const initialState = {
   isLeftHandMode: false,
   defaultNewTabUrl: DEFAULT_URL,
   urlOverlayOpenRequestId: 0,
+  urlOverlayCloseRequestId: 0,
   blockTrackers: true,
   isFullscreen: false,
   isTransparentMode: false,
@@ -400,6 +401,8 @@ export const useBrowserStore = create<BrowserStore>()(
 
       setTrayOpen: (isOpen) => set({ isTrayOpen: isOpen }),
       setMenuOpen: (isOpen) => set({ isMenuOpen: isOpen }),
+      setUrlOverlayOpen: (isOpen) => set({ isUrlOverlayOpen: isOpen }),
+      requestCloseUrlOverlay: () => set((state) => ({ urlOverlayCloseRequestId: state.urlOverlayCloseRequestId + 1 })),
 
       addBookmarkFromActiveTab: () =>
         set((state) => {
