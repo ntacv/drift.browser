@@ -1,4 +1,4 @@
-# Zen Mobile Browser
+# Drift
 
 WARNING: This application has been developed by ai agents. It may contain bugs, security vulnerabilities, and other issues. Use at your own risk.
 

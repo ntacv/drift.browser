@@ -3,7 +3,7 @@ import Hawk from 'hawk';
 import type { BrowserState } from '../store/types';
 
 const SYNC_BASE_URL = 'https://sync-1-us-west4-g.sync.services.mozilla.com';
-const COLLECTION_PATH = '/storage/zen-mobile-state/state';
+const COLLECTION_PATH = '/storage/drift-state/state';
 
 const encryptPayload = async (plain: string): Promise<string> => {
   // TODO: Replace identity transform with AES-256-GCM client-side encryption.

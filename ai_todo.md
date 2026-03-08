@@ -1,5 +1,9 @@
 IA TODO
 
+change name
+add a support button
+
+
 ## Bugs
 
 - [x] in the main bar, the 3 buttons are on the same size, on either side of the url, depending on the hand setting 
@@ -26,7 +30,7 @@ IA TODO
 
 ## Feature 
 
-- [ ] touching the top safezone (notification bar) should scroll the page to the top
+- [ ] a way to scroll to the top
 - [ ] long click on any web link opens a panel like the menu, with options like "open in new tab", "copy link", "share link" (2 tiles should fit a row)
 - [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
 - [ ] when sharing a link, open the native share menu with the current page link
@@ -42,9 +46,12 @@ IA TODO
 - [ ] add a setting "display full url in the main bar and the tab list"
 
 
-- [ ] check secrets and ready to push public
+- [x] check secrets and ready to push public
 - [x] in readme, add doc link
 - [ ] history page, add a "clear history" button, when clicking on a link in the history list, open the page and close the history page
 - [ ] updated alerts like full screen (material 3, ios glass)
 - [ ] picture in picture mode for videos, with a toggle in the video right click menu, and a setting to always open videos in picture in picture mode
 - [ ] remove the tabs count between workspace and list, but add a new workspacethat has all the tabs together, and put the number of tabs in it, and when clicking on it, open the tab list with all the tabs of all workspaces. when long click on it open a menu with "close all tabs" and "save all tabs as workspace" options
+
+- [ ] add extension support with claude, make a second version of the app that only packs basic features to keep it lightest
+- 

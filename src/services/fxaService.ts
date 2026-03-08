@@ -3,14 +3,14 @@ import * as WebBrowser from 'expo-web-browser';
 
 const FXA_AUTH_BASE = 'https://accounts.firefox.com/oauth/authorization';
 const FXA_TOKEN_ENDPOINT = 'https://oauth.accounts.firefox.com/v1/token';
-const REDIRECT_URI = 'zen-mobile://fxa-oauth';
+const REDIRECT_URI = 'drift://fxa-oauth';
 
 const ACCESS_TOKEN_KEY = 'fxa.accessToken';
 const REFRESH_TOKEN_KEY = 'fxa.refreshToken';
 const USER_ID_KEY = 'fxa.uid';
 
 export const signIn = async (): Promise<{ uid: string; email: string } | null> => {
-  const authUrl = `${FXA_AUTH_BASE}?client_id=zen-mobile-dev&redirect_uri=${encodeURIComponent(
+  const authUrl = `${FXA_AUTH_BASE}?client_id=drift-dev&redirect_uri=${encodeURIComponent(
     REDIRECT_URI,
   )}&response_type=code&scope=profile`;
 
@@ -34,7 +34,7 @@ export const signIn = async (): Promise<{ uid: string; email: string } | null> =
       code,
       grant_type: 'authorization_code',
       redirect_uri: REDIRECT_URI,
-      client_id: 'zen-mobile-dev',
+      client_id: 'drift-dev',
     }),
   }).catch(() => null);
 

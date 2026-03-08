@@ -4,7 +4,7 @@
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-If you discover a security vulnerability in Zen Mobile Browser, please report it responsibly by emailing the maintainer directly or using GitHub's private vulnerability reporting feature.
+If you discover a security vulnerability in Drift, please report it responsibly by emailing the maintainer directly or using GitHub's private vulnerability reporting feature.
 
 ### What to Include
 

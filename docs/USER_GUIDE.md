@@ -1,4 +1,4 @@
-# Zen Mobile Browser - User Guide and Development Process
+# Drift - User Guide and Development Process
 
 This document contains:
 
@@ -84,7 +84,7 @@ Settings include:
 
 ### 1.6 Fullscreen Modes
 
-Zen Mobile supports two types of fullscreen modes:
+Drift supports two types of fullscreen modes:
 
 #### User Fullscreen
 

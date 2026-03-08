@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "zen-mobile",
-    "slug": "zen-mobile",
-    "scheme": "zen-mobile",
+    "name": "Drift",
+    "slug": "drift",
+    "scheme": "drift",
     "version": "1.1.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ntacv.zenmobile",
+      "bundleIdentifier": "com.ntacv.drift",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UISupportedInterfaceOrientations": [
@@ -32,7 +32,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ntacv.zenmobile"
+      "package": "com.ntacv.drift"
     },
     "web": {
       "favicon": "./assets/favicon.png"

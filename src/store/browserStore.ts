@@ -460,7 +460,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
     }),
     {
-      name: 'zen-mobile-browser-store-v2',
+      name: 'drift-browser-store-v2',
       version: 3,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState: any, version: number) => {

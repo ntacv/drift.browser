@@ -2,28 +2,28 @@ import { useState, useRef, useEffect } from "react";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const WORKSPACES = [
-  { id: "work",     emoji: "💼", label: "Work" },
+  { id: "work", emoji: "💼", label: "Work" },
   { id: "personal", emoji: "🏠", label: "Personal" },
   { id: "research", emoji: "🔬", label: "Research" },
 ];
 
 const INITIAL_TABS = {
   work: [
-    { id: "t1", title: "GitHub – Pull Requests",   domain: "github.com",    favicon: "🐙", url: "https://github.com",         pinned: true  },
-    { id: "t2", title: "Notion – Sprint Board",    domain: "notion.so",     favicon: "📝", url: "https://notion.so",          pinned: false },
-    { id: "t3", title: "Linear – Issues",          domain: "linear.app",    favicon: "📐", url: "https://linear.app",         pinned: false },
-    { id: "t4", title: "Figma – Design System",    domain: "figma.com",     favicon: "🎨", url: "https://figma.com",          pinned: false },
-    { id: "t5", title: "Slack – #engineering",     domain: "slack.com",     favicon: "💬", url: "https://slack.com",          pinned: false },
+    { id: "t1", title: "GitHub – Pull Requests", domain: "github.com", favicon: "🐙", url: "https://github.com", pinned: true },
+    { id: "t2", title: "Notion – Sprint Board", domain: "notion.so", favicon: "📝", url: "https://notion.so", pinned: false },
+    { id: "t3", title: "Linear – Issues", domain: "linear.app", favicon: "📐", url: "https://linear.app", pinned: false },
+    { id: "t4", title: "Figma – Design System", domain: "figma.com", favicon: "🎨", url: "https://figma.com", pinned: false },
+    { id: "t5", title: "Slack – #engineering", domain: "slack.com", favicon: "💬", url: "https://slack.com", pinned: false },
   ],
   personal: [
-    { id: "t6", title: "Reddit – r/programming",  domain: "reddit.com",    favicon: "👽", url: "https://reddit.com",         pinned: false },
-    { id: "t7", title: "YouTube",                  domain: "youtube.com",   favicon: "▶️", url: "https://youtube.com",        pinned: false },
-    { id: "t8", title: "Spotify Web Player",       domain: "spotify.com",   favicon: "🎵", url: "https://spotify.com",        pinned: false },
+    { id: "t6", title: "Reddit – r/programming", domain: "reddit.com", favicon: "👽", url: "https://reddit.com", pinned: false },
+    { id: "t7", title: "YouTube", domain: "youtube.com", favicon: "▶️", url: "https://youtube.com", pinned: false },
+    { id: "t8", title: "Spotify Web Player", domain: "spotify.com", favicon: "🎵", url: "https://spotify.com", pinned: false },
   ],
   research: [
-    { id: "t9",  title: "arXiv – AI/ML Papers",   domain: "arxiv.org",     favicon: "📄", url: "https://arxiv.org",          pinned: true  },
-    { id: "t10", title: "Wikipedia – Neural Net",  domain: "wikipedia.org", favicon: "📚", url: "https://wikipedia.org",      pinned: false },
-    { id: "t11", title: "Hacker News",             domain: "hn.algolia.com",favicon: "🧡", url: "https://news.ycombinator.com", pinned: false },
+    { id: "t9", title: "arXiv – AI/ML Papers", domain: "arxiv.org", favicon: "📄", url: "https://arxiv.org", pinned: true },
+    { id: "t10", title: "Wikipedia – Neural Net", domain: "wikipedia.org", favicon: "📚", url: "https://wikipedia.org", pinned: false },
+    { id: "t11", title: "Hacker News", domain: "hn.algolia.com", favicon: "🧡", url: "https://news.ycombinator.com", pinned: false },
   ],
 };
 
@@ -310,7 +310,7 @@ const CSS = `
 `;
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-export default function ZenMobileBrowser() {
+export default function DriftBrowser() {
   const [workspace, setWorkspace] = useState("work");
   const [tabs, setTabs] = useState(INITIAL_TABS);
   const [activeTabId, setActiveTabId] = useState("t1");
@@ -567,7 +567,7 @@ export default function ZenMobileBrowser() {
             fontFamily: "'DM Sans',sans-serif", color: "#454b66", fontSize: "11px",
             textAlign: "center", lineHeight: 1.7, maxWidth: "360px"
           }}>
-            Zen Mobile Browser — Proof of Concept · React Native ready · Firefox Sync · Multi-workspace
+            Drift Browser — Proof of Concept · React Native ready · Firefox Sync · Multi-workspace
           </div>
         </div>
       </div>
