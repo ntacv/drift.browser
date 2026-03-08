@@ -61,6 +61,11 @@ export const UrlBar = () => {
     isOpen: isOverlayOpen,
     sheetHeight: overlayHeight,
     closedOffset: 0,
+    springConfig: {
+      damping: 24,
+      stiffness: 340,
+      mass: 0.65,
+    },
     onOpenChange: (isOpen) => {
       setOverlayOpen(isOpen);
       setUrlOverlayOpen(isOpen);
@@ -99,7 +104,7 @@ export const UrlBar = () => {
         inputRef.current?.blur();
         Keyboard.dismiss();
       }
-    }, 70);
+    }, 35);
 
     return () => clearTimeout(timer);
   }, [isOverlayOpen]);

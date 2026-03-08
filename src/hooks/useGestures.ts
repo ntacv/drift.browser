@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
 import {
   runOnJS,
+  type WithSpringConfig,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -12,13 +13,14 @@ const SPRING_CONFIG = {
   damping: 20,
   stiffness: 200,
   mass: 0.8,
-};
+} as const satisfies WithSpringConfig;
 
 interface SheetGestureParams {
   isOpen: boolean;
   sheetHeight: number;
   closedOffset?: number;
   onOpenChange: (next: boolean) => void;
+  springConfig?: WithSpringConfig;
 }
 
 export const useSheetGesture = ({
@@ -26,13 +28,15 @@ export const useSheetGesture = ({
   sheetHeight,
   closedOffset = 0,
   onOpenChange,
+  springConfig,
 }: SheetGestureParams) => {
+  const resolvedSpringConfig = springConfig ?? SPRING_CONFIG;
   const closedPosition = sheetHeight + closedOffset;
   const translateY = useSharedValue(isOpen ? 0 : closedPosition);
 
   useEffect(() => {
-    translateY.value = withSpring(isOpen ? 0 : closedPosition, SPRING_CONFIG);
-  }, [isOpen, closedPosition, translateY]);
+    translateY.value = withSpring(isOpen ? 0 : closedPosition, resolvedSpringConfig);
+  }, [isOpen, closedPosition, translateY, resolvedSpringConfig]);
 
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
@@ -42,7 +46,7 @@ export const useSheetGesture = ({
     .onEnd((event) => {
       const shouldClose = event.velocityY > 200 || translateY.value > closedPosition * 0.4;
       const target = shouldClose ? closedPosition : 0;
-      translateY.value = withSpring(target, SPRING_CONFIG);
+      translateY.value = withSpring(target, resolvedSpringConfig);
       runOnJS(onOpenChange)(!shouldClose);
     });
 
