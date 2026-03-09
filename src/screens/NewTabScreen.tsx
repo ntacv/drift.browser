@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '../i18n/useI18n';
 import { useBrowserStore } from '../store/browserStore';
 import { useTheme } from '../theme';
+import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 
 interface NewTabScreenProps {
   onDone: () => void;
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   buttonLabel: {
-    color: '#fff',
+    color: TEXT_ON_COLORED_BACKGROUND,
     fontSize: 14,
     fontWeight: '700',
   },

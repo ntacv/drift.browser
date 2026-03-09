@@ -8,6 +8,7 @@ import { useI18n } from '../i18n/useI18n';
 import { useBrowserStore } from '../store/browserStore';
 import type { AppLanguage, SearchEngine, TabListSize, ThemePreference } from '../store/types';
 import { useTheme } from '../theme';
+import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 
 const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
@@ -153,7 +154,7 @@ export const SettingsScreen = () => {
                     },
                   ]}
                 >
-                  <Text style={[styles.chipLabel, { color: searchEngine === engine ? '#fff' : theme.text }]}>{t(SEARCH_ENGINE_LABEL_KEY[engine])}</Text>
+                  <Text style={[styles.chipLabel, { color: searchEngine === engine ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(SEARCH_ENGINE_LABEL_KEY[engine])}</Text>
                 </Pressable>
               ))}
             </View>
@@ -199,7 +200,7 @@ export const SettingsScreen = () => {
                     },
                   ]}
                 >
-                  <Text style={[styles.chipLabel, { color: defaultNewTabUrl === preset ? '#fff' : theme.text }]}>{preset}</Text>
+                  <Text style={[styles.chipLabel, { color: defaultNewTabUrl === preset ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{preset}</Text>
                 </Pressable>
               ))}
             </View>
@@ -223,7 +224,7 @@ export const SettingsScreen = () => {
                   onPress={() => setTabListSize(size)}
                   style={[styles.chip, { backgroundColor: tabListSize === size ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: tabListSize === size ? '#fff' : theme.text }]}>{t(TAB_SIZE_LABEL_KEY[size])}</Text>
+                  <Text style={[styles.chipLabel, { color: tabListSize === size ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(TAB_SIZE_LABEL_KEY[size])}</Text>
                 </Pressable>
               ))}
             </View>
@@ -247,7 +248,7 @@ export const SettingsScreen = () => {
                   onPress={() => setLanguage(lang)}
                   style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: language === lang ? '#fff' : theme.text }]}>{t(LANGUAGE_LABEL_KEY[lang])}</Text>
+                  <Text style={[styles.chipLabel, { color: language === lang ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(LANGUAGE_LABEL_KEY[lang])}</Text>
                 </Pressable>
               ))}
             </View>
@@ -264,7 +265,7 @@ export const SettingsScreen = () => {
                   onPress={() => setThemePreference(pref)}
                   style={[styles.chip, { backgroundColor: themePreference === pref ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: themePreference === pref ? '#fff' : theme.text }]}>{t(THEME_LABEL_KEY[pref])}</Text>
+                  <Text style={[styles.chipLabel, { color: themePreference === pref ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(THEME_LABEL_KEY[pref])}</Text>
                 </Pressable>
               ))}
             </View>

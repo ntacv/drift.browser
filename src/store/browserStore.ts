@@ -14,6 +14,7 @@ import type {
   Workspace,
 } from './types';
 import { getDefaultConfig } from './defaultConfig';
+import { SAVED_TABS_WORKSPACE_COLOR } from '../../default-settings';
 
 const makeId = (prefix: string): string => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100_000)}`;
 
@@ -525,7 +526,7 @@ export const useBrowserStore = create<BrowserStore>()(
           const nextWorkspaceLabel = label?.trim() || 'Saved Tabs';
 
           if (sourceTabs.length === 0) {
-            const { workspace, tab } = createWorkspaceWithTab(id, nextWorkspaceLabel, 'work', '#6C7AFA');
+            const { workspace, tab } = createWorkspaceWithTab(id, nextWorkspaceLabel, null, SAVED_TABS_WORKSPACE_COLOR);
             return {
               workspaces: {
                 ...state.workspaces,
@@ -555,7 +556,7 @@ export const useBrowserStore = create<BrowserStore>()(
             id,
             label: nextWorkspaceLabel,
             emoji: 'work',
-            color: '#6C7AFA',
+            color: SAVED_TABS_WORKSPACE_COLOR,
             tabIds: clonedTabs.map((tab) => tab.id),
             activeTabId: clonedTabs[0]?.id ?? null,
           };

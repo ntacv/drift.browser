@@ -7,6 +7,7 @@ import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import type { Workspace } from '../../store/types';
+import { TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
 
 interface WorkspaceEditorProps {
   visible: boolean;
@@ -344,7 +345,7 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
                 onPress={handleSave}
                 disabled={!label.trim()}
               >
-                <Text style={[styles.buttonText, { color: '#fff' }]}>{t('save')}</Text>
+                <Text style={[styles.buttonText, { color: TEXT_ON_COLORED_BACKGROUND }]}>{t('save')}</Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -440,7 +441,7 @@ const styles = StyleSheet.create({
   },
   colorOptionSelected: {
     borderWidth: 3,
-    borderColor: '#fff',
+    borderColor: TEXT_ON_COLORED_BACKGROUND,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
   checkmark: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: TEXT_ON_COLORED_BACKGROUND,
   },
   actions: {
     flexDirection: 'row',

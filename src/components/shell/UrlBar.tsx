@@ -20,6 +20,7 @@ import { getActiveTab, useBrowserStore } from '../../store/browserStore';
 import type { HistoryEntry } from '../../store/types';
 import { useTheme } from '../../theme';
 import { normalizeInputToUrl, toDomain } from '../../hooks/useWebView';
+import { TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
 
 const DISPLAYED_SUGGESTIONS_COUNT = 5;
 
@@ -185,7 +186,7 @@ export const UrlBar = () => {
 
         return (
           <Pressable key={controlId} onPress={() => setTrayOpen(!isTrayOpen)} style={[styles.iconButton, { backgroundColor: workspace?.color ?? theme.accent }]}>
-            <Text style={[styles.iconText, { color: '#FFFFFF' }]}>{workspace?.tabIds.length ?? 0}</Text>
+            <Text style={[styles.iconText, { color: TEXT_ON_COLORED_BACKGROUND }]}>{workspace?.tabIds.length ?? 0}</Text>
           </Pressable>
         );
       })}

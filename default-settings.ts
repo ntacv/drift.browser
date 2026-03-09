@@ -9,6 +9,24 @@
 
 import type { AppLanguage, SearchEngine, TabListSize, ThemePreference } from './src/store/types';
 
+// ===== UI Colors =====
+
+// Color used for the "All Tabs" workspace button.
+export const ALL_TABS_WORKSPACE_COLOR = "#555b6b";
+
+// Color used when creating a workspace from "save all tabs as workspace".
+export const SAVED_TABS_WORKSPACE_COLOR = '#6C7AFA';
+
+// Default color for new workspaces created via the menu.
+export const DEFAULT_NEW_WORKSPACE_COLOR = '#7E57C2';
+
+// Color for sheet drawer handles and separators.
+export const SHEET_HANDLE_COLOR = '#7d869f';
+
+// Text color for content displayed on colored backgrounds (workspace chips, buttons, etc.).
+export const TEXT_ON_COLORED_BACKGROUND = '#FFFFFF';
+
+
 export interface WorkspaceConfig {
     id: string;
     label: string;
@@ -53,7 +71,7 @@ export const defaultSettings: DefaultConfig = {
             id: 'ws-work',
             label: 'Work',
             icon: 'work',
-            color: '#5965FF',
+            color: '#ff3838',
         },
         {
             id: 'ws-research',

@@ -10,6 +10,7 @@ import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import { TabCard } from './TabCard';
 import { WorkspaceChips } from './WorkspaceChips';
+import { SHEET_HANDLE_COLOR } from '../../../default-settings';
 
 const TAB_LIST_HEIGHTS = {
   compact: 340,
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 4,
     borderRadius: 999,
-    backgroundColor: '#7d869f',
+    backgroundColor: SHEET_HANDLE_COLOR,
     alignSelf: 'center',
   },
   handleTouchArea: {

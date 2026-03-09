@@ -76,7 +76,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   }
 
   const isBlankPage = tab.url === 'about:blank';
-  const blankHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html,body{height:100%;margin:0;background:${mode === 'dark' ? '#0d0f14' : '#f4f6fb'};color:${mode === 'dark' ? '#e8eaf2' : '#151a2a'};}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}</style></head><body></body></html>`;
+  const blankHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html,body{height:100%;margin:0;background:${theme.bg};color:${theme.text};}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}</style></head><body></body></html>`;
 
   const handleNavChange = (navState: WebViewNavigation) => {
     updateTabMeta(tabId, {

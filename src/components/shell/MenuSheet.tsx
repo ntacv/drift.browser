@@ -5,6 +5,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DEFAULT_NEW_WORKSPACE_COLOR, SHEET_HANDLE_COLOR } from '../../../default-settings';
 import { useSheetGesture } from '../../hooks/useGestures';
 import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore, getActiveTab } from '../../store/browserStore';
@@ -168,7 +169,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       setMenuOpen(false);
       onOpenSettings();
     } else if (id === 'workspace') {
-      createWorkspace(t('menuNewWorkspace'), 'star', '#7E57C2');
+      createWorkspace(t('menuNewWorkspace'), 'star', DEFAULT_NEW_WORKSPACE_COLOR);
       setMenuOpen(false);
     } else if (id === 'signout') {
       fxaService.signOut().then(() => setSyncUser(null));
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 999,
     alignSelf: 'center',
-    backgroundColor: '#7d869f',
+    backgroundColor: SHEET_HANDLE_COLOR,
     marginBottom: 10,
   },
   scrollContent: {

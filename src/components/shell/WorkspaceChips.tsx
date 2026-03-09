@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
+import { ALL_TABS_WORKSPACE_COLOR, TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
 import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
@@ -112,13 +113,10 @@ export const WorkspaceChips = () => {
                 <MaterialIcons
                   name={iconName}
                   size={18}
-                  color={isActive ? '#fff' : theme.text}
+                  color={isActive ? TEXT_ON_COLORED_BACKGROUND : theme.text}
                 />
               )}
-              <Text style={[styles.label, { color: isActive ? '#fff' : theme.text }]}>{workspace.label}</Text>
-              <View style={styles.countWrap}>
-                <Text style={styles.count}>{workspace.tabIds.length}</Text>
-              </View>
+              <Text style={[styles.label, { color: isActive ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{workspace.label}</Text>
             </Pressable>
           );
         })}
@@ -133,16 +131,13 @@ export const WorkspaceChips = () => {
           style={[
             styles.chip,
             {
-              backgroundColor: isAllTabsView ? theme.accent : theme.surface2,
-              borderColor: isAllTabsView ? theme.accent : theme.border,
+              backgroundColor: isAllTabsView ? ALL_TABS_WORKSPACE_COLOR : theme.surface2,
+              borderColor: isAllTabsView ? ALL_TABS_WORKSPACE_COLOR : theme.border,
             },
             styles.chipNoIcon,
           ]}
         >
-          <Text style={[styles.label, { color: isAllTabsView ? '#fff' : theme.text }]}>{t('allTabs')}</Text>
-          <View style={styles.countWrap}>
-            <Text style={styles.count}>{totalTabCount}</Text>
-          </View>
+          <Text style={[styles.label, { color: isAllTabsView ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{String(totalTabCount)}</Text>
         </Pressable>
       </View>
 
@@ -188,7 +183,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   count: {
-    color: '#fff',
+    color: TEXT_ON_COLORED_BACKGROUND,
     fontSize: 11,
     fontWeight: '700',
   },

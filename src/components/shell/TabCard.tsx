@@ -7,6 +7,7 @@ import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
 import type { Tab } from '../../store/types';
 import { useTheme } from '../../theme';
+import { TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
 
 interface TabCardProps {
   tab: Tab;
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   fallbackText: {
-    color: '#fff',
+    color: TEXT_ON_COLORED_BACKGROUND,
     fontWeight: '700',
     fontSize: 11,
   },
