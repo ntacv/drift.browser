@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
@@ -146,9 +146,24 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     setMenuOpen(false);
   };
 
-  const executeTileAction = (id: MenuTileId) => {
+  const executeTileAction = async (id: MenuTileId) => {
     if (id === 'share') {
-      Alert.alert(t('share'), activeTab?.url ?? t('noActiveTab'));
+      const url = activeTab?.url;
+      if (!url) {
+        Alert.alert(t('share'), t('noActiveTab'));
+        return;
+      }
+
+      try {
+        await Share.share({
+          message: url,
+          url,
+        });
+      } catch {
+        Alert.alert(t('share'), url);
+      }
+
+      setMenuOpen(false);
     } else if (id === 'settings') {
       setMenuOpen(false);
       onOpenSettings();
