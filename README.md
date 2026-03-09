@@ -16,6 +16,21 @@ Technical setup and run instructions for the Expo/React Native workspace.
 
 - User + development process guide: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
 - Git/versioning workflow: [docs/GIT_VERSIONING_WORKFLOW.md](docs/GIT_VERSIONING_WORKFLOW.md)
+- **Default settings configuration**: [DEFAULT_SETTINGS.md](DEFAULT_SETTINGS.md)
+
+## Configuration
+
+You can customize the default settings for new installations by editing `default-settings.ts`. This TypeScript file provides compile-time type safety - invalid configurations will prevent the app from building.
+
+You can configure:
+- Initial workspaces (name, icon, color)
+- Default theme, search engine, language
+- UI preferences (left-hand mode, compact lists, etc.)
+- Default new tab URL
+
+See [DEFAULT_SETTINGS.md](DEFAULT_SETTINGS.md) for the complete configuration reference.
+
+**Note:** Changes require rebuilding the app to take effect.
 
 ## Requirements
 

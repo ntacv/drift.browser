@@ -6,7 +6,9 @@ also add "source code" to link to the github
 screenshots 
 app icon 
 
+update defaults settings
 
+claude security vuln check 
 
 ## Bugs
 
@@ -46,14 +48,14 @@ app icon
 - [ ] update the setting appearance section, add "theme" subsection
 
 - [x] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward
-- [ ] compact tab list toggle in appearance settings 
+- [x] compact tab list toggle in appearance settings 
 - [ ] add a setting "display full url in the main bar and the tab list"
 
 
 - [x] check secrets and ready to push public
 - [x] in readme, add doc link
 - [ ] history page, add a "clear history" button, when clicking on a link in the history list, open the page and close the history page
-- [ ] updated alerts like full screen (material 3, ios glass)
+- [ ] updated alerts (like in full screen mode) (material 3, ios glass)
 - [ ] picture in picture mode for videos, with a toggle in the video right click menu, and a setting to always open videos in picture in picture mode
 - [ ] remove the tabs count between workspace and list, but add a new workspacethat has all the tabs together, and put the number of tabs in it, and when clicking on it, open the tab list with all the tabs of all workspaces. when long click on it open a menu with "close all tabs" and "save all tabs as workspace" options
 

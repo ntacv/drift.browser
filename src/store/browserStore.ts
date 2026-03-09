@@ -13,6 +13,7 @@ import type {
   ThemePreference,
   Workspace,
 } from './types';
+import { getDefaultConfig } from './defaultConfig';
 
 const makeId = (prefix: string): string => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100_000)}`;
 
@@ -103,48 +104,62 @@ const unsortedFolder: BookmarkFolder = {
   label: 'Unsorted',
 };
 
-const personal = createWorkspaceWithTab('ws-personal', 'Personal', 'home', '#4B8BFF');
-const work = createWorkspaceWithTab('ws-work', 'Work', 'work', '#5965FF');
-const research = createWorkspaceWithTab('ws-research', 'Research', 'science', '#2AB673');
+/**
+ * Build initial state from default config
+ */
+const buildInitialState = () => {
+  const config = getDefaultConfig();
 
-const initialState = {
-  workspaces: {
-    [personal.workspace.id]: personal.workspace,
-    [work.workspace.id]: work.workspace,
-    [research.workspace.id]: research.workspace,
-  },
-  workspaceOrder: [personal.workspace.id, work.workspace.id, research.workspace.id],
-  tabs: {
-    [personal.tab.id]: personal.tab,
-    [work.tab.id]: work.tab,
-    [research.tab.id]: research.tab,
-  },
-  activeWorkspaceId: personal.workspace.id,
-  isTrayOpen: false,
-  isMenuOpen: false,
-  isUrlOverlayOpen: false,
-  syncUser: null,
-  lastSyncedAt: null,
-  bookmarks: {},
-  bookmarkFolders: {
-    [unsortedFolder.id]: unsortedFolder,
-  },
-  history: [],
-  themePreference: 'system' as ThemePreference,
-  searchEngine: 'brave' as SearchEngine,
-  language: 'en' as AppLanguage,
-  tabListSize: 'comfortable' as TabListSize,
-  menuTileOrder: DEFAULT_MENU_TILE_ORDER,
-  isLeftHandMode: false,
-  defaultNewTabUrl: DEFAULT_URL,
-  urlOverlayOpenRequestId: 0,
-  urlOverlayCloseRequestId: 0,
-  blockTrackers: true,
-  isUserFullscreen: false,
-  isTransparentMode: false,
-  isCompactTabList: false,
-  isFullUrlVisible: false,
+  // Create workspaces and tabs from config
+  const workspaceData = config.defaultWorkspaces.map((ws) =>
+    createWorkspaceWithTab(ws.id, ws.label, ws.icon, ws.color)
+  );
+
+  const workspaces: Record<string, Workspace> = {};
+  const tabs: Record<string, Tab> = {};
+  const workspaceOrder: string[] = [];
+
+  workspaceData.forEach(({ workspace, tab }) => {
+    workspaces[workspace.id] = workspace;
+    tabs[tab.id] = tab;
+    workspaceOrder.push(workspace.id);
+  });
+
+  const activeWorkspaceId = workspaceOrder[0] || 'ws-personal';
+
+  return {
+    workspaces,
+    workspaceOrder,
+    tabs,
+    activeWorkspaceId,
+    isTrayOpen: false,
+    isMenuOpen: false,
+    isUrlOverlayOpen: false,
+    syncUser: null,
+    lastSyncedAt: null,
+    bookmarks: {},
+    bookmarkFolders: {
+      [unsortedFolder.id]: unsortedFolder,
+    },
+    history: [],
+    themePreference: config.preferences.themePreference,
+    searchEngine: config.preferences.searchEngine,
+    language: config.preferences.language,
+    tabListSize: config.preferences.tabListSize,
+    menuTileOrder: config.menuTileOrder,
+    isLeftHandMode: config.preferences.isLeftHandMode,
+    defaultNewTabUrl: config.preferences.defaultNewTabUrl,
+    urlOverlayOpenRequestId: 0,
+    urlOverlayCloseRequestId: 0,
+    blockTrackers: config.preferences.blockTrackers,
+    isUserFullscreen: false,
+    isTransparentMode: config.preferences.isTransparentMode,
+    isCompactTabList: config.preferences.isCompactTabList,
+    isFullUrlVisible: config.preferences.isFullUrlVisible,
+  };
 };
+
+const initialState = buildInitialState();
 
 export const useBrowserStore = create<BrowserStore>()(
   persist(
