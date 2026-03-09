@@ -99,6 +99,7 @@ export interface BrowserActions {
   createWorkspace: (label: string, emoji: string | null, color: string) => void;
   updateWorkspace: (workspaceId: string, updates: Partial<Pick<Workspace, 'label' | 'emoji' | 'color'>>) => void;
   moveWorkspace: (workspaceId: string, direction: 'left' | 'right') => void;
+  removeWorkspace: (workspaceId: string) => void;
 
   setTrayOpen: (isOpen: boolean) => void;
   setMenuOpen: (isOpen: boolean) => void;

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -102,6 +102,38 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
       setColor(workspace.color);
     }
     onClose();
+  };
+
+  const handleRemove = () => {
+    if (!workspace) {
+      return;
+    }
+
+    // Check if this is the last workspace
+    if (workspaceOrder.length <= 1) {
+      Alert.alert(
+        t('removeWorkspace'),
+        'Cannot remove the last workspace.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    Alert.alert(
+      t('removeWorkspace'),
+      t('removeWorkspaceConfirm'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('removeWorkspace'),
+          style: 'destructive',
+          onPress: () => {
+            useBrowserStore.getState().removeWorkspace(workspace.id);
+            onClose();
+          },
+        },
+      ]
+    );
   };
 
   const workspaceId = workspace?.id ?? null;
@@ -286,6 +318,19 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
               </View>
             </View>
 
+            {/* Remove Workspace Button */}
+            {workspaceOrder.length > 1 && (
+              <View style={styles.section}>
+                <Pressable
+                  style={[styles.removeButton, { backgroundColor: theme.bg, borderColor: '#E74C3C' }]}
+                  onPress={handleRemove}
+                >
+                  <MaterialIcons name="delete-outline" size={20} color="#E74C3C" />
+                  <Text style={[styles.removeButtonText, { color: '#E74C3C' }]}>{t('removeWorkspace')}</Text>
+                </Pressable>
+              </View>
+            )}
+
             {/* Action Buttons */}
             <View style={styles.actions}>
               <Pressable
@@ -443,6 +488,19 @@ const styles = StyleSheet.create({
   saveButton: {},
   buttonText: {
     fontSize: 16,
+    fontWeight: '600',
+  },
+  removeButton: {
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  removeButtonText: {
+    fontSize: 14,
     fontWeight: '600',
   },
 });

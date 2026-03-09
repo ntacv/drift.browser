@@ -401,6 +401,47 @@ export const useBrowserStore = create<BrowserStore>()(
           };
         }),
 
+      removeWorkspace: (workspaceId) =>
+        set((state) => {
+          // Don't allow removing the last workspace
+          if (state.workspaceOrder.length <= 1) {
+            return state;
+          }
+
+          const workspace = state.workspaces[workspaceId];
+          if (!workspace) {
+            return state;
+          }
+
+          // Remove all tabs associated with this workspace
+          const nextTabs = { ...state.tabs };
+          workspace.tabIds.forEach((tabId) => {
+            delete nextTabs[tabId];
+          });
+
+          // Remove workspace from workspaces object
+          const nextWorkspaces = { ...state.workspaces };
+          delete nextWorkspaces[workspaceId];
+
+          // Remove from workspace order
+          const nextWorkspaceOrder = state.workspaceOrder.filter((id) => id !== workspaceId);
+
+          // If the removed workspace was active, switch to the nearest one
+          let nextActiveWorkspaceId = state.activeWorkspaceId;
+          if (state.activeWorkspaceId === workspaceId) {
+            const currentIndex = state.workspaceOrder.indexOf(workspaceId);
+            const nextIndex = Math.min(currentIndex, nextWorkspaceOrder.length - 1);
+            nextActiveWorkspaceId = nextWorkspaceOrder[nextIndex];
+          }
+
+          return {
+            workspaces: nextWorkspaces,
+            tabs: nextTabs,
+            workspaceOrder: nextWorkspaceOrder,
+            activeWorkspaceId: nextActiveWorkspaceId,
+          };
+        }),
+
       setTrayOpen: (isOpen) => set({ isTrayOpen: isOpen }),
       setMenuOpen: (isOpen) => set({ isMenuOpen: isOpen }),
       setUrlOverlayOpen: (isOpen) => set({ isUrlOverlayOpen: isOpen }),
