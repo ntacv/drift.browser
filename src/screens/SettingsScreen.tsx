@@ -55,6 +55,7 @@ export const SettingsScreen = () => {
   const defaultNewTabUrl = useBrowserStore((state) => state.defaultNewTabUrl);
   const isTransparentMode = useBrowserStore((state) => state.isTransparentMode);
   const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
+  const isFullUrlVisible = useBrowserStore((state) => state.isFullUrlVisible);
 
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
@@ -66,6 +67,7 @@ export const SettingsScreen = () => {
   const setBlockTrackers = useBrowserStore((state) => state.setBlockTrackers);
   const setTransparentMode = useBrowserStore((state) => state.setTransparentMode);
   const setCompactTabList = useBrowserStore((state) => state.setCompactTabList);
+  const setFullUrlVisible = useBrowserStore((state) => state.setFullUrlVisible);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -208,6 +210,10 @@ export const SettingsScreen = () => {
             <View style={styles.switchRow}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('leftHandMode')}</Text>
               <Switch value={isLeftHandMode} onValueChange={setLeftHandMode} />
+            </View>
+            <View style={styles.switchRow}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('displayFullUrl')}</Text>
+              <Switch value={isFullUrlVisible} onValueChange={setFullUrlVisible} />
             </View>
             <Text style={[styles.rowText, { color: theme.text2 }]}>{t('verticalTabListSize')}</Text>
             <View style={styles.chipsRow}>

@@ -34,6 +34,7 @@ export const UrlBar = () => {
   const history = useBrowserStore((state) => state.history);
   const searchEngine = useBrowserStore((state) => state.searchEngine);
   const isLeftHandMode = useBrowserStore((state) => state.isLeftHandMode);
+  const isFullUrlVisible = useBrowserStore((state) => state.isFullUrlVisible);
   const defaultNewTabUrl = useBrowserStore((state) => state.defaultNewTabUrl);
   const urlOverlayOpenRequestId = useBrowserStore((state) => state.urlOverlayOpenRequestId);
   const urlOverlayCloseRequestId = useBrowserStore((state) => state.urlOverlayCloseRequestId);
@@ -131,7 +132,12 @@ export const UrlBar = () => {
     setUrlOverlayOpen(false);
   };
 
-  const domain = activeTab ? toDomain(activeTab.url) : t('newTabLabel');
+  const urlLabel = useMemo(() => {
+    if (!activeTab) {
+      return t('newTabLabel');
+    }
+    return isFullUrlVisible ? activeTab.url : toDomain(activeTab.url);
+  }, [activeTab, isFullUrlVisible, t]);
 
   const mainBarSwipeGesture = Gesture.Pan().onEnd((event) => {
     const absX = Math.abs(event.translationX);
@@ -210,7 +216,7 @@ export const UrlBar = () => {
             style={[styles.pill, { backgroundColor: theme.surface2 }]}
           >
             <Text numberOfLines={1} style={[styles.domain, { color: theme.text }]}>
-              {domain}
+              {urlLabel}
             </Text>
           </Pressable>
 

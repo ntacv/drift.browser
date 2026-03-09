@@ -27,14 +27,17 @@ export const TabCard = ({
   const { t } = useI18n();
   const isLeftHandMode = useBrowserStore((state) => state.isLeftHandMode);
   const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
+  const isFullUrlVisible = useBrowserStore((state) => state.isFullUrlVisible);
 
-  const domain = useMemo(() => {
+  const hostname = useMemo(() => {
     try {
       return new URL(tab.url).hostname.replace(/^www\./, '');
     } catch {
       return tab.url;
     }
   }, [tab.url]);
+
+  const urlLabel = isFullUrlVisible ? tab.url : hostname;
 
   return (
     <Pressable
@@ -70,7 +73,7 @@ export const TabCard = ({
           <Image source={{ uri: tab.favicon }} style={[styles.favicon, isCompactTabList && styles.faviconCompact]} />
         ) : (
           <View style={[styles.fallbackIcon, isCompactTabList && styles.fallbackIconCompact, { backgroundColor: workspaceColor }]}>
-            <Text style={[styles.fallbackText, isCompactTabList && styles.fallbackTextCompact]}>{domain.slice(0, 1).toUpperCase()}</Text>
+            <Text style={[styles.fallbackText, isCompactTabList && styles.fallbackTextCompact]}>{hostname.slice(0, 1).toUpperCase()}</Text>
           </View>
         )}
 
@@ -82,7 +85,7 @@ export const TabCard = ({
             {tab.isPinned ? <Text style={[styles.pin, { color: theme.text2 }]}>{t('pinnedShort')}</Text> : null}
           </View>
           <Text numberOfLines={1} style={[styles.domain, isCompactTabList && styles.domainCompact, { color: theme.text2 }]}>
-            {domain}
+            {urlLabel}
           </Text>
         </View>
 
