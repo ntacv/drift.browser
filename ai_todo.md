@@ -1,14 +1,7 @@
 IA TODO
 
-add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed
-also add "source code" to link to the github
-
-screenshots 
-app icon 
-
-update defaults settings
-
-claude security vuln check 
+- app icon 
+- claude security vuln check 
 
 ## Bugs
 
@@ -26,9 +19,11 @@ claude security vuln check
 - [x] remove the emoji from the workspace 
 - [x] transparent mode is not saved like the other settings, it reset when restarting
 - [x] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
-- [ ] when closeing the app, if its in fullscreen mode, exit the fullscreen mode so when reopening the app, it will be in normal mode, and not stuck in fullscreen mode without any way to exit it
 - [x] reduce time of animation for new tab url panel oppening
 - [x] when pull overscroll for refresh, add a pull animation to explain whats going to happen
+- [x] update defaults settings
+- [ ] when closeing the app, if its in fullscreen mode, exit the fullscreen mode so when reopening the app, it will be in normal mode, and not stuck in fullscreen mode without any way to exit it
+- [ ] menu tiles should always be a fraction of the full available width, each action can be s (4 in a row) m (2 in a row) l (1 in a row), for example refresh is s, setting is m
 
 ## Technical
 
@@ -38,9 +33,9 @@ claude security vuln check
 
 - [ ] a way to scroll to the top
 - [ ] long click on any web link opens a panel like the menu, with options like "open in new tab", "copy link", "share link" (2 tiles should fit a row)
-- [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
-- [ ] when sharing a link, open the native share menu with the current page link
 - [ ] update readme and documentation recursively
+- [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
+- [x] when sharing a link, open the native share menu with the current page link
 - [x] add workspace edition for icon, color and name
 - [ ] add a tab counter of the all app, it will be placed at the end of the workspace list
 - [ ] add setting to export all data (bookmarks, history, workspaces, tabs, preferences) as a firefox understable format
@@ -49,7 +44,7 @@ claude security vuln check
 
 - [x] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward
 - [x] compact tab list toggle in appearance settings 
-- [ ] add a setting "display full url in the main bar and the tab list"
+- [x] add a setting "display full url in the main bar and the tab list"
 
 
 - [x] check secrets and ready to push public
@@ -61,3 +56,5 @@ claude security vuln check
 
 - [ ] add extension support with claude, make a second version of the app that only packs basic features to keep it lightest
 - [ ] onboarding: choose language, choose theme, explain the main features of the app with a quick tutorial (swipe to change workspace, long click on a link, etc)
+
+- [x] add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed. also add "source code" to link to the github

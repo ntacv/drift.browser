@@ -1,8 +1,9 @@
 import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
+import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import type { Workspace } from '../../store/types';
@@ -28,10 +29,16 @@ const getValidWorkspaceIcon = (icon: string | null): keyof typeof MaterialIcons.
 
 export const WorkspaceChips = () => {
   const { theme } = useTheme();
+  const { t } = useI18n();
   const workspaceOrder = useBrowserStore((state) => state.workspaceOrder);
   const workspaces = useBrowserStore((state) => state.workspaces);
   const activeWorkspaceId = useBrowserStore((state) => state.activeWorkspaceId);
+  const isAllTabsView = useBrowserStore((state) => state.isAllTabsView);
   const switchWorkspace = useBrowserStore((state) => state.switchWorkspace);
+  const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
+  const setAllTabsView = useBrowserStore((state) => state.setAllTabsView);
+  const closeAllTabs = useBrowserStore((state) => state.closeAllTabs);
+  const saveAllTabsAsWorkspace = useBrowserStore((state) => state.saveAllTabsAsWorkspace);
 
   const [editorVisible, setEditorVisible] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
@@ -42,55 +49,109 @@ export const WorkspaceChips = () => {
     setEditorVisible(true);
   };
 
+  const totalTabCount = workspaceOrder.reduce((sum, workspaceId) => {
+    const workspace = workspaces[workspaceId];
+    return sum + (workspace?.tabIds.length ?? 0);
+  }, 0);
+
+  const handleAllTabsLongPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+    Alert.alert(t('allTabs'), undefined, [
+      {
+        text: t('closeAllTabs'),
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(t('closeAllTabs'), t('closeAllTabsConfirm'), [
+            { text: t('cancel'), style: 'cancel' },
+            {
+              text: t('closeAllTabs'),
+              style: 'destructive',
+              onPress: () => closeAllTabs(),
+            },
+          ]);
+        },
+      },
+      {
+        text: t('saveAllTabsAsWorkspace'),
+        onPress: () => saveAllTabsAsWorkspace(t('allTabs')),
+      },
+      { text: t('cancel'), style: 'cancel' },
+    ]);
+  };
+
   return (
     <>
       <View style={styles.row}>
-      {workspaceOrder.map((workspaceId) => {
-        const workspace = workspaces[workspaceId];
-        if (!workspace) {
-          return null;
-        }
+        {workspaceOrder.map((workspaceId) => {
+          const workspace = workspaces[workspaceId];
+          if (!workspace) {
+            return null;
+          }
 
-        const isActive = workspaceId === activeWorkspaceId;
-        const iconName = getValidWorkspaceIcon(workspace.emoji);
-        return (
-          <Pressable
-            key={workspaceId}
-            onPress={() => {
-              switchWorkspace(workspaceId);
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-            }}
-            onLongPress={() => handleLongPress(workspace)}
-            style={[
-              styles.chip,
-              {
-                backgroundColor: isActive ? workspace.color : theme.surface2,
-                borderColor: isActive ? workspace.color : theme.border,
-              },
-              !iconName && styles.chipNoIcon,
-            ]}
-          >
-            {iconName && (
-              <MaterialIcons 
-                name={iconName}
-                size={18} 
-                color={isActive ? '#fff' : theme.text} 
-              />
-            )}
-            <Text style={[styles.label, { color: isActive ? '#fff' : theme.text }]}>{workspace.label}</Text>
-            <View style={styles.countWrap}>
-              <Text style={styles.count}>{workspace.tabIds.length}</Text>
-            </View>
-          </Pressable>
-        );
-      })}
-    </View>
-    <WorkspaceEditor
-      visible={editorVisible}
-      workspace={editingWorkspace}
-      onClose={() => setEditorVisible(false)}
-    />
-  </>
+          const isActive = !isAllTabsView && workspaceId === activeWorkspaceId;
+          const iconName = getValidWorkspaceIcon(workspace.emoji);
+          return (
+            <Pressable
+              key={workspaceId}
+              onPress={() => {
+                setAllTabsView(false);
+                switchWorkspace(workspaceId);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+              }}
+              onLongPress={() => handleLongPress(workspace)}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: isActive ? workspace.color : theme.surface2,
+                  borderColor: isActive ? workspace.color : theme.border,
+                },
+                !iconName && styles.chipNoIcon,
+              ]}
+            >
+              {iconName && (
+                <MaterialIcons
+                  name={iconName}
+                  size={18}
+                  color={isActive ? '#fff' : theme.text}
+                />
+              )}
+              <Text style={[styles.label, { color: isActive ? '#fff' : theme.text }]}>{workspace.label}</Text>
+              <View style={styles.countWrap}>
+                <Text style={styles.count}>{workspace.tabIds.length}</Text>
+              </View>
+            </Pressable>
+          );
+        })}
+
+        <Pressable
+          onPress={() => {
+            setAllTabsView(true);
+            setTrayOpen(true);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+          }}
+          onLongPress={handleAllTabsLongPress}
+          style={[
+            styles.chip,
+            {
+              backgroundColor: isAllTabsView ? theme.accent : theme.surface2,
+              borderColor: isAllTabsView ? theme.accent : theme.border,
+            },
+            styles.chipNoIcon,
+          ]}
+        >
+          <Text style={[styles.label, { color: isAllTabsView ? '#fff' : theme.text }]}>{t('allTabs')}</Text>
+          <View style={styles.countWrap}>
+            <Text style={styles.count}>{totalTabCount}</Text>
+          </View>
+        </Pressable>
+      </View>
+
+      <WorkspaceEditor
+        visible={editorVisible}
+        workspace={editingWorkspace}
+        onClose={() => setEditorVisible(false)}
+      />
+    </>
   );
 };
 

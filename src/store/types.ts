@@ -84,6 +84,7 @@ export interface BrowserState {
   isTransparentMode: boolean;
   isCompactTabList: boolean;
   isFullUrlVisible: boolean;
+  isAllTabsView: boolean;
 }
 
 export interface BrowserActions {
@@ -103,9 +104,13 @@ export interface BrowserActions {
   removeWorkspace: (workspaceId: string) => void;
 
   setTrayOpen: (isOpen: boolean) => void;
+  setAllTabsView: (value: boolean) => void;
   setMenuOpen: (isOpen: boolean) => void;
   setUrlOverlayOpen: (isOpen: boolean) => void;
   requestCloseUrlOverlay: () => void;
+
+  closeAllTabs: () => void;
+  saveAllTabsAsWorkspace: (label?: string) => void;
 
   addBookmarkFromActiveTab: () => void;
   addHistoryEntry: (entry: Omit<HistoryEntry, 'id' | 'visitedAt'>) => void;

@@ -156,6 +156,7 @@ const buildInitialState = () => {
     isTransparentMode: config.preferences.isTransparentMode,
     isCompactTabList: config.preferences.isCompactTabList,
     isFullUrlVisible: config.preferences.isFullUrlVisible,
+    isAllTabsView: false,
   };
 };
 
@@ -359,6 +360,7 @@ export const useBrowserStore = create<BrowserStore>()(
           }
           return {
             activeWorkspaceId: workspaceId,
+            isAllTabsView: false,
           };
         }),
 
@@ -459,9 +461,119 @@ export const useBrowserStore = create<BrowserStore>()(
         }),
 
       setTrayOpen: (isOpen) => set({ isTrayOpen: isOpen }),
+      setAllTabsView: (value) => set({ isAllTabsView: value }),
       setMenuOpen: (isOpen) => set({ isMenuOpen: isOpen }),
       setUrlOverlayOpen: (isOpen) => set({ isUrlOverlayOpen: isOpen }),
       requestCloseUrlOverlay: () => set((state) => ({ urlOverlayCloseRequestId: state.urlOverlayCloseRequestId + 1 })),
+
+      closeAllTabs: () =>
+        set((state) => {
+          const activeWorkspace = state.workspaces[state.activeWorkspaceId];
+          if (!activeWorkspace) {
+            return state;
+          }
+
+          const fallback = makeTab(activeWorkspace.id, normalizeDefaultNewTabUrl(state.defaultNewTabUrl));
+          const nextTabs: Record<string, Tab> = {
+            [fallback.id]: fallback,
+          };
+
+          const nextWorkspaces = Object.fromEntries(
+            Object.entries(state.workspaces).map(([id, workspace]) => {
+              if (id === activeWorkspace.id) {
+                return [
+                  id,
+                  {
+                    ...workspace,
+                    tabIds: [fallback.id],
+                    activeTabId: fallback.id,
+                  },
+                ];
+              }
+
+              return [
+                id,
+                {
+                  ...workspace,
+                  tabIds: [],
+                  activeTabId: null,
+                },
+              ];
+            }),
+          ) as Record<string, Workspace>;
+
+          return {
+            tabs: nextTabs,
+            workspaces: nextWorkspaces,
+            isAllTabsView: false,
+          };
+        }),
+
+      saveAllTabsAsWorkspace: (label) =>
+        set((state) => {
+          const sourceTabs = state.workspaceOrder.flatMap((workspaceId) => {
+            const workspace = state.workspaces[workspaceId];
+            if (!workspace) {
+              return [] as Tab[];
+            }
+            return workspace.tabIds
+              .map((tabId) => state.tabs[tabId])
+              .filter((tab): tab is Tab => Boolean(tab));
+          });
+
+          const id = makeId('ws');
+          const nextWorkspaceLabel = label?.trim() || 'Saved Tabs';
+
+          if (sourceTabs.length === 0) {
+            const { workspace, tab } = createWorkspaceWithTab(id, nextWorkspaceLabel, 'work', '#6C7AFA');
+            return {
+              workspaces: {
+                ...state.workspaces,
+                [id]: workspace,
+              },
+              tabs: {
+                ...state.tabs,
+                [tab.id]: tab,
+              },
+              workspaceOrder: [...state.workspaceOrder, id],
+              activeWorkspaceId: id,
+              isAllTabsView: false,
+            };
+          }
+
+          const clonedTabs = sourceTabs.map((sourceTab) => {
+            const cloned = makeTab(id, sourceTab.url);
+            return {
+              ...cloned,
+              title: sourceTab.title,
+              favicon: sourceTab.favicon,
+              isPinned: sourceTab.isPinned,
+            };
+          });
+
+          const nextWorkspace: Workspace = {
+            id,
+            label: nextWorkspaceLabel,
+            emoji: 'work',
+            color: '#6C7AFA',
+            tabIds: clonedTabs.map((tab) => tab.id),
+            activeTabId: clonedTabs[0]?.id ?? null,
+          };
+
+          return {
+            workspaces: {
+              ...state.workspaces,
+              [id]: nextWorkspace,
+            },
+            tabs: {
+              ...state.tabs,
+              ...Object.fromEntries(clonedTabs.map((tab) => [tab.id, tab])),
+            },
+            workspaceOrder: [...state.workspaceOrder, id],
+            activeWorkspaceId: id,
+            isAllTabsView: false,
+          };
+        }),
 
       addBookmarkFromActiveTab: () =>
         set((state) => {
@@ -586,6 +698,7 @@ export const useBrowserStore = create<BrowserStore>()(
         isTransparentMode: state.isTransparentMode,
         isCompactTabList: state.isCompactTabList,
         isFullUrlVisible: state.isFullUrlVisible,
+        isAllTabsView: state.isAllTabsView,
       }),
     },
   ),

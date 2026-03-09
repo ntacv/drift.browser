@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS } from 'react-native-reanimated';
@@ -29,8 +29,10 @@ export const TabTray = () => {
   const switchTab = useBrowserStore((state) => state.switchTab);
   const closeTab = useBrowserStore((state) => state.closeTab);
   const activeWorkspaceId = useBrowserStore((state) => state.activeWorkspaceId);
+  const isAllTabsView = useBrowserStore((state) => state.isAllTabsView);
   const workspaceOrder = useBrowserStore((state) => state.workspaceOrder);
   const switchWorkspace = useBrowserStore((state) => state.switchWorkspace);
+  const setAllTabsView = useBrowserStore((state) => state.setAllTabsView);
   const workspaces = useBrowserStore((state) => state.workspaces);
   const tabs = useBrowserStore((state) => state.tabs);
   const expandedHeight = Math.max(300, screenHeight - insets.top);
@@ -42,6 +44,12 @@ export const TabTray = () => {
   const scrollViewNativeGestureRef = useRef(Gesture.Native());
 
   const workspace = workspaces[activeWorkspaceId];
+  const allTabIds = useMemo(
+    () => workspaceOrder.flatMap((workspaceId) => workspaces[workspaceId]?.tabIds ?? []),
+    [workspaceOrder, workspaces],
+  );
+  const displayedTabIds = isAllTabsView ? allTabIds : (workspace?.tabIds ?? []);
+  const activeTabId = workspace?.activeTabId ?? null;
   const gesture = useSheetGesture({
     isOpen: isTrayOpen,
     sheetHeight: trayHeight,
@@ -55,11 +63,11 @@ export const TabTray = () => {
 
   const centerActiveTab = useCallback(
     (attempt = 0) => {
-      if (!isTrayOpen || !workspace?.activeTabId || !scrollViewRef.current) {
+      if (!isTrayOpen || !activeTabId || !scrollViewRef.current) {
         return;
       }
 
-      const layout = tabLayoutsRef.current[workspace.activeTabId];
+      const layout = tabLayoutsRef.current[activeTabId];
       const viewportHeight = scrollViewportHeightRef.current;
       if (!layout || viewportHeight <= 0) {
         if (attempt < 6) {
@@ -74,7 +82,7 @@ export const TabTray = () => {
       const scrollY = Math.max(0, layout.y - (viewportHeight - layout.height) / 2);
       scrollViewRef.current.scrollTo({ y: scrollY, animated: true });
     },
-    [isTrayOpen, workspace],
+    [activeTabId, isTrayOpen],
   );
 
   useEffect(() => {
@@ -85,9 +93,13 @@ export const TabTray = () => {
         centerRetryTimeoutRef.current = null;
       }
     };
-  }, [centerActiveTab, activeWorkspaceId, workspace?.activeTabId, workspace?.tabIds.length]);
+  }, [centerActiveTab, activeWorkspaceId, activeTabId, displayedTabIds.length, isAllTabsView]);
 
   const switchWorkspaceByOffset = (offset: 1 | -1) => {
+    if (isAllTabsView) {
+      return;
+    }
+
     const currentIndex = workspaceOrder.indexOf(activeWorkspaceId);
     if (currentIndex < 0 || workspaceOrder.length === 0) {
       return;
@@ -137,7 +149,6 @@ export const TabTray = () => {
           </View>
           <View style={styles.headerRow}>
             <WorkspaceChips />
-            <Text style={[styles.count, { color: theme.text2 }]}>{workspace.tabIds.length} {t('tabs')}</Text>
           </View>
         </View>
       </GestureDetector>
@@ -169,11 +180,14 @@ export const TabTray = () => {
           >
             <Text style={[styles.newCardText, isCompactTabList && styles.newCardTextCompact, { color: theme.text }]}>+ {t('newTabLabel')}</Text>
           </Pressable>
-          {workspace.tabIds.map((tabId) => {
+          {displayedTabIds.map((tabId) => {
             const tab = tabs[tabId];
             if (!tab) {
               return null;
             }
+
+            const tabWorkspaceColor = workspaces[tab.workspaceId]?.color ?? workspace.color;
+
             return (
               <View
                 key={tab.id}
@@ -186,9 +200,10 @@ export const TabTray = () => {
               >
                 <TabCard
                   tab={tab}
-                  workspaceColor={workspace.color}
-                  isActive={workspace.activeTabId === tab.id}
+                  workspaceColor={tabWorkspaceColor}
+                  isActive={activeTabId === tab.id}
                   onPress={() => {
+                    setAllTabsView(false);
                     switchTab(tab.id);
                     setTrayOpen(false);
                   }}
@@ -227,11 +242,6 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     marginBottom: 10,
-  },
-  count: {
-    marginTop: 8,
-    fontSize: 12,
-    fontWeight: '600',
   },
   cardsColumn: {
     paddingVertical: 6,
