@@ -14,6 +14,7 @@ import * as fxaService from '../../services/fxaService';
 
 const SHEET_HEIGHT = 360;
 const TILE_GAP = 8;
+const TILE_SPAN_COUNT = 4;
 
 interface MenuSheetProps {
   onOpenSettings: () => void;
@@ -27,7 +28,7 @@ type MenuTileId =
 
 type QuickTileId = 'back' | 'forward' | 'refresh' | 'fullscreen';
 type DisplayTileId = QuickTileId | MenuTileId;
-type TileSize = 'half' | 'full';
+type TileSize = 's' | 'm' | 'l';
 
 interface DisplayTile {
   id: DisplayTileId;
@@ -42,11 +43,20 @@ const DEFAULT_TILE_ORDER: MenuTileId[] = [
 ];
 
 const QUICK_TILES: DisplayTile[] = [
-  { id: 'back', size: 'half' },
-  { id: 'forward', size: 'half' },
-  { id: 'refresh', size: 'half' },
-  { id: 'fullscreen', size: 'half' },
+  { id: 'back', size: 's' },
+  { id: 'forward', size: 's' },
+  { id: 'refresh', size: 's' },
+  { id: 'fullscreen', size: 's' },
 ];
+
+const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
+  share: 'm',
+  settings: 'm',
+  workspace: 'm',
+  signout: 'm',
+};
+
+const QUICK_TILE_IDS = new Set<QuickTileId>(['back', 'forward', 'refresh', 'fullscreen']);
 
 export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const { theme } = useTheme();
@@ -108,24 +118,23 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     setMenuTileOrder(next);
   };
 
-  const halfTileWidth = useMemo(() => {
+  const columnUnit = useMemo(() => {
     if (tileAreaWidth <= 0) {
       return 0;
     }
 
-    return (tileAreaWidth - TILE_GAP * 3) / 4;
+    const availableWidth = Math.floor(tileAreaWidth);
+    const totalGapWidth = TILE_GAP * (TILE_SPAN_COUNT - 1);
+    const usableWidth = Math.max(availableWidth - totalGapWidth, 0);
+
+    return usableWidth / TILE_SPAN_COUNT;
   }, [tileAreaWidth]);
 
-  const fullTileWidth = useMemo(() => {
-    if (halfTileWidth <= 0) {
-      return 0;
-    }
-
-    return halfTileWidth * 2 + TILE_GAP;
-  }, [halfTileWidth]);
-
   const tileFrameStyle = (size: TileSize) => {
-    const width = size === 'half' ? halfTileWidth : fullTileWidth;
+    const span = size === 's' ? 1 : size === 'm' ? 2 : TILE_SPAN_COUNT;
+    const width = columnUnit > 0
+      ? Math.floor(columnUnit * span + TILE_GAP * (span - 1))
+      : 0;
 
     if (width <= 0) {
       return null;
@@ -288,7 +297,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     );
   };
 
-  const DraggableTile = ({ id }: { id: MenuTileId }) => {
+  const DraggableTile = ({ id, size }: { id: MenuTileId; size: TileSize }) => {
     const scale = useSharedValue(1);
     const isDragging = draggedTile === id;
 
@@ -306,7 +315,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
 
     return (
       <GestureDetector gesture={longPress}>
-        <Animated.View style={[styles.tileWrap, tileFrameStyle('full'), animatedStyle]}>
+        <Animated.View style={[styles.tileWrap, tileFrameStyle(size), animatedStyle]}>
           {renderMenuTile(id)}
           {isDragging && (
             <View style={styles.dragHint}>
@@ -321,7 +330,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const visibleTileOrder = tileOrder.filter((id) => !(id === 'signout' && !syncUser));
 
   const displayTiles = useMemo<DisplayTile[]>(() => {
-    const menuTiles = visibleTileOrder.map((id) => ({ id, size: 'full' as TileSize }));
+    const menuTiles = visibleTileOrder.map((id) => ({ id, size: MENU_TILE_SIZE[id] }));
 
     return [...QUICK_TILES, ...menuTiles];
   }, [visibleTileOrder]);
@@ -378,15 +387,15 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
             }}
           >
             {displayTiles.map((tile) => {
-              if (tile.size === 'half') {
+              if (QUICK_TILE_IDS.has(tile.id as QuickTileId)) {
                 return (
-                  <View key={tile.id} style={[styles.tileWrap, tileFrameStyle('half')]}>
+                  <View key={tile.id} style={[styles.tileWrap, tileFrameStyle(tile.size)]}>
                     {renderQuickTile(tile.id as QuickTileId)}
                   </View>
                 );
               }
 
-              return <DraggableTile key={tile.id} id={tile.id as MenuTileId} />;
+              return <DraggableTile key={tile.id} id={tile.id as MenuTileId} size={tile.size} />;
             })}
           </View>
         </ScrollView>

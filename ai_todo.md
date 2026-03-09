@@ -31,30 +31,30 @@ IA TODO
 
 ## Feature 
 
-- [ ] a way to scroll to the top
-- [ ] long click on any web link opens a panel like the menu, with options like "open in new tab", "copy link", "share link" (2 tiles should fit a row)
-- [ ] update readme and documentation recursively
-- [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
 - [x] when sharing a link, open the native share menu with the current page link
 - [x] add workspace edition for icon, color and name
-- [ ] add a tab counter of the all app, it will be placed at the end of the workspace list
+- [x] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward
+- [x] compact tab list toggle in appearance settings 
+- [x] add a setting "display full url in the main bar and the tab list"
+- [x] add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed. also add "source code" to link to the github
+
+
+- [ ] a way to scroll to the top
+- [ ] update readme and documentation recursively
+- [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
 - [ ] add setting to export all data (bookmarks, history, workspaces, tabs, preferences) as a firefox understable format
 - [ ] add setting to import data from a firefox understable format
 - [ ] update the setting appearance section, add "theme" subsection
 
-- [x] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward
-- [x] compact tab list toggle in appearance settings 
-- [x] add a setting "display full url in the main bar and the tab list"
-
-
 - [x] check secrets and ready to push public
 - [x] in readme, add doc link
+
+- [ ] long click on any web link opens a panel like the menu, with options like "open in new tab", "copy link", "share link" (2 tiles should fit a row)
 - [ ] history page, add a "clear history" button, when clicking on a link in the history list, open the page and close the history page
 - [ ] updated alerts (like in full screen mode) (material 3, ios glass)
 - [ ] picture in picture mode for videos, with a toggle in the video right click menu, and a setting to always open videos in picture in picture mode
-- [ ] remove the tabs count between workspace and list, but add a new workspacethat has all the tabs together, and put the number of tabs in it, and when clicking on it, open the tab list with all the tabs of all workspaces. when long click on it open a menu with "close all tabs" and "save all tabs as workspace" options
+- [x] remove the tabs count between workspace and list, but add a new workspacethat has all the tabs together, and put the number of tabs in it, and when clicking on it, open the tab list with all the tabs of all workspaces. when long click on it open a menu with "close all tabs" and "save all tabs as workspace" options
 
 - [ ] add extension support with claude, make a second version of the app that only packs basic features to keep it lightest
 - [ ] onboarding: choose language, choose theme, explain the main features of the app with a quick tutorial (swipe to change workspace, long click on a link, etc)
 
-- [x] add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed. also add "source code" to link to the github
