@@ -3,6 +3,22 @@ IA TODO
 - app icon 
 - claude security vuln check 
 
+add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed
+also add "source code" to link to the github
+
+screenshots 
+app icon 
+
+- typography (drift, digits, personal)
+- Long press tab can change workspace, duplicate, copy url, copy title
+- Invert url bar swipe
+- Setting to remove full screen alert
+- Scroll down, animation to hide bar
+- Long press on url bar copy url, create mini toast pill shape that animate from the url bar
+- Retreive website color theme, and update top safe zone color
+- Compact workspace mode, only icon, compact appearance setting, that extend into each compact setting
+
+
 ## Bugs
 
 - [x] in the main bar, the 3 buttons are on the same size, on either side of the url, depending on the hand setting 
