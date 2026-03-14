@@ -12,12 +12,12 @@ app icon
 - typography (drift, digits, personal)
 - Long press tab can change workspace, duplicate, copy url, copy title
 - Invert url bar swipe
-- Setting to remove full screen alert
+- button to remove full screen alert "dont show again"
 - Scroll down, animation to hide bar
 - Long press on url bar copy url, create mini toast pill shape that animate from the url bar
 - Retreive website color theme, and update top safe zone color
 - Compact workspace mode, only icon, compact appearance setting, that extend into each compact setting
-
+- drag and drop ? tabs, workspaces? tiles
 
 ## Bugs
 
