@@ -18,6 +18,7 @@ app icon
 - Retreive website color theme, and update top safe zone color
 - Compact workspace mode, only icon, compact appearance setting, that extend into each compact setting
 - drag and drop ? tabs, workspaces? tiles
+- when browser view gets err-connection-refused error, display a nice error page that prompts to refresh the page and retry to load the url
 
 ## Bugs
 
