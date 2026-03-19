@@ -19,6 +19,8 @@ app icon
 - Compact workspace mode, only icon, compact appearance setting, that extend into each compact setting
 - drag and drop ? tabs, workspaces? tiles
 - when browser view gets err-connection-refused error, display a nice error page that prompts to refresh the page and retry to load the url
+- also this url error::ERR_UNKNOWN_URL_SCHEME
+- check other url errors
 
 ## Bugs
 
