@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS } from 'react-native-reanimated';
@@ -7,8 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSheetGesture } from '../../hooks/useGestures';
 import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore } from '../../store/browserStore';
+import type { Tab } from '../../store/types';
 import { useTheme } from '../../theme';
 import { TabCard } from './TabCard';
+import { TabContextMenu } from './TabContextMenu';
 import { WorkspaceChips } from './WorkspaceChips';
 import { SHEET_HANDLE_COLOR } from '../../../default-settings';
 
@@ -43,6 +45,7 @@ export const TabTray = () => {
   const tabLayoutsRef = useRef<Record<string, { y: number; height: number }>>({});
   const centerRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollViewNativeGestureRef = useRef(Gesture.Native());
+  const [contextMenuTab, setContextMenuTab] = useState<Tab | null>(null);
 
   const workspace = workspaces[activeWorkspaceId];
   const allTabIds = useMemo(
@@ -209,12 +212,18 @@ export const TabTray = () => {
                     setTrayOpen(false);
                   }}
                   onClose={() => closeTab(tab.id)}
+                  onLongPress={() => setContextMenuTab(tab)}
                 />
               </View>
             );
           })}
         </ScrollView>
       </GestureDetector>
+      <TabContextMenu
+        visible={contextMenuTab !== null}
+        tab={contextMenuTab}
+        onClose={() => setContextMenuTab(null)}
+      />
     </Animated.View>
   );
 };

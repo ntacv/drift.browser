@@ -247,6 +247,70 @@ export const useBrowserStore = create<BrowserStore>()(
           };
         }),
 
+      duplicateTab: (tabId) =>
+        set((state) => {
+          const tab = state.tabs[tabId];
+          if (!tab) {
+            return state;
+          }
+          const workspace = state.workspaces[tab.workspaceId];
+          if (!workspace) {
+            return state;
+          }
+          const newTab = makeTab(tab.workspaceId, tab.url);
+          const tabIndex = workspace.tabIds.indexOf(tabId);
+          const nextTabIds = [...workspace.tabIds];
+          nextTabIds.splice(tabIndex + 1, 0, newTab.id);
+          return {
+            tabs: { ...state.tabs, [newTab.id]: newTab },
+            workspaces: {
+              ...state.workspaces,
+              [workspace.id]: {
+                ...workspace,
+                tabIds: nextTabIds,
+              },
+            },
+          };
+        }),
+
+      moveTabToWorkspace: (tabId, targetWorkspaceId) =>
+        set((state) => {
+          const tab = state.tabs[tabId];
+          if (!tab || tab.workspaceId === targetWorkspaceId) {
+            return state;
+          }
+          const sourceWorkspace = state.workspaces[tab.workspaceId];
+          const targetWorkspace = state.workspaces[targetWorkspaceId];
+          if (!sourceWorkspace || !targetWorkspace) {
+            return state;
+          }
+
+          const sourceTabIds = sourceWorkspace.tabIds.filter((id) => id !== tabId);
+          const nextTabs = { ...state.tabs, [tabId]: { ...tab, workspaceId: targetWorkspaceId } };
+
+          let sourceUpdate = { ...sourceWorkspace, tabIds: sourceTabIds };
+          if (sourceTabIds.length === 0) {
+            const fallback = makeTab(sourceWorkspace.id, normalizeDefaultNewTabUrl(state.defaultNewTabUrl));
+            nextTabs[fallback.id] = fallback;
+            sourceUpdate = { ...sourceUpdate, tabIds: [fallback.id], activeTabId: fallback.id };
+          } else if (sourceWorkspace.activeTabId === tabId) {
+            sourceUpdate = { ...sourceUpdate, activeTabId: sourceTabIds[0] };
+          }
+
+          return {
+            tabs: nextTabs,
+            workspaces: {
+              ...state.workspaces,
+              [sourceWorkspace.id]: sourceUpdate,
+              [targetWorkspace.id]: {
+                ...targetWorkspace,
+                tabIds: [tabId, ...targetWorkspace.tabIds],
+                activeTabId: targetWorkspace.activeTabId ?? tabId,
+              },
+            },
+          };
+        }),
+
       switchTab: (tabId) =>
         set((state) => {
           const tab = state.tabs[tabId];

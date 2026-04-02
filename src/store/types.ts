@@ -91,6 +91,8 @@ export interface BrowserActions {
   createTab: (workspaceId?: string, url?: string) => void;
   closeTab: (tabId: string) => void;
   switchTab: (tabId: string) => void;
+  duplicateTab: (tabId: string) => void;
+  moveTabToWorkspace: (tabId: string, targetWorkspaceId: string) => void;
   goToNextTab: () => void;
   goToPreviousTab: () => void;
   navigateActiveTab: (nextUrl: string) => void;

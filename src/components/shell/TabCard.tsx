@@ -15,6 +15,7 @@ interface TabCardProps {
   workspaceColor: string;
   onPress: () => void;
   onClose: () => void;
+  onLongPress?: () => void;
 }
 
 export const TabCard = ({
@@ -23,6 +24,7 @@ export const TabCard = ({
   workspaceColor,
   onPress,
   onClose,
+  onLongPress,
 }: TabCardProps) => {
   const { theme } = useTheme();
   const { t } = useI18n();
@@ -43,6 +45,11 @@ export const TabCard = ({
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+        onLongPress?.();
+      }}
+      delayLongPress={400}
       style={[
         styles.card,
         isCompactTabList && styles.cardCompact,
