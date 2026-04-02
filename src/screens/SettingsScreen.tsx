@@ -97,6 +97,7 @@ export const SettingsScreen = () => {
   const tabCount = useBrowserStore((state) => Object.keys(state.tabs).length);
   const hideBarOnScroll = useBrowserStore((state) => state.hideBarOnScroll);
   const barPosition = useBrowserStore((state) => state.barPosition);
+  const isCompactWorkspace = useBrowserStore((state) => state.isCompactWorkspace);
 
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
@@ -108,6 +109,7 @@ export const SettingsScreen = () => {
   const setBlockTrackers = useBrowserStore((state) => state.setBlockTrackers);
   const setTransparentMode = useBrowserStore((state) => state.setTransparentMode);
   const setCompactTabList = useBrowserStore((state) => state.setCompactTabList);
+  const setCompactWorkspace = useBrowserStore((state) => state.setCompactWorkspace);
   const setFullUrlVisible = useBrowserStore((state) => state.setFullUrlVisible);
   const setUseWebsiteThemeColor = useBrowserStore((state) => state.setUseWebsiteThemeColor);
   const setDebugMode = useBrowserStore((state) => state.setDebugMode);
@@ -345,6 +347,14 @@ export const SettingsScreen = () => {
                 <Text style={[styles.helperText, { color: theme.text3 }]}>{t('compactTabListHint')}</Text>
               </View>
               <Switch value={isCompactTabList} onValueChange={setCompactTabList} />
+            </View>
+
+            <View style={styles.switchRow}>
+              <View>
+                <Text style={[styles.rowText, { color: theme.text }]}>{t('compactWorkspace')}</Text>
+                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('compactWorkspaceHint')}</Text>
+              </View>
+              <Switch value={isCompactWorkspace} onValueChange={setCompactWorkspace} />
             </View>
           </View>
 

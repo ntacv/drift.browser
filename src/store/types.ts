@@ -93,6 +93,7 @@ export interface BrowserState {
   debugMode: boolean;
   hideBarOnScroll: boolean;
   barPosition: BarPosition;
+  isCompactWorkspace: boolean;
 }
 
 export interface BrowserActions {
@@ -143,6 +144,7 @@ export interface BrowserActions {
   setDebugMode: (value: boolean) => void;
   setHideBarOnScroll: (value: boolean) => void;
   setBarPosition: (position: BarPosition) => void;
+  setCompactWorkspace: (value: boolean) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;
