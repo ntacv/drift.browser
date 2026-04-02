@@ -69,6 +69,7 @@ const makeTab = (workspaceId: string, url = DEFAULT_URL): Tab => ({
   url,
   title: 'New Tab',
   favicon: null,
+  themeColor: null,
   isPinned: false,
   isLoading: false,
   canGoBack: false,
@@ -159,6 +160,7 @@ const buildInitialState = () => {
     isFullUrlVisible: config.preferences.isFullUrlVisible,
     isAllTabsView: false,
     hideFullscreenAlert: false,
+    useWebsiteThemeColor: false,
   };
 };
 
@@ -692,13 +694,14 @@ export const useBrowserStore = create<BrowserStore>()(
       setCompactTabList: (value) => set({ isCompactTabList: value }),
       setFullUrlVisible: (value) => set({ isFullUrlVisible: value }),
       setHideFullscreenAlert: (value) => set({ hideFullscreenAlert: value }),
+      setUseWebsiteThemeColor: (value) => set({ useWebsiteThemeColor: value }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
     }),
     {
       name: 'drift-browser-store-v2',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState: any, version: number) => {
         if (!persistedState || typeof persistedState !== 'object') {
@@ -723,7 +726,7 @@ export const useBrowserStore = create<BrowserStore>()(
           }),
         );
 
-        // Reset fullscreen state for all tabs on app restart
+        // Reset fullscreen state and theme color for all tabs on app restart
         const tabs = persistedState.tabs;
         const normalizedTabs =
           tabs && typeof tabs === 'object'
@@ -733,6 +736,7 @@ export const useBrowserStore = create<BrowserStore>()(
                 {
                   ...(tab as Tab),
                   webContentFullscreen: false,
+                  themeColor: null,
                 },
               ]),
             )
@@ -767,6 +771,8 @@ export const useBrowserStore = create<BrowserStore>()(
         isFullUrlVisible: state.isFullUrlVisible,
         isAllTabsView: state.isAllTabsView,
         hideFullscreenAlert: state.hideFullscreenAlert,
+        useWebsiteThemeColor: state.useWebsiteThemeColor,
+        useWebsiteThemeColor: state.useWebsiteThemeColor,
       }),
     },
   ),

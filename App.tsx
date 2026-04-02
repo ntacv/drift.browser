@@ -11,8 +11,8 @@ import { handleOAuthCallback } from './src/services/fxaService';
 import { BrowserScreen } from './src/screens/BrowserScreen';
 import { NewTabScreen } from './src/screens/NewTabScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
-import { useBrowserStore } from './src/store/browserStore';
-import { ThemeProvider, useTheme } from './src/theme';
+import { getActiveTab, useBrowserStore } from './src/store/browserStore';
+import { ThemeProvider, isColorDark, useTheme } from './src/theme';
 
 type RootStackParams = {
   Browser: undefined;
@@ -37,10 +37,19 @@ const AppNavigator = () => {
 
 const ThemedStack = () => {
   const { mode } = useTheme();
+  const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
+  const activeTab = useBrowserStore(getActiveTab);
+
+  const statusBarStyle = (() => {
+    if (useWebsiteThemeColor && activeTab?.themeColor) {
+      return isColorDark(activeTab.themeColor) ? ('light' as const) : ('dark' as const);
+    }
+    return mode === 'dark' ? ('light' as const) : ('dark' as const);
+  })();
 
   return (
     <>
-      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={statusBarStyle} />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen
           name="Browser"

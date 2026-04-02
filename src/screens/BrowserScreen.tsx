@@ -30,11 +30,16 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
   const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const activeTab = useBrowserStore(getActiveTab);
+  const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
 
   // Calculate orientation and determine if UI should be hidden
   const isLandscape = width > height;
   const isWebContentFullscreen = activeTab?.webContentFullscreen ?? false;
   const shouldHideUI = isUserFullscreen || isWebContentFullscreen || isLandscape;
+
+  // Use the website's theme color for the top safe zone when the feature is enabled
+  const topSafeAreaBg =
+    useWebsiteThemeColor && activeTab?.themeColor ? activeTab.themeColor : theme.bg;
 
   useEffect(() => {
     if (isUserFullscreen && isTrayOpen) {
@@ -126,7 +131,7 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
   }, [handleBackPress]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={shouldHideUI ? ['left', 'right'] : ['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: topSafeAreaBg }]} edges={shouldHideUI ? ['left', 'right'] : ['top', 'left', 'right']}>
       <StatusBar hidden={shouldHideUI} translucent backgroundColor="transparent" />
       <View style={styles.root}>
         <View style={styles.websiteLayer}>

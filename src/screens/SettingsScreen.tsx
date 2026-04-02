@@ -61,6 +61,7 @@ export const SettingsScreen = () => {
   const isTransparentMode = useBrowserStore((state) => state.isTransparentMode);
   const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
   const isFullUrlVisible = useBrowserStore((state) => state.isFullUrlVisible);
+  const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
 
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
@@ -73,6 +74,7 @@ export const SettingsScreen = () => {
   const setTransparentMode = useBrowserStore((state) => state.setTransparentMode);
   const setCompactTabList = useBrowserStore((state) => state.setCompactTabList);
   const setFullUrlVisible = useBrowserStore((state) => state.setFullUrlVisible);
+  const setUseWebsiteThemeColor = useBrowserStore((state) => state.setUseWebsiteThemeColor);
 
   const handleExportData = React.useCallback(async () => {
     try {
@@ -317,6 +319,14 @@ export const SettingsScreen = () => {
             <View style={styles.switchRow}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('transparentMode')}</Text>
               <Switch value={isTransparentMode} onValueChange={setTransparentMode} />
+            </View>
+
+            <View style={styles.switchRow}>
+              <View>
+                <Text style={[styles.rowText, { color: theme.text }]}>{t('websiteThemeColor')}</Text>
+                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('websiteThemeColorHint')}</Text>
+              </View>
+              <Switch value={useWebsiteThemeColor} onValueChange={setUseWebsiteThemeColor} />
             </View>
 
             <View style={styles.chipsRow}>

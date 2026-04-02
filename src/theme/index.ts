@@ -132,3 +132,42 @@ export const ThemeProvider = ({ preference, isTransparentMode, children }: Theme
 };
 
 export const useTheme = (): ThemeContextValue => useContext(ThemeContext);
+
+/**
+ * Returns true when the given CSS color string is perceived as dark
+ * (i.e. white text would be more readable on top of it).
+ * Supports #rrggbb, #rgb, rgb() and rgba() formats.
+ * Falls back to true (dark) for unrecognised formats.
+ */
+export const isColorDark = (color: string): boolean => {
+  const s = color.trim();
+
+  // #rgb shorthand
+  const shortHex = s.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+  if (shortHex) {
+    const r = parseInt(shortHex[1] + shortHex[1], 16);
+    const g = parseInt(shortHex[2] + shortHex[2], 16);
+    const b = parseInt(shortHex[3] + shortHex[3], 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+  }
+
+  // #rrggbb
+  const fullHex = s.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
+  if (fullHex) {
+    const r = parseInt(fullHex[1], 16);
+    const g = parseInt(fullHex[2], 16);
+    const b = parseInt(fullHex[3], 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+  }
+
+  // rgb() / rgba()
+  const rgbMatch = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (rgbMatch) {
+    const r = parseInt(rgbMatch[1], 10);
+    const g = parseInt(rgbMatch[2], 10);
+    const b = parseInt(rgbMatch[3], 10);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+  }
+
+  return true;
+};

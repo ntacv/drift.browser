@@ -16,6 +16,7 @@ export interface Tab {
   url: string;
   title: string;
   favicon: string | null;
+  themeColor: string | null;
   isPinned: boolean;
   isLoading: boolean;
   canGoBack: boolean;
@@ -86,6 +87,7 @@ export interface BrowserState {
   isFullUrlVisible: boolean;
   isAllTabsView: boolean;
   hideFullscreenAlert: boolean;
+  useWebsiteThemeColor: boolean;
 }
 
 export interface BrowserActions {
@@ -132,6 +134,7 @@ export interface BrowserActions {
   setCompactTabList: (value: boolean) => void;
   setFullUrlVisible: (value: boolean) => void;
   setHideFullscreenAlert: (value: boolean) => void;
+  setUseWebsiteThemeColor: (value: boolean) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;
