@@ -395,14 +395,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   section: {
     marginBottom: 20,
   },
   sectionLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
     marginBottom: 10,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -413,6 +413,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 16,
     fontSize: 16,
+    fontFamily: 'Inter_400Regular',
   },
   iconRow: {
     flexDirection: 'row',
@@ -464,11 +465,11 @@ const styles = StyleSheet.create({
   },
   reorderText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   checkmark: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     color: TEXT_ON_COLORED_BACKGROUND,
   },
   actions: {
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
   saveButton: {},
   buttonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   removeButton: {
     height: 44,

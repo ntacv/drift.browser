@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { View } from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -6,6 +7,14 @@ import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from '@expo-google-fonts/inter';
 
 import { handleOAuthCallback } from './src/services/fxaService';
 import { BrowserScreen } from './src/screens/BrowserScreen';
@@ -70,6 +79,14 @@ const ThemedStack = () => {
 };
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+  });
+
   useEffect(() => {
     const sub = Linking.addEventListener('url', ({ url }) => {
       const parsed = Linking.parse(url);
@@ -81,6 +98,10 @@ export default function App() {
 
     return () => sub.remove();
   }, []);
+
+  if (!fontsLoaded) {
+    return <View style={{ flex: 1 }} />;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

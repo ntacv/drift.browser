@@ -3,6 +3,37 @@ import { useColorScheme } from 'react-native';
 
 import type { ThemePreference } from '../store/types';
 
+// ─── Typography ──────────────────────────────────────────────────────────────
+// Typeface: Inter — a modern, geometric sans-serif optimised for screen
+// legibility at any size. Chosen for its clean letterforms, open apertures,
+// and the wide weight range it offers.
+export const typography = {
+  fontFamily: {
+    regular: 'Inter_400Regular',
+    medium: 'Inter_500Medium',
+    semiBold: 'Inter_600SemiBold',
+    bold: 'Inter_700Bold',
+    extraBold: 'Inter_800ExtraBold',
+  },
+  fontSize: {
+    xs: 10,
+    sm: 11,
+    base: 12,
+    md: 13,
+    body: 14,
+    lg: 16,
+    xl: 20,
+    xxl: 22,
+    display: 24,
+  },
+  letterSpacing: {
+    tight: -0.3,
+    normal: 0,
+    wide: 0.5,
+    wider: 0.8,
+  },
+} as const;
+
 export interface Theme {
   bg: string;
   surface: string;

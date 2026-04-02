@@ -543,14 +543,14 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   headerSpacer: {
     width: 52,
   },
   header: {
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'Inter_800ExtraBold',
     marginBottom: 0,
   },
   card: {
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -578,14 +578,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   rowText: {
     fontSize: 13,
+    fontFamily: 'Inter_400Regular',
     marginBottom: 6,
   },
   helperText: {
     fontSize: 11,
+    fontFamily: 'Inter_400Regular',
     marginBottom: 8,
   },
   switchRow: {
@@ -650,7 +652,7 @@ const styles = StyleSheet.create({
   },
   chipLabel: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   input: {
     borderWidth: 1,
@@ -660,6 +662,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 10,
     fontSize: 13,
+    fontFamily: 'Inter_400Regular',
   },
   inlineButton: {
     minHeight: 34,
@@ -671,7 +674,7 @@ const styles = StyleSheet.create({
   },
   inlineButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   button: {
     borderRadius: 12,
@@ -682,7 +685,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   importModalBackdrop: {
     flex: 1,
