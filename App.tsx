@@ -100,7 +100,7 @@ export default function App() {
   }, []);
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1 }} />;
+    return <View style={{ flex: 1, backgroundColor: '#0d0f14' }} />;
   }
 
   return (

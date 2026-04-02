@@ -10,6 +10,7 @@ import { useSheetGesture } from '../../hooks/useGestures';
 import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore, getActiveTab } from '../../store/browserStore';
 import { useTheme } from '../../theme';
+import { typography } from '../../theme';
 import * as fxaService from '../../services/fxaService';
 
 const SHEET_HEIGHT = 360;
@@ -441,12 +442,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   accountTitle: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
+    fontSize: typography.fontSize.body,
+    fontFamily: typography.fontFamily.bold,
   },
   accountSub: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontSize: typography.fontSize.base,
+    fontFamily: typography.fontFamily.regular,
     marginTop: 4,
   },
   tilesGrid: {
@@ -484,8 +485,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   actionText: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
+    fontSize: typography.fontSize.md,
+    fontFamily: typography.fontFamily.bold,
     textAlign: 'left',
   },
   dragHint: {
@@ -496,7 +497,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dragHintText: {
-    fontSize: 10,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: typography.fontSize.xs,
+    fontFamily: typography.fontFamily.semiBold,
   },
 });
