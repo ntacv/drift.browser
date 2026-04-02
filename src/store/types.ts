@@ -85,6 +85,7 @@ export interface BrowserState {
   isCompactTabList: boolean;
   isFullUrlVisible: boolean;
   isAllTabsView: boolean;
+  hideFullscreenAlert: boolean;
 }
 
 export interface BrowserActions {
@@ -128,6 +129,7 @@ export interface BrowserActions {
   setTransparentMode: (value: boolean) => void;
   setCompactTabList: (value: boolean) => void;
   setFullUrlVisible: (value: boolean) => void;
+  setHideFullscreenAlert: (value: boolean) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;

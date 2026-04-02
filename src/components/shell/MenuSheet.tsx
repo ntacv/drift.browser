@@ -75,6 +75,8 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const createWorkspace = useBrowserStore((state) => state.createWorkspace);
   const isUserFullscreen = useBrowserStore((state) => state.isUserFullscreen);
   const setUserFullscreen = useBrowserStore((state) => state.setUserFullscreen);
+  const hideFullscreenAlert = useBrowserStore((state) => state.hideFullscreenAlert);
+  const setHideFullscreenAlert = useBrowserStore((state) => state.setHideFullscreenAlert);
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
   const activeTab = useBrowserStore(getActiveTab);
 
@@ -146,10 +148,16 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const toggleFullscreen = () => {
     if (!isUserFullscreen) {
       setUserFullscreen(true);
-      Alert.alert(
-        t('fullscreenEnabledTitle'),
-        t('fullscreenEnabledMessage'),
-      );
+      if (!hideFullscreenAlert) {
+        Alert.alert(
+          t('fullscreenEnabledTitle'),
+          t('fullscreenEnabledMessage'),
+          [
+            { text: t('dontShowAgain'), onPress: () => setHideFullscreenAlert(true) },
+            { text: t('ok'), style: 'default' },
+          ],
+        );
+      }
     } else {
       setUserFullscreen(false);
     }
