@@ -7,7 +7,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { signIn, signOut } from '../services/fxaService';
 import { useI18n } from '../i18n/useI18n';
 import { useBrowserStore } from '../store/browserStore';
-import type { AppLanguage, SearchEngine, TabListSize, ThemePreference } from '../store/types';
+import type { AppLanguage, BarPosition, SearchEngine, TabListSize, ThemePreference } from '../store/types';
 import { useTheme } from '../theme';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 import { buildImportedState, createBackupJson, parseBackupJson } from '../services/dataTransferService';
@@ -17,6 +17,7 @@ const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
 const LANGUAGES: AppLanguage[] = ['en', 'fr'];
 const TAB_LIST_SIZES: TabListSize[] = ['compact', 'comfortable', 'expanded'];
 const NEW_TAB_PRESETS = ['about:blank', 'https://www.google.com'];
+const BAR_POSITIONS: BarPosition[] = ['bottom', 'top'];
 
 const THEME_LABEL_KEY: Record<ThemePreference, 'themeSystem' | 'themeDark' | 'themeLight'> = {
   system: 'themeSystem',
@@ -40,6 +41,11 @@ const SEARCH_ENGINE_LABEL_KEY: Record<SearchEngine, 'searchEngineGoogle' | 'sear
 const LANGUAGE_LABEL_KEY: Record<AppLanguage, 'languageEnglish' | 'languageFrench'> = {
   en: 'languageEnglish',
   fr: 'languageFrench',
+};
+
+const BAR_POSITION_LABEL_KEY: Record<BarPosition, 'barPositionBottom' | 'barPositionTop'> = {
+  bottom: 'barPositionBottom',
+  top: 'barPositionTop',
 };
 
 export const SettingsScreen = () => {
@@ -71,6 +77,8 @@ export const SettingsScreen = () => {
   });
   const workspaceCount = useBrowserStore((state) => Object.keys(state.workspaces).length);
   const tabCount = useBrowserStore((state) => Object.keys(state.tabs).length);
+  const hideBarOnScroll = useBrowserStore((state) => state.hideBarOnScroll);
+  const barPosition = useBrowserStore((state) => state.barPosition);
 
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
@@ -142,6 +150,8 @@ export const SettingsScreen = () => {
       Alert.alert(t('importData'), t('importDataInvalid'));
     }
   }, [importPayload, t]);
+  const setHideBarOnScroll = useBrowserStore((state) => state.setHideBarOnScroll);
+  const setBarPosition = useBrowserStore((state) => state.setBarPosition);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -286,6 +296,43 @@ export const SettingsScreen = () => {
               <Switch value={isLeftHandMode} onValueChange={setLeftHandMode} />
             </View>
             <View style={styles.switchRow}>
+            <View style={styles.switchRow}>
+              <View>
+                <Text style={[styles.rowText, { color: theme.text }]}>{t('websiteThemeColor')}</Text>
+                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('websiteThemeColorHint')}</Text>
+              </View>
+              <Switch value={useWebsiteThemeColor} onValueChange={setUseWebsiteThemeColor} />
+            </View>
+
+            {debugMode ? (
+              <View style={[styles.debugPanel, { borderColor: theme.border, backgroundColor: theme.surface2 }]}>
+                <Text style={[styles.sectionSubTitle, { color: theme.text }]}>{t('debugInfo')}</Text>
+
+                <DebugRow label={t('debugWorkspaceCount')} value={String(workspaceCount)} theme={theme} />
+                <DebugRow label={t('debugTabCount')} value={String(tabCount)} theme={theme} />
+                <DebugRow label={t('debugActiveWorkspace')} value={activeWorkspace?.label ?? '-'} theme={theme} />
+                <DebugRow label={t('debugActiveTab')} value={activeTab?.title ?? '-'} theme={theme} />
+                <DebugRow label={t('debugThemeColorToggle')} value={useWebsiteThemeColor ? t('debugOn') : t('debugOff')} theme={theme} />
+                <View style={styles.debugColorRow}>
+                  <Text style={[styles.debugLabel, { color: theme.text2 }]}>{t('debugWebsiteThemeColor')}</Text>
+                  <View style={styles.debugColorValueRow}>
+                    <View
+                      style={[
+                        styles.debugColorSwatch,
+                        {
+                          backgroundColor: activeTab?.themeColor ?? theme.surface,
+                          borderColor: theme.border,
+                        },
+                      ]}
+                    />
+                    <Text style={[styles.debugValue, { color: theme.text }]}>
+                      {activeTab?.themeColor ?? t('debugThemeColorNone')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
               <Text style={[styles.rowText, { color: theme.text }]}>{t('displayFullUrl')}</Text>
               <Switch value={isFullUrlVisible} onValueChange={setFullUrlVisible} />
             </View>
@@ -367,6 +414,26 @@ export const SettingsScreen = () => {
                 </View>
               </View>
             ) : null}
+
+            <View style={styles.switchRow}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('hideBarOnScroll')}</Text>
+              <Switch value={hideBarOnScroll} onValueChange={setHideBarOnScroll} />
+            </View>
+
+            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('barPosition')}</Text>
+            <View style={styles.chipsRow}>
+              {BAR_POSITIONS.map((pos) => (
+                <Pressable
+                  key={pos}
+                  onPress={() => setBarPosition(pos)}
+                  style={[styles.chip, { backgroundColor: barPosition === pos ? theme.accent : theme.surface2 }]}
+                >
+                  <Text style={[styles.chipLabel, { color: barPosition === pos ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>
+                    {t(BAR_POSITION_LABEL_KEY[pos])}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
             <View style={styles.chipsRow}>
               {THEMES.map((pref) => (

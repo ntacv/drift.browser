@@ -5,6 +5,8 @@ export type AppLanguage = 'en' | 'fr';
 
 export type TabListSize = 'compact' | 'comfortable' | 'expanded';
 
+export type BarPosition = 'bottom' | 'top';
+
 export interface SyncUser {
   email: string;
   uid: string;
@@ -89,6 +91,8 @@ export interface BrowserState {
   hideFullscreenAlert: boolean;
   useWebsiteThemeColor: boolean;
   debugMode: boolean;
+  hideBarOnScroll: boolean;
+  barPosition: BarPosition;
 }
 
 export interface BrowserActions {
@@ -137,6 +141,8 @@ export interface BrowserActions {
   setHideFullscreenAlert: (value: boolean) => void;
   setUseWebsiteThemeColor: (value: boolean) => void;
   setDebugMode: (value: boolean) => void;
+  setHideBarOnScroll: (value: boolean) => void;
+  setBarPosition: (position: BarPosition) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;

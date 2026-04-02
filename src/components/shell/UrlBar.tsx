@@ -10,8 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
-import { runOnJS } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetGesture } from '../../hooks/useGestures';
@@ -49,6 +48,8 @@ export const UrlBar = () => {
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
   const setUrlOverlayOpen = useBrowserStore((state) => state.setUrlOverlayOpen);
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
+  const hideBarOnScroll = useBrowserStore((state) => state.hideBarOnScroll);
+  const barPosition = useBrowserStore((state) => state.barPosition);
 
   const [isOverlayOpen, setOverlayOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -58,6 +59,53 @@ export const UrlBar = () => {
 
   const activeTab = useBrowserStore(getActiveTab);
   const workspace = workspaces[activeWorkspaceId];
+
+  // Auto-hide animation
+  const BAR_HIDE_OFFSET = 100;
+  const barTranslate = useSharedValue(0);
+  const prevScrollYRef = useRef(0);
+
+  // Reset bar visibility when switching tabs
+  useEffect(() => {
+    prevScrollYRef.current = 0;
+    barTranslate.value = withSpring(0, { damping: 20, stiffness: 250 });
+  }, [activeTab?.id, barTranslate]);
+
+  // Hide/show bar based on scroll direction
+  useEffect(() => {
+    if (!hideBarOnScroll) {
+      barTranslate.value = withSpring(0, { damping: 20, stiffness: 250 });
+      return;
+    }
+
+    const current = activeTab?.scrollY ?? 0;
+    const prev = prevScrollYRef.current;
+    prevScrollYRef.current = current;
+
+    if (current > prev + 5 && current > 60) {
+      // Scrolling down – hide the bar
+      const offset = barPosition === 'bottom' ? BAR_HIDE_OFFSET : -BAR_HIDE_OFFSET;
+      barTranslate.value = withSpring(offset, { damping: 20, stiffness: 300 });
+    } else if (current < prev - 5 || current <= 10) {
+      // Scrolling up or near the top – show the bar
+      barTranslate.value = withSpring(0, { damping: 20, stiffness: 300 });
+    }
+  }, [activeTab?.scrollY, hideBarOnScroll, barPosition, barTranslate]);
+
+  // Always show the bar when the URL overlay is open
+  useEffect(() => {
+    if (isOverlayOpen) {
+      barTranslate.value = withSpring(0, { damping: 20, stiffness: 250 });
+    }
+  }, [isOverlayOpen, barTranslate]);
+
+  const barAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: barTranslate.value }],
+  }));
+
+  const barPositionStyle = barPosition === 'top'
+    ? { top: 12 + Math.max(insets.top, 4) }
+    : { bottom: 12 + Math.max(insets.bottom, 4) };
 
   const overlayHeight = Math.min(screenHeight * 0.78, screenHeight - insets.top - 20);
   const overlayGesture = useSheetGesture({
@@ -200,14 +248,15 @@ export const UrlBar = () => {
   return (
     <>
       <GestureDetector gesture={mainBarSwipeGesture}>
-        <View
+        <Animated.View
           style={[
             styles.wrap,
             {
               backgroundColor: urlBarBg,
               borderColor: theme.border,
-              bottom: 12 + Math.max(insets.bottom, 4),
+              ...barPositionStyle,
             },
+            barAnimatedStyle,
           ]}
         >
           {isLeftHandMode ? controls : null}
@@ -226,7 +275,7 @@ export const UrlBar = () => {
           </Pressable>
 
           {!isLeftHandMode ? controls : null}
-        </View>
+        </Animated.View>
       </GestureDetector>
 
       {isOverlayOpen ? (
@@ -326,7 +375,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 10,
     right: 10,
-    bottom: 12,
     borderWidth: 1,
     borderRadius: 100,
     padding: 8,

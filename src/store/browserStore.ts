@@ -5,6 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import type {
   AppLanguage,
+  BarPosition,
   BookmarkFolder,
   BrowserStore,
   SearchEngine,
@@ -111,10 +112,9 @@ const unsortedFolder: BookmarkFolder = {
  */
 const buildInitialState = () => {
   const config = getDefaultConfig();
-
   // Create workspaces and tabs from config
   const workspaceData = config.defaultWorkspaces.map((ws) =>
-    createWorkspaceWithTab(ws.id, ws.label, ws.icon, ws.color)
+    createWorkspaceWithTab(ws.id, ws.label, ws.icon, ws.color),
   );
 
   const workspaces: Record<string, Workspace> = {};
@@ -162,6 +162,8 @@ const buildInitialState = () => {
     hideFullscreenAlert: false,
     useWebsiteThemeColor: false,
     debugMode: false,
+    hideBarOnScroll: false,
+    barPosition: 'bottom' as BarPosition,
   };
 };
 
@@ -697,6 +699,8 @@ export const useBrowserStore = create<BrowserStore>()(
       setHideFullscreenAlert: (value) => set({ hideFullscreenAlert: value }),
       setUseWebsiteThemeColor: (value) => set({ useWebsiteThemeColor: value }),
       setDebugMode: (value) => set({ debugMode: value }),
+      setHideBarOnScroll: (value) => set({ hideBarOnScroll: value }),
+      setBarPosition: (position) => set({ barPosition: position }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
@@ -775,6 +779,8 @@ export const useBrowserStore = create<BrowserStore>()(
         hideFullscreenAlert: state.hideFullscreenAlert,
         useWebsiteThemeColor: state.useWebsiteThemeColor,
         debugMode: state.debugMode,
+        hideBarOnScroll: state.hideBarOnScroll,
+        barPosition: state.barPosition,
       }),
     },
   ),
