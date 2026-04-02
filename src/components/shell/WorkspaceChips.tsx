@@ -40,6 +40,7 @@ export const WorkspaceChips = () => {
   const setAllTabsView = useBrowserStore((state) => state.setAllTabsView);
   const closeAllTabs = useBrowserStore((state) => state.closeAllTabs);
   const saveAllTabsAsWorkspace = useBrowserStore((state) => state.saveAllTabsAsWorkspace);
+  const isCompactWorkspace = useBrowserStore((state) => state.isCompactWorkspace);
 
   const [editorVisible, setEditorVisible] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
@@ -91,6 +92,40 @@ export const WorkspaceChips = () => {
 
           const isActive = !isAllTabsView && workspaceId === activeWorkspaceId;
           const iconName = getValidWorkspaceIcon(workspace.emoji);
+
+          if (isCompactWorkspace) {
+            return (
+              <Pressable
+                key={workspaceId}
+                onPress={() => {
+                  setAllTabsView(false);
+                  switchWorkspace(workspaceId);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+                }}
+                onLongPress={() => handleLongPress(workspace)}
+                style={[
+                  styles.chipCompact,
+                  {
+                    backgroundColor: isActive ? workspace.color : theme.surface2,
+                    borderColor: isActive ? workspace.color : theme.border,
+                  },
+                ]}
+              >
+                {iconName ? (
+                  <MaterialIcons
+                    name={iconName}
+                    size={18}
+                    color={isActive ? TEXT_ON_COLORED_BACKGROUND : theme.text}
+                  />
+                ) : (
+                  <Text style={[styles.labelCompact, { color: isActive ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>
+                    {workspace.label.charAt(0).toUpperCase()}
+                  </Text>
+                )}
+              </Pressable>
+            );
+          }
+
           return (
             <Pressable
               key={workspaceId}
@@ -186,5 +221,17 @@ const styles = StyleSheet.create({
     color: TEXT_ON_COLORED_BACKGROUND,
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
+  },
+  chipCompact: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  labelCompact: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
