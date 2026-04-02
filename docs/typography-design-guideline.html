@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drift Browser — Typography Design Guideline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #141720;
+      --surface2:  #1c2030;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #6c9fff;
+      --accent2:   #a78bfa;
+      --text:      #e8eaf2;
+      --text2:     #7a809a;
+      --text3:     #454b66;
+
+      --font:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 48px 0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────────────── */
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    section {
+      margin-bottom: 64px;
+    }
+
+    /* ── Cover ────────────────────────────────────────────────────────────── */
+    .cover {
+      text-align: center;
+      padding: 64px 0 80px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 64px;
+    }
+
+    .cover-logo {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 20px;
+    }
+
+    .cover-title {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .cover-sub {
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--text2);
+      margin-bottom: 32px;
+    }
+
+    .cover-meta {
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    /* ── Section header ───────────────────────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 8px;
+    }
+
+    .section-desc {
+      font-size: 14px;
+      color: var(--text2);
+      margin-bottom: 32px;
+      max-width: 540px;
+      line-height: 1.65;
+    }
+
+    /* ── Divider ──────────────────────────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    /* ── Rationale card ───────────────────────────────────────────────────── */
+    .rationale-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .rationale-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+    }
+
+    .rationale-card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .rationale-card p {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* ── Scale table ──────────────────────────────────────────────────────── */
+    .scale-row {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .scale-row:first-child {
+      border-top: 1px solid var(--border);
+    }
+
+    .scale-meta {
+      flex: 0 0 220px;
+    }
+
+    .scale-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text2);
+      margin-bottom: 2px;
+    }
+
+    .scale-specs {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    .scale-preview {
+      flex: 1;
+      color: var(--text);
+    }
+
+    /* ── Weight showcase ──────────────────────────────────────────────────── */
+    .weight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .weight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .weight-sample {
+      font-size: 32px;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .weight-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .weight-spec {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    /* ── Usage table ──────────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text2);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text2);
+    }
+
+    tbody td:first-child {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .badge-accent  { background: rgba(108,159,255,0.15); color: var(--accent); }
+    .badge-purple  { background: rgba(167,139,250,0.15); color: var(--accent2); }
+    .badge-muted   { background: var(--surface2);        color: var(--text2);   }
+
+    /* ── UI components preview ────────────────────────────────────────────── */
+    .preview-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .ui-urlbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px;
+      width: 100%;
+    }
+
+    .ui-pill {
+      flex: 1;
+      background: var(--surface2);
+      border-radius: 99px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ui-icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 17px;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .ui-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      width: 220px;
+    }
+
+    .ui-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .ui-card-sub {
+      font-size: 12px;
+      color: var(--text2);
+    }
+
+    .ui-chip {
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    .ui-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Do / Don't ───────────────────────────────────────────────────────── */
+    .do-dont-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .do-card, .dont-card {
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      border: 1px solid transparent;
+    }
+
+    .do-card {
+      background: rgba(39,174,96,0.08);
+      border-color: rgba(39,174,96,0.25);
+    }
+
+    .dont-card {
+      background: rgba(255,107,107,0.08);
+      border-color: rgba(255,107,107,0.25);
+    }
+
+    .do-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #2ab673;
+      margin-bottom: 10px;
+    }
+
+    .dont-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #ff6b6b;
+      margin-bottom: 10px;
+    }
+
+    .do-card p, .dont-card p {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* ── Token box ────────────────────────────────────────────────────────── */
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .token-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .token-key {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      font-family: 'SFMono-Regular', Consolas, monospace;
+    }
+
+    .token-value {
+      font-size: 12px;
+      color: var(--text2);
+      font-family: 'SFMono-Regular', Consolas, monospace;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text3);
+      padding-top: 48px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer a {
+      color: var(--text2);
+      text-decoration: none;
+    }
+
+    /* ── Print optimisations ──────────────────────────────────────────────── */
+    @media print {
+      body   { background: #fff; color: #111; padding: 0; }
+      :root  {
+        --bg: #fff; --surface: #f4f6fb; --surface2: #eef2fa;
+        --border: rgba(0,0,0,0.10); --text: #151a2a;
+        --text2: #4d5672; --text3: #7e88a8;
+        --accent: #3867d6; --accent2: #6a46c8;
+      }
+      section   { page-break-inside: avoid; }
+      .cover    { page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- ── Cover ─────────────────────────────────────────────────────────── -->
+    <div class="cover">
+      <p class="cover-logo">Drift Browser</p>
+      <h1 class="cover-title">Typography<br>Design Guideline</h1>
+      <p class="cover-sub">A modern, screen-optimised type system built on Inter.<br>Simple. Legible. Human.</p>
+      <p class="cover-meta">v1.0 · 2025 · drift.browser@gmail.com</p>
+    </div>
+
+    <!-- ── 1 · Typeface Selection ─────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">01 · Typeface Selection</p>
+      <h2 class="section-title">Why Inter?</h2>
+      <p class="section-desc">After evaluating several modern, neutral typefaces against the keywords <em>modern</em> and <em>simple</em>, Inter emerged as the clear choice for Drift.</p>
+
+      <div class="rationale-grid">
+        <div class="rationale-card">
+          <h3>Screen Optimised</h3>
+          <p>Inter was designed specifically for display on digital screens at small sizes. Its tall x-height, wide apertures, and careful letter spacing make it exceptionally legible at the 10–24 px range used throughout the app.</p>
+        </div>
+        <div class="rationale-card">
+          <h3>Modern &amp; Neutral</h3>
+          <p>Geometric construction gives Inter a clean, contemporary feel without leaning into the quirks of humanist faces. It pairs naturally with Drift's minimal, dark UI and does not compete with content.</p>
+        </div>
+        <div class="rationale-card">
+          <h3>Weight Range</h3>
+          <p>With 9 weights (100–900), Inter supports Drift's full hierarchy — from the tiny badge counts on workspace chips to the bold settings header — using a single coherent face.</p>
+        </div>
+        <div class="rationale-card">
+          <h3>Open Source &amp; Reliable</h3>
+          <p>Released under the SIL Open Font Licence. Bundled via <code>@expo-google-fonts/inter</code> and loaded at app start, so it works offline and requires no external network calls at runtime.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── 2 · Type Scale ─────────────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">02 · Type Scale</p>
+      <h2 class="section-title">Size Ramp</h2>
+      <p class="section-desc">All sizes are defined in density-independent pixels (dp / pt). The scale is optimised for mobile touch targets and glanceability.</p>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Display</p>
+          <p class="scale-specs">24 dp · ExtraBold 800 · spacing −0.3</p>
+        </div>
+        <div class="scale-preview" style="font-size:24px;font-weight:800;letter-spacing:-0.3px;">New Tab</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Heading XXL</p>
+          <p class="scale-specs">22 dp · ExtraBold 800 · spacing −0.3</p>
+        </div>
+        <div class="scale-preview" style="font-size:22px;font-weight:800;letter-spacing:-0.3px;">Settings</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Heading XL</p>
+          <p class="scale-specs">20 dp · Bold 700</p>
+        </div>
+        <div class="scale-preview" style="font-size:20px;font-weight:700;">Edit Workspace</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Heading L</p>
+          <p class="scale-specs">16 dp · Bold 700</p>
+        </div>
+        <div class="scale-preview" style="font-size:16px;font-weight:700;">Address</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Heading M</p>
+          <p class="scale-specs">15 dp · Bold 700</p>
+        </div>
+        <div class="scale-preview" style="font-size:15px;font-weight:700;">drift@example.com</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Body M</p>
+          <p class="scale-specs">14 dp · SemiBold 600</p>
+        </div>
+        <div class="scale-preview" style="font-size:14px;font-weight:600;">github.com/ntacv/drift.browser</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Body S / UI Label</p>
+          <p class="scale-specs">13 dp · Regular 400 or SemiBold 600</p>
+        </div>
+        <div class="scale-preview" style="font-size:13px;font-weight:400;">Search or enter address…</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Caption / Sub-label</p>
+          <p class="scale-specs">12 dp · SemiBold 600 · spacing 0.8</p>
+        </div>
+        <div class="scale-preview" style="font-size:12px;font-weight:600;letter-spacing:0.8px;">WORKSPACE NAME</div>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-meta">
+          <p class="scale-name">Micro</p>
+          <p class="scale-specs">10–11 dp · Bold 700</p>
+        </div>
+        <div class="scale-preview" style="font-size:11px;font-weight:700;">3 tabs · Pinned</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── 3 · Weights ────────────────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">03 · Weight System</p>
+      <h2 class="section-title">Five weights in use</h2>
+      <p class="section-desc">Only five of Inter's nine weights are used to maintain a clear, intentional hierarchy.</p>
+
+      <div class="weight-grid">
+        <div class="weight-card">
+          <div class="weight-sample" style="font-weight:400;">Aa</div>
+          <p class="weight-label">Regular</p>
+          <p class="weight-spec">400 · <code>Inter_400Regular</code></p>
+        </div>
+        <div class="weight-card">
+          <div class="weight-sample" style="font-weight:500;">Aa</div>
+          <p class="weight-label">Medium</p>
+          <p class="weight-spec">500 · <code>Inter_500Medium</code></p>
+        </div>
+        <div class="weight-card">
+          <div class="weight-sample" style="font-weight:600;">Aa</div>
+          <p class="weight-label">SemiBold</p>
+          <p class="weight-spec">600 · <code>Inter_600SemiBold</code></p>
+        </div>
+        <div class="weight-card">
+          <div class="weight-sample" style="font-weight:700;">Aa</div>
+          <p class="weight-label">Bold</p>
+          <p class="weight-spec">700 · <code>Inter_700Bold</code></p>
+        </div>
+        <div class="weight-card">
+          <div class="weight-sample" style="font-weight:800;">Aa</div>
+          <p class="weight-label">ExtraBold</p>
+          <p class="weight-spec">800 · <code>Inter_800ExtraBold</code></p>
+        </div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── 4 · Component Usage ────────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">04 · Component Usage</p>
+      <h2 class="section-title">Where each style lives</h2>
+      <p class="section-desc">This table maps every text element in the app to the correct Inter variant.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Size (dp)</th>
+            <th>Font Variant</th>
+            <th>Component</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Screen title (Settings, New Tab)</td>
+            <td>22–24</td>
+            <td><span class="badge badge-accent">ExtraBold 800</span></td>
+            <td>SettingsScreen, NewTabScreen</td>
+          </tr>
+          <tr>
+            <td>Sheet / modal title</td>
+            <td>16–20</td>
+            <td><span class="badge badge-accent">Bold 700</span></td>
+            <td>UrlBar, WorkspaceEditor</td>
+          </tr>
+          <tr>
+            <td>Account name / tab title</td>
+            <td>13–15</td>
+            <td><span class="badge badge-accent">Bold 700</span></td>
+            <td>MenuSheet, TabCard</td>
+          </tr>
+          <tr>
+            <td>URL bar domain label</td>
+            <td>13</td>
+            <td><span class="badge badge-purple">SemiBold 600</span></td>
+            <td>UrlBar</td>
+          </tr>
+          <tr>
+            <td>Workspace chip label</td>
+            <td>13</td>
+            <td><span class="badge badge-purple">SemiBold 600</span></td>
+            <td>WorkspaceChips</td>
+          </tr>
+          <tr>
+            <td>Section sub-label (uppercase)</td>
+            <td>12</td>
+            <td><span class="badge badge-purple">SemiBold 600</span></td>
+            <td>WorkspaceEditor, SettingsScreen</td>
+          </tr>
+          <tr>
+            <td>Body / row text</td>
+            <td>13</td>
+            <td><span class="badge badge-muted">Regular 400</span></td>
+            <td>SettingsScreen</td>
+          </tr>
+          <tr>
+            <td>Text inputs</td>
+            <td>13–16</td>
+            <td><span class="badge badge-muted">Regular 400</span></td>
+            <td>UrlBar, WorkspaceEditor, SettingsScreen</td>
+          </tr>
+          <tr>
+            <td>Suggestion URL</td>
+            <td>12</td>
+            <td><span class="badge badge-muted">Regular 400</span></td>
+            <td>UrlBar</td>
+          </tr>
+          <tr>
+            <td>Tab count badge / pin label</td>
+            <td>10–11</td>
+            <td><span class="badge badge-accent">Bold 700</span></td>
+            <td>WorkspaceChips, TabCard</td>
+          </tr>
+          <tr>
+            <td>Helper / caption text</td>
+            <td>11</td>
+            <td><span class="badge badge-muted">Regular 400</span></td>
+            <td>SettingsScreen</td>
+          </tr>
+          <tr>
+            <td>Menu action tiles</td>
+            <td>13</td>
+            <td><span class="badge badge-accent">Bold 700</span></td>
+            <td>MenuSheet</td>
+          </tr>
+          <tr>
+            <td>Tab count row</td>
+            <td>12</td>
+            <td><span class="badge badge-purple">SemiBold 600</span></td>
+            <td>TabTray</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr>
+
+    <!-- ── 5 · Live UI Previews ───────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">05 · Live UI Previews</p>
+      <h2 class="section-title">Typography in context</h2>
+      <p class="section-desc">How Inter looks in the actual UI components of Drift.</p>
+
+      <!-- URL Bar -->
+      <p style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">URL Bar</p>
+      <div class="preview-row">
+        <div class="ui-urlbar">
+          <div class="ui-icon-btn">+</div>
+          <div class="ui-icon-btn">⋯</div>
+          <div class="ui-pill">github.com</div>
+          <div class="ui-icon-btn" style="background:var(--accent);color:#fff;">2</div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <p style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;margin-top:24px;">Cards</p>
+      <div class="preview-row">
+        <div class="ui-card">
+          <p class="ui-card-title">GitHub</p>
+          <p class="ui-card-sub">github.com</p>
+        </div>
+        <div class="ui-card">
+          <p class="ui-card-title">Hacker News</p>
+          <p class="ui-card-sub">news.ycombinator.com</p>
+        </div>
+      </div>
+
+      <!-- Workspace Chips -->
+      <p style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;margin-top:24px;">Workspace Chips</p>
+      <div class="preview-row">
+        <div class="ui-chip active">🏠 Home <span style="margin-left:6px;background:rgba(0,0,0,0.2);border-radius:9px;padding:1px 6px;font-size:10px;">3</span></div>
+        <div class="ui-chip">💼 Work <span style="margin-left:6px;background:rgba(0,0,0,0.12);border-radius:9px;padding:1px 6px;font-size:10px;">1</span></div>
+        <div class="ui-chip">⭐ Star <span style="margin-left:6px;background:rgba(0,0,0,0.12);border-radius:9px;padding:1px 6px;font-size:10px;">0</span></div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── 6 · Design Tokens ─────────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">06 · Design Tokens</p>
+      <h2 class="section-title">Source of truth</h2>
+      <p class="section-desc">Exported from <code>src/theme/index.ts → typography</code> and used across all components.</p>
+
+      <div class="token-grid">
+        <div class="token-row">
+          <span class="token-key">typography.fontFamily.regular</span>
+          <span class="token-value">'Inter_400Regular'</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontFamily.medium</span>
+          <span class="token-value">'Inter_500Medium'</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontFamily.semiBold</span>
+          <span class="token-value">'Inter_600SemiBold'</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontFamily.bold</span>
+          <span class="token-value">'Inter_700Bold'</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontFamily.extraBold</span>
+          <span class="token-value">'Inter_800ExtraBold'</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.xs</span>
+          <span class="token-value">10 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.sm</span>
+          <span class="token-value">11 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.base</span>
+          <span class="token-value">12 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.md</span>
+          <span class="token-value">13 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.body</span>
+          <span class="token-value">14 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.lg</span>
+          <span class="token-value">16 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.xl</span>
+          <span class="token-value">20 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.xxl</span>
+          <span class="token-value">22 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.fontSize.display</span>
+          <span class="token-value">24 dp</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.letterSpacing.tight</span>
+          <span class="token-value">−0.3</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.letterSpacing.normal</span>
+          <span class="token-value">0</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.letterSpacing.wide</span>
+          <span class="token-value">0.5</span>
+        </div>
+        <div class="token-row">
+          <span class="token-key">typography.letterSpacing.wider</span>
+          <span class="token-value">0.8</span>
+        </div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── 7 · Do & Don't ─────────────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">07 · Do &amp; Don't</p>
+      <h2 class="section-title">Rules for consistent type</h2>
+
+      <div class="do-dont-grid">
+        <div class="do-card">
+          <p class="do-label">✓ Do</p>
+          <p>Always use the named Inter variant (<code>Inter_700Bold</code>) as the <code>fontFamily</code>. This guarantees the correct weight on both iOS and Android without relying on the platform's font synthesis.</p>
+        </div>
+        <div class="dont-card">
+          <p class="dont-label">✗ Don't</p>
+          <p>Don't combine a named Inter variant with a <code>fontWeight</code> override. Font weight synthesis by the OS can produce blurry or unexpected results when the explicit file name already encodes the weight.</p>
+        </div>
+        <div class="do-card">
+          <p class="do-label">✓ Do</p>
+          <p>Respect the established size ramp. Use <code>typography.fontSize.*</code> tokens imported from the theme to keep sizes consistent and easy to change globally.</p>
+        </div>
+        <div class="dont-card">
+          <p class="dont-label">✗ Don't</p>
+          <p>Don't introduce arbitrary font sizes (e.g., 9 dp, 17 dp, 19 dp) outside the defined scale. New sizes should be proposed as additions to the <code>typography.fontSize</code> token set.</p>
+        </div>
+        <div class="do-card">
+          <p class="do-label">✓ Do</p>
+          <p>Use tight letter-spacing (−0.3) for large headings (22 dp +) to give them presence, and wide letter-spacing (0.8) for uppercase micro-labels to improve legibility.</p>
+        </div>
+        <div class="dont-card">
+          <p class="dont-label">✗ Don't</p>
+          <p>Don't use Inter in italic for UI strings — italics are not loaded in the app bundle and would fall back to system synthesis. Reserve italics for inline web content in the web view only.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Footer ─────────────────────────────────────────────────────────── -->
+    <div class="footer">
+      <p>Drift Browser — Typography Design Guideline v1.0</p>
+      <p style="margin-top:6px;"><a href="https://github.com/ntacv/drift.browser">github.com/ntacv/drift.browser</a> · <a href="mailto:drift.browser@gmail.com">drift.browser@gmail.com</a></p>
+    </div>
+
+  </div>
+</body>
+</html>

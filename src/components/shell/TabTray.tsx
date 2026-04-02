@@ -354,9 +354,10 @@ const styles = StyleSheet.create({
   },
   newCardText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   newCardTextCompact: {
     fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
   },
 });

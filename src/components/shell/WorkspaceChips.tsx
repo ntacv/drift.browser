@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   countWrap: {
     minWidth: 18,
@@ -185,6 +185,6 @@ const styles = StyleSheet.create({
   count: {
     color: TEXT_ON_COLORED_BACKGROUND,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
 });

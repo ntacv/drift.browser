@@ -442,10 +442,11 @@ const styles = StyleSheet.create({
   },
   accountTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   accountSub: {
     fontSize: 12,
+    fontFamily: 'Inter_400Regular',
     marginTop: 4,
   },
   tilesGrid: {
@@ -484,7 +485,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     textAlign: 'left',
   },
   dragHint: {
@@ -496,6 +497,6 @@ const styles = StyleSheet.create({
   },
   dragHintText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
 });

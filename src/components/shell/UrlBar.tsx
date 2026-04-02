@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   menuIconText: {
     textAlign: 'center',
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   domain: {
     flex: 1,
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   copyToast: {
     position: 'absolute',
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   },
   overlayTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   closeTapTarget: {
     paddingHorizontal: 8,
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   },
   closeText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   dismissZone: {
     paddingBottom: 2,
@@ -615,10 +615,11 @@ const styles = StyleSheet.create({
   },
   suggestionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   suggestionUrl: {
     fontSize: 12,
+    fontFamily: 'Inter_400Regular',
     marginTop: 2,
   },
 });

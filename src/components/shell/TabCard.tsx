@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   },
   fallbackText: {
     color: TEXT_ON_COLORED_BACKGROUND,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     fontSize: 11,
   },
   fallbackTextCompact: {
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 2,
   },
   titleCompact: {
@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
   },
   domain: {
     fontSize: 11,
+    fontFamily: 'Inter_400Regular',
   },
   domainCompact: {
     fontSize: 10,

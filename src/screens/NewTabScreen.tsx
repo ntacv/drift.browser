@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '800',
+    fontFamily: 'Inter_800ExtraBold',
     marginBottom: 20,
   },
   button: {
@@ -60,6 +60,6 @@ const styles = StyleSheet.create({
   buttonLabel: {
     color: TEXT_ON_COLORED_BACKGROUND,
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
 });
