@@ -158,6 +158,7 @@ const buildInitialState = () => {
     isCompactTabList: config.preferences.isCompactTabList,
     isFullUrlVisible: config.preferences.isFullUrlVisible,
     isAllTabsView: false,
+    hideFullscreenAlert: false,
   };
 };
 
@@ -626,6 +627,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setTransparentMode: (value) => set({ isTransparentMode: value }),
       setCompactTabList: (value) => set({ isCompactTabList: value }),
       setFullUrlVisible: (value) => set({ isFullUrlVisible: value }),
+      setHideFullscreenAlert: (value) => set({ hideFullscreenAlert: value }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
@@ -700,6 +702,7 @@ export const useBrowserStore = create<BrowserStore>()(
         isCompactTabList: state.isCompactTabList,
         isFullUrlVisible: state.isFullUrlVisible,
         isAllTabsView: state.isAllTabsView,
+        hideFullscreenAlert: state.hideFullscreenAlert,
       }),
     },
   ),
