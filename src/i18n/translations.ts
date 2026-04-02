@@ -112,6 +112,10 @@ export const translations = {
     unpinTab: 'Unpin Tab',
     closeTab: 'Close Tab',
     copiedToClipboard: 'Copied!',
+    hideBarOnScroll: 'Hide bar when scrolling',
+    barPosition: 'Bar position',
+    barPositionBottom: 'Bottom',
+    barPositionTop: 'Top',
   },
   fr: {
     settingsTitle: 'Parametres',
@@ -226,6 +230,10 @@ export const translations = {
     unpinTab: 'Désépingler l\'onglet',
     closeTab: 'Fermer l\'onglet',
     copiedToClipboard: 'Copié !',
+    hideBarOnScroll: 'Masquer la barre au défilement',
+    barPosition: 'Position de la barre',
+    barPositionBottom: 'Bas',
+    barPositionTop: 'Haut',
   },
 } as const;
 
