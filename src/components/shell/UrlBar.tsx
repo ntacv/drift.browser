@@ -20,6 +20,7 @@ import { useI18n } from '../../i18n/useI18n';
 import { getActiveTab, useBrowserStore } from '../../store/browserStore';
 import type { HistoryEntry } from '../../store/types';
 import { useTheme } from '../../theme';
+import { typography } from '../../theme';
 import { normalizeInputToUrl, toDomain } from '../../hooks/useWebView';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
 
@@ -505,8 +506,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconText: {
-    fontSize: 18,
-    fontFamily: 'Inter_700Bold',
+    fontSize: typography.fontSize.lg,
+    fontFamily: typography.fontFamily.bold,
   },
   menuIconText: {
     textAlign: 'center',
@@ -525,8 +526,8 @@ const styles = StyleSheet.create({
   },
   domain: {
     flex: 1,
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: typography.fontSize.md,
+    fontFamily: typography.fontFamily.semiBold,
   },
   copyToast: {
     position: 'absolute',
@@ -563,16 +564,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   overlayTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
+    fontSize: typography.fontSize.lg,
+    fontFamily: typography.fontFamily.bold,
   },
   closeTapTarget: {
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   closeText: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: typography.fontSize.md,
+    fontFamily: typography.fontFamily.semiBold,
   },
   dismissZone: {
     paddingBottom: 2,
@@ -614,12 +615,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   suggestionTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: typography.fontSize.body,
+    fontFamily: typography.fontFamily.semiBold,
   },
   suggestionUrl: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontSize: typography.fontSize.base,
+    fontFamily: typography.fontFamily.regular,
     marginTop: 2,
   },
 });
