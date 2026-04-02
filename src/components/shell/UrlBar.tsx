@@ -48,6 +48,7 @@ export const UrlBar = () => {
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
   const setUrlOverlayOpen = useBrowserStore((state) => state.setUrlOverlayOpen);
+  const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
 
   const [isOverlayOpen, setOverlayOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -140,6 +141,9 @@ export const UrlBar = () => {
     return isFullUrlVisible ? activeTab.url : toDomain(activeTab.url);
   }, [activeTab, isFullUrlVisible, t]);
 
+  const urlBarBg =
+    useWebsiteThemeColor && activeTab?.themeColor ? activeTab.themeColor : theme.surface;
+
   const mainBarSwipeGesture = Gesture.Pan().onEnd((event) => {
     const absX = Math.abs(event.translationX);
     const absY = Math.abs(event.translationY);
@@ -200,7 +204,7 @@ export const UrlBar = () => {
           style={[
             styles.wrap,
             {
-              backgroundColor: theme.surface,
+              backgroundColor: urlBarBg,
               borderColor: theme.border,
               bottom: 12 + Math.max(insets.bottom, 4),
             },

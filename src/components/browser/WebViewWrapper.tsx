@@ -85,6 +85,8 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
       isLoading: navState.loading,
       canGoBack: navState.canGoBack,
       canGoForward: navState.canGoForward,
+      // Clear stale theme color when a new page starts loading
+      ...(navState.loading ? { themeColor: null } : {}),
     });
 
     if (!navState.loading) {
@@ -199,6 +201,11 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
             if (message.favicon) {
               updateTabMeta(tabId, { favicon: message.favicon });
             }
+            return;
+          }
+
+          if (message.type === 'themeColor') {
+            updateTabMeta(tabId, { themeColor: message.themeColor });
             return;
           }
 

@@ -35,6 +35,7 @@ export const normalizeInputToUrl = (input: string, searchEngine: SearchEngine): 
 
 export type WebViewBridgeMessage =
   | { type: 'favicon'; favicon: string | null }
+  | { type: 'themeColor'; themeColor: string | null }
   | { type: 'scrollY'; value: number }
   | { type: 'overscrollTop' }
   | { type: 'overscrollProgress'; value: number }
@@ -47,11 +48,16 @@ export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage
     const parsed = JSON.parse(payload) as {
       type?: string;
       favicon?: string | null;
+      themeColor?: string | null;
       value?: number;
     };
 
     if (parsed.type === 'favicon') {
       return { type: 'favicon', favicon: parsed.favicon ?? null };
+    }
+
+    if (parsed.type === 'themeColor') {
+      return { type: 'themeColor', themeColor: parsed.themeColor ?? null };
     }
 
     if (parsed.type === 'scrollY') {
@@ -101,6 +107,23 @@ export const faviconInjectionScript = `
     const candidate = document.querySelector('link[rel~="icon"]');
     const favicon = candidate ? candidate.href : null;
     post({ type: 'favicon', favicon: favicon });
+
+    var sendThemeColor = function() {
+      var meta = document.querySelector('meta[name="theme-color"]');
+      var color = meta ? meta.getAttribute('content') : null;
+      post({ type: 'themeColor', themeColor: color });
+    };
+
+    sendThemeColor();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      sendThemeColor();
+      var head = document.querySelector('head');
+      if (head) {
+        var observer = new MutationObserver(sendThemeColor);
+        observer.observe(head, { childList: true, subtree: true, attributes: true });
+      }
+    });
 
     var signalFullscreenState = function() {
       var active = !!(
