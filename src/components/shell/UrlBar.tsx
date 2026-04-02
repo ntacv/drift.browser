@@ -60,8 +60,10 @@ export const UrlBar = () => {
   const activeTab = useBrowserStore(getActiveTab);
   const workspace = workspaces[activeWorkspaceId];
 
-  // Auto-hide animation
+  // Auto-hide animation: pixels the bar slides off-screen (larger than the bar's visual height)
   const BAR_HIDE_OFFSET = 100;
+  // Spacing between the bar pill and the screen edge
+  const BAR_MARGIN = 12;
   const barTranslate = useSharedValue(0);
   const prevScrollYRef = useRef(0);
 
@@ -104,8 +106,8 @@ export const UrlBar = () => {
   }));
 
   const barPositionStyle = barPosition === 'top'
-    ? { top: 12 + Math.max(insets.top, 4) }
-    : { bottom: 12 + Math.max(insets.bottom, 4) };
+    ? { top: BAR_MARGIN + Math.max(insets.top, 4) }
+    : { bottom: BAR_MARGIN + Math.max(insets.bottom, 4) };
 
   const overlayHeight = Math.min(screenHeight * 0.78, screenHeight - insets.top - 20);
   const overlayGesture = useSheetGesture({
