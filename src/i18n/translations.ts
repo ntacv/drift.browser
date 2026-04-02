@@ -152,7 +152,7 @@ export const translations = {
     compactTabList: 'Liste d\'onglets compacte',
     compactTabListHint: 'Reduire le padding pour afficher plus d\'onglets',
     compactWorkspace: 'Espace de travail compact',
-    compactWorkspaceHint: 'Afficher uniquement les icones dans la barre des espaces',
+    compactWorkspaceHint: 'Afficher uniquement les icônes dans la barre des espaces',
     language: 'Langue',
     languageEnglish: 'Anglais',
     languageFrench: 'Francais',
