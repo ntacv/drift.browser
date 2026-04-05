@@ -1,7 +1,8 @@
 import React from 'react';
-import { BackHandler, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, BackHandler, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as FileSystem from 'expo-file-system/legacy';
 
 import { signIn, signOut } from '../services/fxaService';
 import { useI18n } from '../i18n/useI18n';
@@ -9,6 +10,7 @@ import { useBrowserStore } from '../store/browserStore';
 import type { AppLanguage, SearchEngine, TabListSize, ThemePreference } from '../store/types';
 import { useTheme } from '../theme';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
+import { buildImportedState, createBackupJson, parseBackupJson } from '../services/dataTransferService';
 
 const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
@@ -45,6 +47,8 @@ export const SettingsScreen = () => {
   const { language, t } = useI18n();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const [isImportModalVisible, setImportModalVisible] = React.useState(false);
+  const [importPayload, setImportPayload] = React.useState('');
 
   const syncUser = useBrowserStore((state) => state.syncUser);
   const lastSyncedAt = useBrowserStore((state) => state.lastSyncedAt);
@@ -69,6 +73,63 @@ export const SettingsScreen = () => {
   const setTransparentMode = useBrowserStore((state) => state.setTransparentMode);
   const setCompactTabList = useBrowserStore((state) => state.setCompactTabList);
   const setFullUrlVisible = useBrowserStore((state) => state.setFullUrlVisible);
+
+  const handleExportData = React.useCallback(async () => {
+    try {
+      const state = useBrowserStore.getState();
+      console.log('Export state keys:', Object.keys(state));
+      console.log('Export workspaces count:', Object.keys(state.workspaces || {}).length);
+      console.log('Export tabs count:', Object.keys(state.tabs || {}).length);
+      
+      const payload = createBackupJson(state);
+      console.log('Export payload length:', payload.length);
+
+      if (!payload || payload.length < 50) {
+        Alert.alert(t('exportData'), 'Export payload is empty or too small');
+        console.error('Export payload:', payload);
+        return;
+      }
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `drift-backup-${timestamp}.json`;
+      const fileUri = `${FileSystem.cacheDirectory}${filename}`;
+
+      console.log('Writing to:', fileUri);
+      await FileSystem.writeAsStringAsync(fileUri, payload);
+      
+      // Verify the file was written
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      console.log('File info:', fileInfo);
+
+      await Share.share({
+        url: fileUri,
+        title: filename,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert(t('exportData'), `Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [t]);
+
+  const handleImportData = React.useCallback(() => {
+    const payload = importPayload.trim();
+    if (!payload) {
+      Alert.alert(t('importData'), t('importDataEmpty'));
+      return;
+    }
+
+    try {
+      const parsed = parseBackupJson(payload);
+      const current = useBrowserStore.getState();
+      const nextState = buildImportedState(current, parsed);
+      useBrowserStore.setState(nextState);
+      setImportPayload('');
+      setImportModalVisible(false);
+      Alert.alert(t('importData'), t('importDataSuccess'));
+    } catch {
+      Alert.alert(t('importData'), t('importDataInvalid'));
+    }
+  }, [importPayload, t]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -288,7 +349,57 @@ export const SettingsScreen = () => {
               <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('sourceCode')}</Text>
             </Pressable>
           </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('dataManagement')}</Text>
+            <Text style={[styles.rowText, { color: theme.text2 }]}>{t('dataManagementHint')}</Text>
+
+            <Pressable style={[styles.button, { backgroundColor: theme.surface2 }]} onPress={handleExportData}>
+              <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('exportData')}</Text>
+            </Pressable>
+
+            <Pressable style={[styles.button, { backgroundColor: theme.surface2 }]} onPress={() => setImportModalVisible(true)}>
+              <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('importData')}</Text>
+            </Pressable>
+          </View>
         </ScrollView>
+
+        <Modal visible={isImportModalVisible} transparent animationType="fade" onRequestClose={() => setImportModalVisible(false)}>
+          <View style={styles.importModalBackdrop}>
+            <View style={[styles.importModalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('importData')}</Text>
+              <Text style={[styles.rowText, { color: theme.text2 }]}>{t('importDataHint')}</Text>
+
+              <TextInput
+                value={importPayload}
+                onChangeText={setImportPayload}
+                multiline
+                numberOfLines={8}
+                style={[
+                  styles.importInput,
+                  {
+                    color: theme.text,
+                    borderColor: theme.border,
+                    backgroundColor: theme.surface2,
+                  },
+                ]}
+                placeholder={t('importDataPlaceholder')}
+                placeholderTextColor={theme.text3}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              <View style={styles.importActions}>
+                <Pressable style={[styles.importActionButton, { backgroundColor: theme.surface2 }]} onPress={() => setImportModalVisible(false)}>
+                  <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('cancel')}</Text>
+                </Pressable>
+                <Pressable style={[styles.importActionButton, { backgroundColor: theme.accent }]} onPress={handleImportData}>
+                  <Text style={[styles.buttonLabel, { color: TEXT_ON_COLORED_BACKGROUND }]}>{t('importDataApply')}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -412,5 +523,37 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  importModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  importModalCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+  },
+  importInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: 160,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    textAlignVertical: 'top',
+    fontSize: 12,
+  },
+  importActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  importActionButton: {
+    flex: 1,
+    borderRadius: 10,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
