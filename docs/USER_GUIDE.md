@@ -56,33 +56,100 @@ Workspace behavior:
 
 - Workspace chips at the top of tray
 - Switch workspace without closing tray
-- Swipe on tab cards to change workspace context
+- Swipe left/right on tab tray to switch workspace
+- The "All Tabs" workspace chip shows all tabs from every workspace
+
+#### Tab context menu
+
+Long-press any tab card to open a context menu with:
+
+- **Move to workspace** — pick a destination workspace from a sub-list
+- **Duplicate** — create a copy of the tab in the same workspace
+- **Copy URL** — copy the tab's URL to clipboard
+- **Copy title** — copy the page title to clipboard
+- **Pin / unpin** — toggle the pinned state (pinned tabs appear at the top)
+- **Close tab** — close the tab
+
+#### All-tabs workspace
+
+The all-tabs chip (far left of workspace chips) aggregates every tab from every workspace.
+Long-press it for quick actions:
+
+- **Close all tabs** — close every open tab
+- **Save all tabs as workspace** — collect all tabs into a new workspace
 
 ### 1.4 Menu Sheet
 
 Menu is a bottom sheet and supports drag-to-close.
+Tiles can be reordered by long-pressing a tile to enter drag mode, then tapping the destination tile.
 
-Current actions include:
+Quick-action tiles (always visible):
 
-- Share URL
-- Open settings
-- Create workspace
-- Toggle fullscreen
-- Sign out (if signed in)
+- **Back** — navigate back in web history (disabled when unavailable)
+- **Forward** — navigate forward in web history (disabled when unavailable)
+- **Refresh** — reload the current page
+- **Fullscreen** — toggle user fullscreen mode
+
+Configurable tiles:
+
+- **Share URL** — open the native share sheet with the current page URL
+- **Settings** — open the settings screen
+- **New workspace** — create a workspace with a default name and color
+- **Sign out** — sign out of Firefox Account (shown only when signed in)
 
 ### 1.5 Settings Overview
 
-Settings include:
+#### Account
 
-- Search engine
-- Default new tab URL
-- Tracker blocking toggle
-- Tab list size
+- Sign in / sign out of Firefox Account
+- Language selection
+
+#### Privacy
+
+- Block trackers toggle
+- Default search engine (Google, Brave, DuckDuckGo, Bing)
+
+#### New Tabs
+
+- Default new tab URL (text input or quick presets)
+
+#### Tabs
+
 - Left-hand mode
-- Language
-- Theme
+- Vertical tab list size (compact / comfortable / expanded)
+- Compact tab list toggle (minimal card height)
+- Compact workspace toggle (icon-only workspace chips)
 
-### 1.6 Fullscreen Modes
+#### Appearance
+
+- Theme (system / dark / light)
+- Transparent mode
+- Website theme color (tints the top safe-area to match the active site's brand color)
+- Hide bar on scroll
+- Bar position (bottom / top)
+- Display full URL
+
+#### Support & About
+
+- **Contact support** — opens `mailto:drift.browser@gmail.com`
+- **Source code** — opens the GitHub repository
+
+#### Data Management
+
+- **Export data** — serialises all workspaces, tabs, history, bookmarks and preferences into a `drift-backup-<timestamp>.json` file and shares it via the native share sheet
+- **Import data** — paste a previously exported Drift backup JSON to restore data
+
+### 1.6 Workspace Editor
+
+Each workspace can be customised. Long-press a workspace chip (or use the workspace editor button) to open the editor:
+
+- **Name** — free text label
+- **Color** — color picker to set the workspace accent color
+- **Icon** — choose from a curated list of Material Icons
+
+Changes take effect immediately and are persisted.
+
+### 1.7 Fullscreen Modes
 
 Drift Browser supports two types of fullscreen modes:
 
@@ -113,7 +180,7 @@ Exit methods:
 
 **Note**: Both fullscreen modes can be active simultaneously, though this is rare.
 
-### 1.7 Screen Rotation
+### 1.8 Screen Rotation
 
 Screen rotation behavior:
 
@@ -124,7 +191,7 @@ Screen rotation behavior:
 
 The automatic UI hiding in landscape provides a clean viewing experience for wide content without requiring manual fullscreen activation.
 
-### 1.8 Android Back Button Priority
+### 1.9 Android Back Button Priority
 
 The Android hardware back button follows this priority order:
 
@@ -275,8 +342,50 @@ Implemented in `BrowserScreen.tsx` using `BackHandler.addEventListener`:
 
 This architecture ensures fullscreen modes work correctly across different content types while maintaining user control.
 
+### 2.8 Data Transfer (Export / Import)
+
+Implemented in `src/services/dataTransferService.ts`.
+
+#### Export
+
+`createBackupJson(state)` serialises a snapshot of the store into a `DriftBackupFile` object:
+
+```json
+{
+  "schema": "drift.backup.v1",
+  "exportedAt": <timestamp>,
+  "app": "drift-browser",
+  "data": { /* workspaces, tabs, history, bookmarks, preferences */ }
+}
+```
+
+The file is written to the Expo cache directory and shared via the native share sheet.
+
+#### Import
+
+`parseBackupJson(raw)` validates the schema and returns the parsed backup.
+`buildImportedState(current, imported)` merges the imported data with sensible fallbacks:
+
+- Orphaned tabs receive a fallback workspace.
+- Workspaces with no valid tabs receive a blank tab.
+- All runtime-only flags (`isMenuOpen`, `isTrayOpen`, `isUserFullscreen`, etc.) are reset to `false`.
+
+When adding new persisted fields that must survive an import cycle, update `pickPersistedData` and `buildImportedState` accordingly.
+
+### 2.9 Menu Tile Layout
+
+Tiles in the menu sheet use a column-fraction system (`tileFrameStyle` in `MenuSheet.tsx`):
+
+- The tile area is divided into `TILE_SPAN_COUNT = 4` equal columns.
+- `s` tiles span 1 column (4 per row), `m` span 2 (2 per row), `l` span all 4 (full row).
+- Quick-action tiles (back, forward, refresh, fullscreen) are always `s` and pinned to the top row.
+- Configurable menu tiles default to `m`.
+
+Long-press a configurable tile to enter drag mode; tap another tile to swap positions.
+
 ## 3. Related Documentation
 
 - Technical run/build instructions: `README.md`
 - Release and tag workflow: `docs/GIT_VERSIONING_WORKFLOW.md`
 - Version notes: `docs/releases/`
+- Remaining work and backlog: `ai_todo.md`

@@ -1,79 +1,75 @@
-IA TODO
+# AI TODO
 
-- app icon 
-- claude security vuln check 
+## Done
 
-add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed
-also add "source code" to link to the github
+- [x] app icon (configured with adaptive Android icon + iOS icon)
+- [x] claude security vulnerability check
+- [x] screenshots in docs/images
+- [x] support button in settings → email drift.browser@gmail.com
+- [x] source code link in settings → https://github.com/ntacv/drift.browser
+- [x] retrieve website color theme and update top safe zone color
+- [x] compact workspace mode (icon-only chips, compact appearance setting)
+- [x] scroll down animation to hide bar (`hideBarOnScroll` setting)
+- [x] setting to remove fullscreen alert (`hideFullscreenAlert`)
+- [x] long press tab → context menu: change workspace, duplicate, copy URL, copy title
+- [x] in the main bar, the 3 buttons are uniform, respecting left/right-hand setting
+- [x] overscrolling the top of the URL editor closes it
+- [x] add back / forward / refresh buttons in the menu
+- [x] in fullscreen mode, scroll action shows menu (not the bottom bar)
+- [x] when not in fullscreen, overscroll top refreshes the page
+- [x] new tab opens at top of list; tab list opens with the active tab in view
+- [x] side swipe to change workspace covers the whole tab tray panel
+- [x] screen can rotate for websites (video/games); browser UI stays portrait-only
+- [x] workspace list is a flexbox wrap, not a scrollable list
+- [x] emoji removed from workspaces (replaced by MaterialIcons)
+- [x] transparent mode is now persisted correctly
+- [x] Android back button priority: URL editor → tab tray → menu → web history
+- [x] reduced animation time for new tab URL panel opening
+- [x] pull-to-refresh overscroll animation
+- [x] updated default settings
+- [x] share current page URL via native share sheet
+- [x] workspace edition (icon, color, name)
+- [x] main bar layout: `+`, menu, workspace-colored tab count, URL bar
+- [x] compact tab list toggle in appearance settings
+- [x] "display full URL" setting in appearance
+- [x] all-tabs workspace (shows all tabs across workspaces; long press → close all / save as workspace)
+- [x] menu tiles use fractional width: `s` = ¼ row, `m` = ½ row, `l` = full row
+- [x] export all data (bookmarks, history, workspaces, tabs, preferences) as Drift backup JSON
+- [x] import Drift backup JSON
+- [x] git commit / version tag workflow documented (docs/GIT_VERSIONING_WORKFLOW.md)
+- [x] README has documentation links
+- [x] check secrets, ready to push public
+- [x] prettier-vscode extension warning resolved
 
-screenshots 
-app icon 
+---
 
-- typography (drift, digits, personal)
-- Long press tab can change workspace, duplicate, copy url, copy title
-- Invert url bar swipe
-- Setting to remove full screen alert
-- Scroll down, animation to hide bar
-- Long press on url bar copy url, create mini toast pill shape that animate from the url bar
-- Retreive website color theme, and update top safe zone color
-- Compact workspace mode, only icon, compact appearance setting, that extend into each compact setting
-- drag and drop ? tabs, workspaces? tiles
-- when browser view gets err-connection-refused error, display a nice error page that prompts to refresh the page and retry to load the url
-- also this url error::ERR_UNKNOWN_URL_SCHEME
-- check other url errors
+## Bugs — Remaining
 
-## Bugs
+- [ ] overscrolling the top of the tab list should close it
+- [ ] when closing the app in fullscreen mode, exit fullscreen so that on next launch the app is not stuck (no UI controls visible)
 
-- [x] in the main bar, the 3 buttons are on the same size, on either side of the url, depending on the hand setting 
+---
 
-- [ ] over scrolling the top of the tab list should close it 
-- [x] over scrolling the top of the url edition should close it
-- [x] add button for "back in history" "forward in history" "refresh" actions
-- [x] in fullscreen mode,the scroll action brings up the bottom bar, instead of the menu.
-- [x] when no fullscreen, overscroll top will refresh the page
-- [x] new tab open in the top of the list,open the tab list with the current tab in front, and put the new tab always on the top 
-- [x] in the tab list, side swip to change workspace is only active on the tabs, it should be over the whole panel, while keeping the list scroll
-- [x] can rotate the screen only for the website (like video or games) and keep the browser UI in portrait mode. You can allow the app to rotate, all ui will hide when in landscape, and only be used in portrait mode
-- [x] the list of workspace should not be a scrollable list, put it in a flexbox, it will make rows of workspace, dont force them to take the full width.
-- [x] remove the emoji from the workspace 
-- [x] transparent mode is not saved like the other settings, it reset when restarting
-- [x] system back action: when the url edition is open, close it, when the tab list is open, close it, when the menu is open, close it, if on the website, go back in history
-- [x] reduce time of animation for new tab url panel oppening
-- [x] when pull overscroll for refresh, add a pull animation to explain whats going to happen
-- [x] update defaults settings
-- [ ] when closeing the app, if its in fullscreen mode, exit the fullscreen mode so when reopening the app, it will be in normal mode, and not stuck in fullscreen mode without any way to exit it
-- [ ] menu tiles should always be a fraction of the full available width, each action can be s (4 in a row) m (2 in a row) l (1 in a row), for example refresh is s, setting is m
+## Features — Remaining
 
-## Technical
+### High priority
 
-- [x] "Extension 'esbenp.prettier-vscode' is configured as formatter but not available"
+- [ ] history page: dedicated screen showing browsing history, "clear history" button, tapping an entry opens the page
+- [ ] long press on any web link: panel with "open in new tab", "copy link", "share link" (2 tiles per row)
+- [ ] a way to scroll to the top of the current page (e.g. tap URL bar when already on the page, or a dedicated button)
+- [ ] error pages: when WebView hits ERR_CONNECTION_REFUSED, ERR_UNKNOWN_URL_SCHEME or other common errors, show a friendly error page with a retry button
 
-## Feature 
+### Medium priority
 
-- [x] when sharing a link, open the native share menu with the current page link
-- [x] add workspace edition for icon, color and name
-- [x] main bar should be: 1 plus, 1 menu, 1 workpsaced colored number of tabs and opens, 1 url, maybe back and forward
-- [x] compact tab list toggle in appearance settings 
-- [x] add a setting "display full url in the main bar and the tab list"
-- [x] add a support button in settings that redirect to email drift.browser@gmail.com. also add the email contact where needed. also add "source code" to link to the github
+- [ ] invert URL bar swipe direction (setting)
+- [ ] long press on URL bar → copy URL with a toast pill that animates from the bar
+- [ ] update the Appearance settings section: group theme (dark/light/system), transparency, website theme color and bar position under a "Theme" subsection
+- [ ] updated alerts (Material 3 / iOS glass style — replace plain `Alert.alert` in fullscreen and other flows)
 
+### Low priority / Future
 
-- [ ] a way to scroll to the top
-- [ ] update readme and documentation recursively
-- [ ] add a git commit, version tag workflow to allow easier history understanding of the feature changes
-- [ ] add setting to export all data (bookmarks, history, workspaces, tabs, preferences) as a firefox understable format
-- [ ] add setting to import data from a firefox understable format
-- [ ] update the setting appearance section, add "theme" subsection
-
-- [x] check secrets and ready to push public
-- [x] in readme, add doc link
-
-- [ ] long click on any web link opens a panel like the menu, with options like "open in new tab", "copy link", "share link" (2 tiles should fit a row)
-- [ ] history page, add a "clear history" button, when clicking on a link in the history list, open the page and close the history page
-- [ ] updated alerts (like in full screen mode) (material 3, ios glass)
-- [ ] picture in picture mode for videos, with a toggle in the video right click menu, and a setting to always open videos in picture in picture mode
-- [x] remove the tabs count between workspace and list, but add a new workspacethat has all the tabs together, and put the number of tabs in it, and when clicking on it, open the tab list with all the tabs of all workspaces. when long click on it open a menu with "close all tabs" and "save all tabs as workspace" options
-
-- [ ] add extension support with claude, make a second version of the app that only packs basic features to keep it lightest
-- [ ] onboarding: choose language, choose theme, explain the main features of the app with a quick tutorial (swipe to change workspace, long click on a link, etc)
-
+- [ ] drag and drop tabs and workspaces
+- [ ] picture-in-picture mode for videos (toggle in video long-press menu; setting to always use PiP)
+- [ ] onboarding flow: choose language, choose theme, quick tutorial (swipe to change workspace, long press a link, etc.)
+- [ ] extension support (second lightweight app variant)
+- [ ] typography refinement (Drift brand, digits, personal settings use cases)
