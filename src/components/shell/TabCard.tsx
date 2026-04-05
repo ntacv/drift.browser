@@ -90,12 +90,22 @@ export const TabCard = ({
             <Text numberOfLines={1} style={[styles.title, isCompactTabList && styles.titleCompact, { color: theme.text }]}>
               {tab.title === 'New Tab' ? t('newTabLabel') : tab.title || t('untitled')}
             </Text>
-            {tab.isPinned ? <Text style={[styles.pin, { color: theme.text2 }]}>{t('pinnedShort')}</Text> : null}
           </View>
           <Text numberOfLines={1} style={[styles.domain, isCompactTabList && styles.domainCompact, { color: theme.text2 }]}>
             {urlLabel}
           </Text>
         </View>
+
+        {tab.isPinned ? (
+          <View style={[styles.pinIconSlot, isCompactTabList && styles.pinIconSlotCompact]}>
+            <MaterialIcons
+              name="push-pin"
+              size={isCompactTabList ? 12 : 14}
+              color={theme.text2}
+              style={styles.pinIcon}
+            />
+          </View>
+        ) : null}
 
         {!isLeftHandMode ? (
           <Pressable
@@ -175,9 +185,18 @@ const styles = StyleSheet.create({
   fallbackTextCompact: {
     fontSize: 10,
   },
-  pin: {
-    fontSize: 10,
-    fontWeight: '700',
+  pinIconSlot: {
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pinIconSlotCompact: {
+    width: 16,
+    height: 16,
+  },
+  pinIcon: {
+    textAlign: 'center',
   },
   textBlock: {
     flex: 1,
