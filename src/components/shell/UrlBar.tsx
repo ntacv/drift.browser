@@ -9,6 +9,8 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Extrapolation, interpolate, useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,9 +55,12 @@ export const UrlBar = () => {
 
   const [isOverlayOpen, setOverlayOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [showCopiedToast, setShowCopiedToast] = useState(false);
   const inputRef = useRef<TextInput | null>(null);
   const lastHandledOverlayRequestId = useRef(urlOverlayOpenRequestId);
   const lastHandledCloseRequestId = useRef(urlOverlayCloseRequestId);
+  const suppressNextPillPressRef = useRef(false);
+  const toastHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeTab = useBrowserStore(getActiveTab);
   const workspace = workspaces[activeWorkspaceId];
@@ -69,6 +74,7 @@ export const UrlBar = () => {
   const DEFAULT_HIDE_DISTANCE = 140;
   const barTranslate = useSharedValue(0);
   const hideDistanceValue = useSharedValue(DEFAULT_HIDE_DISTANCE);
+  const toastAnimProgress = useSharedValue(0);
   const barHeightRef = useRef(0);
   const prevScrollYRef = useRef(0);
   const isBarHiddenRef = useRef(false);
@@ -120,6 +126,13 @@ export const UrlBar = () => {
     }
   }, [isOverlayOpen, barTranslate]);
 
+  useEffect(() => () => {
+    if (toastHideTimerRef.current) {
+      clearTimeout(toastHideTimerRef.current);
+      toastHideTimerRef.current = null;
+    }
+  }, []);
+
   const barAnimatedStyle = useAnimatedStyle(() => {
     const absTranslate = Math.abs(barTranslate.value);
     const hideDistance = Math.max(hideDistanceValue.value, 1);
@@ -128,6 +141,17 @@ export const UrlBar = () => {
       transform: [{ translateY: barTranslate.value }],
       // Keep translate motion visible, then fade only near fully hidden state.
       opacity: interpolate(absTranslate, [0, fadeStart, hideDistance], [1, 1, 0], Extrapolation.CLAMP),
+    };
+  });
+
+  const toastAnimatedStyle = useAnimatedStyle(() => {
+    const direction = barPosition === 'bottom' ? -1 : 1;
+    return {
+      opacity: toastAnimProgress.value,
+      transform: [
+        { translateY: interpolate(toastAnimProgress.value, [0, 1], [0, 16 * direction], Extrapolation.CLAMP) },
+        { scale: interpolate(toastAnimProgress.value, [0, 1], [0.92, 1], Extrapolation.CLAMP) },
+      ],
     };
   });
 
@@ -208,6 +232,37 @@ export const UrlBar = () => {
     navigateActiveTab(url);
     setOverlayOpen(false);
     setUrlOverlayOpen(false);
+  };
+
+  const showCopyToast = () => {
+    if (toastHideTimerRef.current) {
+      clearTimeout(toastHideTimerRef.current);
+      toastHideTimerRef.current = null;
+    }
+
+    setShowCopiedToast(true);
+    toastAnimProgress.value = 0;
+    toastAnimProgress.value = withTiming(1, { duration: 180 });
+
+    toastHideTimerRef.current = setTimeout(() => {
+      toastAnimProgress.value = withTiming(0, { duration: 180 }, (finished) => {
+        if (finished) {
+          runOnJS(setShowCopiedToast)(false);
+        }
+      });
+      toastHideTimerRef.current = null;
+    }, 920);
+  };
+
+  const handleLongPressCopyUrl = async () => {
+    if (!activeTab?.url) {
+      return;
+    }
+
+    suppressNextPillPressRef.current = true;
+    await Clipboard.setStringAsync(activeTab.url);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+    showCopyToast();
   };
 
   const urlLabel = useMemo(() => {
@@ -294,10 +349,18 @@ export const UrlBar = () => {
 
           <Pressable
             onPress={() => {
+              if (suppressNextPillPressRef.current) {
+                suppressNextPillPressRef.current = false;
+                return;
+              }
               setInput(activeTab?.url ?? '');
               setOverlayOpen(true);
               setUrlOverlayOpen(true);
             }}
+            onLongPress={() => {
+              void handleLongPressCopyUrl();
+            }}
+            delayLongPress={280}
             style={[styles.pill, { backgroundColor: theme.surface2 }]}
           >
             <Text numberOfLines={1} style={[styles.domain, { color: theme.text }]}>
@@ -308,6 +371,22 @@ export const UrlBar = () => {
           {!isLeftHandMode ? controls : null}
         </Animated.View>
       </GestureDetector>
+
+      {showCopiedToast ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.copyToast,
+            barPosition === 'bottom'
+              ? { bottom: bottomBarInset + 56 }
+              : { top: topBarInset + 56 },
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            toastAnimatedStyle,
+          ]}
+        >
+          <Text style={[styles.copyToastText, { color: theme.text }]}>{t('copiedToClipboard')}</Text>
+        </Animated.View>
+      ) : null}
 
       {isOverlayOpen ? (
         <Pressable
@@ -448,6 +527,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontWeight: '600',
+  },
+  copyToast: {
+    position: 'absolute',
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    zIndex: 40,
+  },
+  copyToastText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   overlayBackdrop: {
     ...StyleSheet.absoluteFillObject,
