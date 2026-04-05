@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, { Extrapolation, interpolate, useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetGesture } from '../../hooks/useGestures';
@@ -61,21 +61,33 @@ export const UrlBar = () => {
   const workspace = workspaces[activeWorkspaceId];
 
   // Auto-hide animation: pixels the bar slides off-screen (larger than the bar's visual height)
-  const BAR_HIDE_OFFSET = 100;
   // Spacing between the bar pill and the screen edge
   const BAR_MARGIN = 12;
+  const TOP_BAR_MARGIN = 4;
+  // Extra buffer to guarantee the bar is fully off-screen when hidden.
+  const BAR_HIDE_BUFFER = 48;
+  const DEFAULT_HIDE_DISTANCE = 140;
   const barTranslate = useSharedValue(0);
+  const hideDistanceValue = useSharedValue(DEFAULT_HIDE_DISTANCE);
+  const barHeightRef = useRef(0);
   const prevScrollYRef = useRef(0);
+  const isBarHiddenRef = useRef(false);
+
+  // BrowserScreen already applies top safe-area padding, so only a small visual gap is needed here.
+  const topBarInset = TOP_BAR_MARGIN;
+  const bottomBarInset = BAR_MARGIN + Math.max(insets.bottom, 4);
 
   // Reset bar visibility when switching tabs
   useEffect(() => {
     prevScrollYRef.current = 0;
+    isBarHiddenRef.current = false;
     barTranslate.value = withTiming(0, { duration: 140 });
   }, [activeTab?.id, barTranslate]);
 
   // Hide/show bar based on scroll direction
   useEffect(() => {
     if (!hideBarOnScroll) {
+      isBarHiddenRef.current = false;
       barTranslate.value = withTiming(0, { duration: 140 });
       return;
     }
@@ -84,30 +96,44 @@ export const UrlBar = () => {
     const prev = prevScrollYRef.current;
     prevScrollYRef.current = current;
 
-    if (current > prev + 5 && current > 60) {
+    if (current > prev + 5 && current > 60 && !isBarHiddenRef.current) {
       // Scrolling down – hide the bar
-      const offset = barPosition === 'bottom' ? BAR_HIDE_OFFSET : -BAR_HIDE_OFFSET;
-      barTranslate.value = withSpring(offset, { damping: 20, stiffness: 300 });
-    } else if (current < prev - 5 || current <= 10) {
+      const measuredHeight = barHeightRef.current > 0 ? barHeightRef.current : 56;
+      const activeInset = barPosition === 'bottom' ? bottomBarInset : topBarInset;
+      const hideDistance = measuredHeight + activeInset + BAR_HIDE_BUFFER;
+      hideDistanceValue.value = hideDistance;
+      const offset = barPosition === 'bottom' ? hideDistance : -hideDistance;
+      isBarHiddenRef.current = true;
+      barTranslate.value = withTiming(offset, { duration: 150 });
+    } else if ((current < prev - 5 || current <= 10) && isBarHiddenRef.current) {
       // Scrolling up or near the top – show the bar with smooth, non-bouncy timing
+      isBarHiddenRef.current = false;
       barTranslate.value = withTiming(0, { duration: 160 });
     }
-  }, [activeTab?.scrollY, hideBarOnScroll, barPosition, barTranslate]);
+  }, [activeTab?.scrollY, hideBarOnScroll, barPosition, barTranslate, bottomBarInset, topBarInset, hideDistanceValue]);
 
   // Always show the bar when the URL overlay is open
   useEffect(() => {
     if (isOverlayOpen) {
+      isBarHiddenRef.current = false;
       barTranslate.value = withTiming(0, { duration: 140 });
     }
   }, [isOverlayOpen, barTranslate]);
 
-  const barAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: barTranslate.value }],
-  }));
+  const barAnimatedStyle = useAnimatedStyle(() => {
+    const absTranslate = Math.abs(barTranslate.value);
+    const hideDistance = Math.max(hideDistanceValue.value, 1);
+    const fadeStart = hideDistance * 0.82;
+    return {
+      transform: [{ translateY: barTranslate.value }],
+      // Keep translate motion visible, then fade only near fully hidden state.
+      opacity: interpolate(absTranslate, [0, fadeStart, hideDistance], [1, 1, 0], Extrapolation.CLAMP),
+    };
+  });
 
   const barPositionStyle = barPosition === 'top'
-    ? { top: BAR_MARGIN + Math.max(insets.top, 4) }
-    : { bottom: BAR_MARGIN + Math.max(insets.bottom, 4) };
+    ? { top: topBarInset }
+    : { bottom: bottomBarInset };
 
   const overlayHeight = Math.min(screenHeight * 0.78, screenHeight - insets.top - 20);
   const overlayGesture = useSheetGesture({
@@ -251,6 +277,9 @@ export const UrlBar = () => {
     <>
       <GestureDetector gesture={mainBarSwipeGesture}>
         <Animated.View
+          onLayout={(event) => {
+            barHeightRef.current = event.nativeEvent.layout.height;
+          }}
           style={[
             styles.wrap,
             {

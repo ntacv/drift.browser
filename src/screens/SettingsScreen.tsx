@@ -296,43 +296,6 @@ export const SettingsScreen = () => {
               <Switch value={isLeftHandMode} onValueChange={setLeftHandMode} />
             </View>
             <View style={styles.switchRow}>
-              <View style={styles.switchRow}>
-                <View>
-                  <Text style={[styles.rowText, { color: theme.text }]}>{t('websiteThemeColor')}</Text>
-                  <Text style={[styles.helperText, { color: theme.text3 }]}>{t('websiteThemeColorHint')}</Text>
-                </View>
-                <Switch value={useWebsiteThemeColor} onValueChange={setUseWebsiteThemeColor} />
-              </View>
-
-              {debugMode ? (
-                <View style={[styles.debugPanel, { borderColor: theme.border, backgroundColor: theme.surface2 }]}>
-                  <Text style={[styles.sectionSubTitle, { color: theme.text }]}>{t('debugInfo')}</Text>
-
-                  <DebugRow label={t('debugWorkspaceCount')} value={String(workspaceCount)} theme={theme} />
-                  <DebugRow label={t('debugTabCount')} value={String(tabCount)} theme={theme} />
-                  <DebugRow label={t('debugActiveWorkspace')} value={activeWorkspace?.label ?? '-'} theme={theme} />
-                  <DebugRow label={t('debugActiveTab')} value={activeTab?.title ?? '-'} theme={theme} />
-                  <DebugRow label={t('debugThemeColorToggle')} value={useWebsiteThemeColor ? t('debugOn') : t('debugOff')} theme={theme} />
-                  <View style={styles.debugColorRow}>
-                    <Text style={[styles.debugLabel, { color: theme.text2 }]}>{t('debugWebsiteThemeColor')}</Text>
-                    <View style={styles.debugColorValueRow}>
-                      <View
-                        style={[
-                          styles.debugColorSwatch,
-                          {
-                            backgroundColor: activeTab?.themeColor ?? theme.surface,
-                            borderColor: theme.border,
-                          },
-                        ]}
-                      />
-                      <Text style={[styles.debugValue, { color: theme.text }]}>
-                        {activeTab?.themeColor ?? t('debugThemeColorNone')}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              ) : null}
-
               <Text style={[styles.rowText, { color: theme.text }]}>{t('displayFullUrl')}</Text>
               <Switch value={isFullUrlVisible} onValueChange={setFullUrlVisible} />
             </View>
