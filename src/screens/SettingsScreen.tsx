@@ -82,7 +82,7 @@ export const SettingsScreen = () => {
       console.log('Export state keys:', Object.keys(state));
       console.log('Export workspaces count:', Object.keys(state.workspaces || {}).length);
       console.log('Export tabs count:', Object.keys(state.tabs || {}).length);
-      
+
       const payload = createBackupJson(state);
       console.log('Export payload length:', payload.length);
 
@@ -98,7 +98,7 @@ export const SettingsScreen = () => {
 
       console.log('Writing to:', fileUri);
       await FileSystem.writeAsStringAsync(fileUri, payload);
-      
+
       // Verify the file was written
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       console.log('File info:', fileInfo);
