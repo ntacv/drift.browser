@@ -258,6 +258,8 @@ const MenuRow = ({ icon, label, theme, trailingIcon, destructive, iconColor, onP
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       style={({ pressed }) => [
         styles.menuRow,
         { borderBottomColor: theme.border },

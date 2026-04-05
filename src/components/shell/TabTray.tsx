@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,15 +37,18 @@ export const TabTray = () => {
   const workspaceOrder = useBrowserStore((state) => state.workspaceOrder);
   const switchWorkspace = useBrowserStore((state) => state.switchWorkspace);
   const setAllTabsView = useBrowserStore((state) => state.setAllTabsView);
+  const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const workspaces = useBrowserStore((state) => state.workspaces);
   const tabs = useBrowserStore((state) => state.tabs);
   const expandedHeight = Math.max(300, screenHeight - insets.top);
   const trayHeight = tabListSize === 'expanded' ? expandedHeight : TAB_LIST_HEIGHTS[tabListSize];
+  const pinnedTileHeight = isCompactTabList ? 42 : 60;
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollViewportHeightRef = useRef(0);
   const tabLayoutsRef = useRef<Record<string, { y: number; height: number }>>({});
   const centerRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollViewNativeGestureRef = useRef(Gesture.Native());
+  const lastLongPressedPinnedTabIdRef = useRef<string | null>(null);
   const [contextMenuTab, setContextMenuTab] = useState<Tab | null>(null);
 
   const workspace = workspaces[activeWorkspaceId];
@@ -53,6 +57,14 @@ export const TabTray = () => {
     [workspaceOrder, workspaces],
   );
   const displayedTabIds = isAllTabsView ? allTabIds : (workspace?.tabIds ?? []);
+  const pinnedTabs = useMemo(
+    () =>
+      allTabIds
+        .map((tabId) => tabs[tabId])
+        .filter((tab): tab is Tab => Boolean(tab) && tab.isPinned)
+        .slice(0, 8),
+    [allTabIds, tabs],
+  );
   const activeTabId = workspace?.activeTabId ?? null;
   const gesture = useSheetGesture({
     isOpen: isTrayOpen,
@@ -129,6 +141,22 @@ export const TabTray = () => {
       }
     });
 
+  const handlePinnedTabPress = (tabId: string) => {
+    if (lastLongPressedPinnedTabIdRef.current === tabId) {
+      lastLongPressedPinnedTabIdRef.current = null;
+      return;
+    }
+
+    setAllTabsView(false);
+    switchTab(tabId);
+    setTrayOpen(false);
+  };
+
+  const handlePinnedTabLongPress = (tabId: string) => {
+    lastLongPressedPinnedTabIdRef.current = tabId;
+    updateTabMeta(tabId, { isPinned: false });
+  };
+
   if (!workspace) {
     return null;
   }
@@ -178,6 +206,33 @@ export const TabTray = () => {
             },
           ]}
         >
+          {pinnedTabs.length > 0 ? (
+            <View style={styles.pinnedGrid}>
+              {pinnedTabs.map((pinnedTab) => (
+                <View key={`pinned-${pinnedTab.id}`} style={styles.pinnedTileWrap}>
+                  <Pressable
+                    onPress={() => handlePinnedTabPress(pinnedTab.id)}
+                    onLongPress={() => handlePinnedTabLongPress(pinnedTab.id)}
+                    delayLongPress={320}
+                    style={({ pressed }) => [
+                      styles.pinnedTile,
+                      { height: pinnedTileHeight },
+                      { borderColor: theme.border, backgroundColor: theme.surface2 },
+                      activeTabId === pinnedTab.id && { borderColor: workspaces[pinnedTab.workspaceId]?.color ?? theme.accent },
+                      pressed && { opacity: 0.72 },
+                    ]}
+                  >
+                    {pinnedTab.favicon ? (
+                      <Image source={{ uri: pinnedTab.favicon }} style={styles.pinnedFavicon} />
+                    ) : (
+                      <MaterialIcons name="language" size={20} color={theme.text2} />
+                    )}
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
           <Pressable
             onPress={() => createTab()}
             style={[styles.newCard, isCompactTabList && styles.newCardCompact, { borderColor: theme.border, backgroundColor: theme.surface2 }]}
@@ -262,6 +317,27 @@ const styles = StyleSheet.create({
   },
   listScroll: {
     flex: 1,
+  },
+  pinnedGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+  },
+  pinnedTileWrap: {
+    width: '25%',
+    paddingHorizontal: 3,
+    paddingBottom: 6,
+  },
+  pinnedTile: {
+    borderWidth: 1,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pinnedFavicon: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
   },
   newCard: {
     minHeight: 56,
