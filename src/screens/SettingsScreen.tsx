@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert, BackHandler, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { signIn, signOut } from '../services/fxaService';
@@ -47,6 +48,23 @@ const BAR_POSITION_LABEL_KEY: Record<BarPosition, 'barPositionBottom' | 'barPosi
   bottom: 'barPositionBottom',
   top: 'barPositionTop',
 };
+
+const CardTitle = ({
+  icon,
+  title,
+  theme,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  title: string;
+  theme: ReturnType<typeof useTheme>['theme'];
+}) => (
+  <View style={styles.sectionTitleRow}>
+    <View style={[styles.sectionTitleIconWrap, { backgroundColor: theme.surface2 }]}>
+      <MaterialIcons name={icon} size={15} color={theme.text2} />
+    </View>
+    <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
+  </View>
+);
 
 export const SettingsScreen = () => {
   const { theme } = useTheme();
@@ -190,7 +208,7 @@ export const SettingsScreen = () => {
           keyboardDismissMode="on-drag"
         >
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('account')}</Text>
+            <CardTitle icon="person" title={t('account')} theme={theme} />
             <Text style={[styles.rowText, { color: theme.text2 }]}>
               {syncUser ? syncUser.email : t('notSignedIn')}
             </Text>
@@ -215,10 +233,23 @@ export const SettingsScreen = () => {
             >
               <Text style={[styles.buttonLabel, { color: theme.text }]}>{syncUser ? t('signOut') : t('signInFirefox')}</Text>
             </Pressable>
+
+            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
+            <View style={styles.chipsRow}>
+              {LANGUAGES.map((lang) => (
+                <Pressable
+                  key={lang}
+                  onPress={() => setLanguage(lang)}
+                  style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
+                >
+                  <Text style={[styles.chipLabel, { color: language === lang ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(LANGUAGE_LABEL_KEY[lang])}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('privacy')}</Text>
+            <CardTitle icon="shield" title={t('privacy')} theme={theme} />
             <View style={styles.switchRow}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('blockTrackers')}</Text>
               <Switch value={blockTrackers} onValueChange={setBlockTrackers} />
@@ -244,7 +275,7 @@ export const SettingsScreen = () => {
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('newTabs')}</Text>
+            <CardTitle icon="add-box" title={t('newTabs')} theme={theme} />
             <Text style={[styles.rowText, { color: theme.text2 }]}>{t('defaultPageForNewTabs')}</Text>
 
             <TextInput
@@ -290,14 +321,10 @@ export const SettingsScreen = () => {
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('tabs')}</Text>
+            <CardTitle icon="tab" title={t('tabs')} theme={theme} />
             <View style={styles.switchRow}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('leftHandMode')}</Text>
               <Switch value={isLeftHandMode} onValueChange={setLeftHandMode} />
-            </View>
-            <View style={styles.switchRow}>
-              <Text style={[styles.rowText, { color: theme.text }]}>{t('displayFullUrl')}</Text>
-              <Switch value={isFullUrlVisible} onValueChange={setFullUrlVisible} />
             </View>
             <Text style={[styles.rowText, { color: theme.text2 }]}>{t('verticalTabListSize')}</Text>
             <View style={styles.chipsRow}>
@@ -311,10 +338,7 @@ export const SettingsScreen = () => {
                 </Pressable>
               ))}
             </View>
-          </View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('appearance')}</Text>
             <View style={styles.switchRow}>
               <View>
                 <Text style={[styles.rowText, { color: theme.text }]}>{t('compactTabList')}</Text>
@@ -322,16 +346,18 @@ export const SettingsScreen = () => {
               </View>
               <Switch value={isCompactTabList} onValueChange={setCompactTabList} />
             </View>
+          </View>
 
-            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <CardTitle icon="palette" title={t('appearance')} theme={theme} />
             <View style={styles.chipsRow}>
-              {LANGUAGES.map((lang) => (
+              {THEMES.map((pref) => (
                 <Pressable
-                  key={lang}
-                  onPress={() => setLanguage(lang)}
-                  style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
+                  key={pref}
+                  onPress={() => setThemePreference(pref)}
+                  style={[styles.chip, { backgroundColor: themePreference === pref ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: language === lang ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(LANGUAGE_LABEL_KEY[lang])}</Text>
+                  <Text style={[styles.chipLabel, { color: themePreference === pref ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(THEME_LABEL_KEY[pref])}</Text>
                 </Pressable>
               ))}
             </View>
@@ -398,21 +424,14 @@ export const SettingsScreen = () => {
               ))}
             </View>
 
-            <View style={styles.chipsRow}>
-              {THEMES.map((pref) => (
-                <Pressable
-                  key={pref}
-                  onPress={() => setThemePreference(pref)}
-                  style={[styles.chip, { backgroundColor: themePreference === pref ? theme.accent : theme.surface2 }]}
-                >
-                  <Text style={[styles.chipLabel, { color: themePreference === pref ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(THEME_LABEL_KEY[pref])}</Text>
-                </Pressable>
-              ))}
+            <View style={styles.switchRow}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('displayFullUrl')}</Text>
+              <Switch value={isFullUrlVisible} onValueChange={setFullUrlVisible} />
             </View>
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('supportAndAbout')}</Text>
+            <CardTitle icon="help-outline" title={t('supportAndAbout')} theme={theme} />
 
             <Pressable
               style={[styles.button, { backgroundColor: theme.surface2 }]}
@@ -430,7 +449,7 @@ export const SettingsScreen = () => {
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('dataManagement')}</Text>
+            <CardTitle icon="sync" title={t('dataManagement')} theme={theme} />
             <Text style={[styles.rowText, { color: theme.text2 }]}>{t('dataManagementHint')}</Text>
 
             <Pressable style={[styles.button, { backgroundColor: theme.surface2 }]} onPress={handleExportData}>
@@ -541,7 +560,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 8,
+  },
+  sectionTitleIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionSubTitle: {
     marginTop: 8,
@@ -607,7 +638,8 @@ const styles = StyleSheet.create({
   chipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    columnGap: 8,
+    rowGap: 6,
   },
   chip: {
     minHeight: 32,
