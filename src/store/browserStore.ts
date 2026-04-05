@@ -161,6 +161,7 @@ const buildInitialState = () => {
     isAllTabsView: false,
     hideFullscreenAlert: false,
     useWebsiteThemeColor: false,
+    debugMode: false,
   };
 };
 
@@ -695,6 +696,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setFullUrlVisible: (value) => set({ isFullUrlVisible: value }),
       setHideFullscreenAlert: (value) => set({ hideFullscreenAlert: value }),
       setUseWebsiteThemeColor: (value) => set({ useWebsiteThemeColor: value }),
+      setDebugMode: (value) => set({ debugMode: value }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
@@ -772,6 +774,7 @@ export const useBrowserStore = create<BrowserStore>()(
         isAllTabsView: state.isAllTabsView,
         hideFullscreenAlert: state.hideFullscreenAlert,
         useWebsiteThemeColor: state.useWebsiteThemeColor,
+        debugMode: state.debugMode,
       }),
     },
   ),

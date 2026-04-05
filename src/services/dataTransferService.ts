@@ -59,6 +59,7 @@ const makeFallbackTab = (workspaceId: string, url: string): Tab => ({
     url,
     title: 'New Tab',
     favicon: null,
+    themeColor: null,
     isPinned: false,
     isLoading: false,
     canGoBack: false,

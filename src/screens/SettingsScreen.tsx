@@ -62,6 +62,15 @@ export const SettingsScreen = () => {
   const isCompactTabList = useBrowserStore((state) => state.isCompactTabList);
   const isFullUrlVisible = useBrowserStore((state) => state.isFullUrlVisible);
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
+  const debugMode = useBrowserStore((state) => state.debugMode);
+
+  const activeWorkspace = useBrowserStore((state) => state.workspaces[state.activeWorkspaceId] ?? null);
+  const activeTab = useBrowserStore((state) => {
+    const workspace = state.workspaces[state.activeWorkspaceId];
+    return workspace?.activeTabId ? state.tabs[workspace.activeTabId] ?? null : null;
+  });
+  const workspaceCount = useBrowserStore((state) => Object.keys(state.workspaces).length);
+  const tabCount = useBrowserStore((state) => Object.keys(state.tabs).length);
 
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
@@ -75,6 +84,7 @@ export const SettingsScreen = () => {
   const setCompactTabList = useBrowserStore((state) => state.setCompactTabList);
   const setFullUrlVisible = useBrowserStore((state) => state.setFullUrlVisible);
   const setUseWebsiteThemeColor = useBrowserStore((state) => state.setUseWebsiteThemeColor);
+  const setDebugMode = useBrowserStore((state) => state.setDebugMode);
 
   const handleExportData = React.useCallback(async () => {
     try {
@@ -329,6 +339,35 @@ export const SettingsScreen = () => {
               <Switch value={useWebsiteThemeColor} onValueChange={setUseWebsiteThemeColor} />
             </View>
 
+            {debugMode ? (
+              <View style={[styles.debugPanel, { borderColor: theme.border, backgroundColor: theme.surface2 }]}>
+                <Text style={[styles.sectionSubTitle, { color: theme.text }]}>{t('debugInfo')}</Text>
+
+                <DebugRow label={t('debugWorkspaceCount')} value={String(workspaceCount)} theme={theme} />
+                <DebugRow label={t('debugTabCount')} value={String(tabCount)} theme={theme} />
+                <DebugRow label={t('debugActiveWorkspace')} value={activeWorkspace?.label ?? '-'} theme={theme} />
+                <DebugRow label={t('debugActiveTab')} value={activeTab?.title ?? '-'} theme={theme} />
+                <DebugRow label={t('debugThemeColorToggle')} value={useWebsiteThemeColor ? t('debugOn') : t('debugOff')} theme={theme} />
+                <View style={styles.debugColorRow}>
+                  <Text style={[styles.debugLabel, { color: theme.text2 }]}>{t('debugWebsiteThemeColor')}</Text>
+                  <View style={styles.debugColorValueRow}>
+                    <View
+                      style={[
+                        styles.debugColorSwatch,
+                        {
+                          backgroundColor: activeTab?.themeColor ?? theme.surface,
+                          borderColor: theme.border,
+                        },
+                      ]}
+                    />
+                    <Text style={[styles.debugValue, { color: theme.text }]}>
+                      {activeTab?.themeColor ?? t('debugThemeColorNone')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
             <View style={styles.chipsRow}>
               {THEMES.map((pref) => (
                 <Pressable
@@ -372,6 +411,13 @@ export const SettingsScreen = () => {
               <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('importData')}</Text>
             </Pressable>
           </View>
+
+          <Pressable
+            onPress={() => setDebugMode(!debugMode)}
+            style={styles.debugHotspot}
+            accessibilityRole="button"
+            accessibilityLabel={t('debugToggle')}
+          />
         </ScrollView>
 
         <Modal visible={isImportModalVisible} transparent animationType="fade" onRequestClose={() => setImportModalVisible(false)}>
@@ -486,6 +532,48 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  debugPanel: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 10,
+    gap: 8,
+    marginTop: 4,
+  },
+  debugRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  debugLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  debugValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'right',
+    flexShrink: 1,
+  },
+  debugColorRow: {
+    gap: 6,
+  },
+  debugColorValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  debugColorSwatch: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 1,
+  },
+  debugHotspot: {
+    height: 24,
+    opacity: 0,
+  },
   chipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -567,3 +655,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+const DebugRow = ({
+  label,
+  value,
+  theme,
+}: {
+  label: string;
+  value: string;
+  theme: ReturnType<typeof useTheme>['theme'];
+}) => (
+  <View style={styles.debugRow}>
+    <Text style={[styles.debugLabel, { color: theme.text2 }]}>{label}</Text>
+    <Text style={[styles.debugValue, { color: theme.text }]}>{value}</Text>
+  </View>
+);

@@ -80,7 +80,13 @@ export const TabCard = ({
         {tab.favicon ? (
           <Image source={{ uri: tab.favicon }} style={[styles.favicon, isCompactTabList && styles.faviconCompact]} />
         ) : (
-          <View style={[styles.fallbackIcon, isCompactTabList && styles.fallbackIconCompact, { backgroundColor: workspaceColor }]}>
+          <View
+            style={[
+              styles.fallbackIcon,
+              isCompactTabList && styles.fallbackIconCompact,
+              { backgroundColor: tab.themeColor ?? workspaceColor },
+            ]}
+          >
             <Text style={[styles.fallbackText, isCompactTabList && styles.fallbackTextCompact]}>{hostname.slice(0, 1).toUpperCase()}</Text>
           </View>
         )}
