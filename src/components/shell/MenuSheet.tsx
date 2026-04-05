@@ -58,6 +58,26 @@ const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
 };
 
 const QUICK_TILE_IDS = new Set<QuickTileId>(['back', 'forward', 'refresh', 'fullscreen']);
+const TYPOGRAPHY = typography ?? {
+  fontFamily: {
+    regular: 'Inter_400Regular',
+    medium: 'Inter_500Medium',
+    semiBold: 'Inter_600SemiBold',
+    bold: 'Inter_700Bold',
+    extraBold: 'Inter_800ExtraBold',
+  },
+  fontSize: {
+    xs: 10,
+    sm: 11,
+    base: 12,
+    md: 13,
+    body: 14,
+    lg: 16,
+    xl: 20,
+    xxl: 22,
+    display: 24,
+  },
+};
 
 export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const { theme } = useTheme();
@@ -442,12 +462,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   accountTitle: {
-    fontSize: typography.fontSize.body,
-    fontFamily: typography.fontFamily.bold,
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.bold,
   },
   accountSub: {
-    fontSize: typography.fontSize.base,
-    fontFamily: typography.fontFamily.regular,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
     marginTop: 4,
   },
   tilesGrid: {
@@ -485,8 +505,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   actionText: {
-    fontSize: typography.fontSize.md,
-    fontFamily: typography.fontFamily.bold,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontFamily: TYPOGRAPHY.fontFamily.bold,
     textAlign: 'left',
   },
   dragHint: {
@@ -497,7 +517,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dragHintText: {
-    fontSize: typography.fontSize.xs,
-    fontFamily: typography.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
   },
 });

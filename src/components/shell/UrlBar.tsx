@@ -25,6 +25,26 @@ import { normalizeInputToUrl, toDomain } from '../../hooks/useWebView';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
 
 const DISPLAYED_SUGGESTIONS_COUNT = 5;
+const TYPOGRAPHY = typography ?? {
+  fontFamily: {
+    regular: 'Inter_400Regular',
+    medium: 'Inter_500Medium',
+    semiBold: 'Inter_600SemiBold',
+    bold: 'Inter_700Bold',
+    extraBold: 'Inter_800ExtraBold',
+  },
+  fontSize: {
+    xs: 10,
+    sm: 11,
+    base: 12,
+    md: 13,
+    body: 14,
+    lg: 16,
+    xl: 20,
+    xxl: 22,
+    display: 24,
+  },
+};
 
 export const UrlBar = () => {
   const { theme } = useTheme();
@@ -506,8 +526,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconText: {
-    fontSize: typography.fontSize.lg,
-    fontFamily: typography.fontFamily.bold,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.bold,
   },
   menuIconText: {
     textAlign: 'center',
@@ -526,8 +546,8 @@ const styles = StyleSheet.create({
   },
   domain: {
     flex: 1,
-    fontSize: typography.fontSize.md,
-    fontFamily: typography.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
   },
   copyToast: {
     position: 'absolute',
@@ -564,16 +584,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   overlayTitle: {
-    fontSize: typography.fontSize.lg,
-    fontFamily: typography.fontFamily.bold,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontFamily: TYPOGRAPHY.fontFamily.bold,
   },
   closeTapTarget: {
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   closeText: {
-    fontSize: typography.fontSize.md,
-    fontFamily: typography.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
   },
   dismissZone: {
     paddingBottom: 2,
@@ -615,12 +635,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   suggestionTitle: {
-    fontSize: typography.fontSize.body,
-    fontFamily: typography.fontFamily.semiBold,
+    fontSize: TYPOGRAPHY.fontSize.body,
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
   },
   suggestionUrl: {
-    fontSize: typography.fontSize.base,
-    fontFamily: typography.fontFamily.regular,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.regular,
     marginTop: 2,
   },
 });
