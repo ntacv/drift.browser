@@ -88,6 +88,7 @@ export interface BrowserState {
   isAllTabsView: boolean;
   hideFullscreenAlert: boolean;
   useWebsiteThemeColor: boolean;
+  debugMode: boolean;
 }
 
 export interface BrowserActions {
@@ -135,6 +136,7 @@ export interface BrowserActions {
   setFullUrlVisible: (value: boolean) => void;
   setHideFullscreenAlert: (value: boolean) => void;
   setUseWebsiteThemeColor: (value: boolean) => void;
+  setDebugMode: (value: boolean) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;
