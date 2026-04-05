@@ -33,11 +33,11 @@ jobs:
 
       - name: Build Android (EAS)
         run: |
-          npx eas build --platform android --profile production --non-interactive --wait --json > android-build.json
+          eas build --platform android --profile production --non-interactive --wait --json > android-build.json
 
       - name: Build iOS (EAS)
         run: |
-          npx eas build --platform ios --profile production --non-interactive --wait --json > ios-build.json
+          eas build --platform ios --profile production --non-interactive --wait --json > ios-build.json
 
       - name: Download build artifacts
         run: |
