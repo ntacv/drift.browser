@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSheetGesture } from '../../hooks/useGestures';
@@ -70,13 +70,13 @@ export const UrlBar = () => {
   // Reset bar visibility when switching tabs
   useEffect(() => {
     prevScrollYRef.current = 0;
-    barTranslate.value = withSpring(0, { damping: 20, stiffness: 250 });
+    barTranslate.value = withTiming(0, { duration: 140 });
   }, [activeTab?.id, barTranslate]);
 
   // Hide/show bar based on scroll direction
   useEffect(() => {
     if (!hideBarOnScroll) {
-      barTranslate.value = withSpring(0, { damping: 20, stiffness: 250 });
+      barTranslate.value = withTiming(0, { duration: 140 });
       return;
     }
 
@@ -89,15 +89,15 @@ export const UrlBar = () => {
       const offset = barPosition === 'bottom' ? BAR_HIDE_OFFSET : -BAR_HIDE_OFFSET;
       barTranslate.value = withSpring(offset, { damping: 20, stiffness: 300 });
     } else if (current < prev - 5 || current <= 10) {
-      // Scrolling up or near the top – show the bar
-      barTranslate.value = withSpring(0, { damping: 20, stiffness: 300 });
+      // Scrolling up or near the top – show the bar with smooth, non-bouncy timing
+      barTranslate.value = withTiming(0, { duration: 160 });
     }
   }, [activeTab?.scrollY, hideBarOnScroll, barPosition, barTranslate]);
 
   // Always show the bar when the URL overlay is open
   useEffect(() => {
     if (isOverlayOpen) {
-      barTranslate.value = withSpring(0, { damping: 20, stiffness: 250 });
+      barTranslate.value = withTiming(0, { duration: 140 });
     }
   }, [isOverlayOpen, barTranslate]);
 
