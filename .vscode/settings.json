@@ -24,5 +24,10 @@
   },
   "[markdown]": {
     "editor.defaultFormatter": "vscode.markdown-language-features"
+  },
+  "chat.tools.terminal.autoApprove": {
+    "git checkout": true,
+    "git rebase": true,
+    "git fetch": true
   }
 }
