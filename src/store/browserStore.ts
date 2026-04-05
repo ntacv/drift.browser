@@ -772,7 +772,6 @@ export const useBrowserStore = create<BrowserStore>()(
         isAllTabsView: state.isAllTabsView,
         hideFullscreenAlert: state.hideFullscreenAlert,
         useWebsiteThemeColor: state.useWebsiteThemeColor,
-        useWebsiteThemeColor: state.useWebsiteThemeColor,
       }),
     },
   ),
