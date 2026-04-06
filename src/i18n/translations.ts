@@ -120,6 +120,7 @@ export const translations = {
     barPosition: 'Bar position',
     barPositionBottom: 'Bottom',
     barPositionTop: 'Top',
+    menuPip: 'Picture in Picture',
   },
   fr: {
     settingsTitle: 'Parametres',
@@ -242,6 +243,7 @@ export const translations = {
     barPosition: 'Position de la barre',
     barPositionBottom: 'Bas',
     barPositionTop: 'Haut',
+    menuPip: 'Image dans l\'image',
   },
 } as const;
 

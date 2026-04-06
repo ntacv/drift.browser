@@ -77,6 +77,7 @@ const makeTab = (workspaceId: string, url = DEFAULT_URL): Tab => ({
   canGoForward: false,
   pendingNavAction: null,
   pendingNavActionId: 0,
+  pendingPipRequestId: 0,
   scrollY: 0,
   createdAt: Date.now(),
   webContentFullscreen: false,
@@ -403,6 +404,29 @@ export const useBrowserStore = create<BrowserStore>()(
                 ...tab,
                 pendingNavAction: action,
                 pendingNavActionId: tab.pendingNavActionId + 1,
+              },
+            },
+          };
+        }),
+
+      requestPip: () =>
+        set((state) => {
+          const workspace = state.workspaces[state.activeWorkspaceId];
+          if (!workspace?.activeTabId) {
+            return state;
+          }
+
+          const tab = state.tabs[workspace.activeTabId];
+          if (!tab) {
+            return state;
+          }
+
+          return {
+            tabs: {
+              ...state.tabs,
+              [tab.id]: {
+                ...tab,
+                pendingPipRequestId: tab.pendingPipRequestId + 1,
               },
             },
           };

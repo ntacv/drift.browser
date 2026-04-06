@@ -27,7 +27,7 @@ type MenuTileId =
   | 'workspace'
   | 'signout';
 
-type QuickTileId = 'back' | 'forward' | 'refresh' | 'fullscreen';
+type QuickTileId = 'back' | 'forward' | 'refresh' | 'fullscreen' | 'pip';
 type DisplayTileId = QuickTileId | MenuTileId;
 type TileSize = 's' | 'm' | 'l';
 
@@ -48,6 +48,7 @@ const QUICK_TILES: DisplayTile[] = [
   { id: 'forward', size: 's' },
   { id: 'refresh', size: 's' },
   { id: 'fullscreen', size: 's' },
+  { id: 'pip', size: 's' },
 ];
 
 const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
@@ -57,7 +58,7 @@ const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
   signout: 'm',
 };
 
-const QUICK_TILE_IDS = new Set<QuickTileId>(['back', 'forward', 'refresh', 'fullscreen']);
+const QUICK_TILE_IDS = new Set<QuickTileId>(['back', 'forward', 'refresh', 'fullscreen', 'pip']);
 const TYPOGRAPHY = typography ?? {
   fontFamily: {
     regular: 'Inter_400Regular',
@@ -99,6 +100,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
   const hideFullscreenAlert = useBrowserStore((state) => state.hideFullscreenAlert);
   const setHideFullscreenAlert = useBrowserStore((state) => state.setHideFullscreenAlert);
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
+  const requestPip = useBrowserStore((state) => state.requestPip);
   const activeTab = useBrowserStore(getActiveTab);
 
   const gesture = useSheetGesture({
@@ -326,6 +328,19 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     );
   };
 
+  const renderPipTile = () => (
+    <Pressable
+      key="pip"
+      onPress={() => {
+        requestPip();
+        setMenuOpen(false);
+      }}
+      style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
+    >
+      <MaterialIcons name="picture-in-picture-alt" size={18} color={theme.text} />
+    </Pressable>
+  );
+
   const DraggableTile = ({ id, size }: { id: MenuTileId; size: TileSize }) => {
     const scale = useSharedValue(1);
     const isDragging = draggedTile === id;
@@ -419,7 +434,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
               if (QUICK_TILE_IDS.has(tile.id as QuickTileId)) {
                 return (
                   <View key={tile.id} style={[styles.tileWrap, tileFrameStyle(tile.size)]}>
-                    {renderQuickTile(tile.id as QuickTileId)}
+                    {tile.id === 'pip' ? renderPipTile() : renderQuickTile(tile.id as QuickTileId)}
                   </View>
                 );
               }

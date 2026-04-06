@@ -40,7 +40,8 @@
     "plugins": [
       "expo-secure-store",
       "expo-web-browser",
-      "expo-font"
+      "expo-font",
+      "./plugins/withAndroidPip"
     ],
     "extra": {
       "eas": {

@@ -4,7 +4,7 @@ import { WebView, type WebViewNavigation } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { faviconInjectionScript, parseWebViewBridgeMessage } from '../../hooks/useWebView';
+import { faviconInjectionScript, parseWebViewBridgeMessage, pipRequestScript } from '../../hooks/useWebView';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 
@@ -70,6 +70,14 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
 
     updateTabMeta(tabId, { pendingNavAction: null });
   }, [tab?.pendingNavActionId, tab?.pendingNavAction, tabId, updateTabMeta]);
+
+  useEffect(() => {
+    if (!tab?.pendingPipRequestId) {
+      return;
+    }
+
+    webViewRef.current?.injectJavaScript(pipRequestScript);
+  }, [tab?.pendingPipRequestId]);
 
   if (!tab) {
     return null;
@@ -272,6 +280,14 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
 
           if (message.type === 'fullscreenExit') {
             updateTabMeta(tabId, { webContentFullscreen: false });
+          }
+
+          if (message.type === 'pipEnter' || message.type === 'pipExit') {
+            return;
+          }
+
+          if (message.type === 'pipError') {
+            return;
           }
         }}
         onShouldStartLoadWithRequest={(request) => {
