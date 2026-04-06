@@ -35,29 +35,19 @@ jobs:
         run: |
           eas build --platform android --profile production --non-interactive --wait --json > android-build.json
 
-      - name: Build iOS (EAS)
-        run: |
-          eas build --platform ios --profile production --non-interactive --wait --json > ios-build.json
-
       - name: Download build artifacts
         run: |
           mkdir -p artifacts
           TAG_NAME="${GITHUB_REF_NAME}"
 
           ANDROID_URL=$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('android-build.json','utf8'));console.log(data[0]?.artifacts?.buildUrl || data.artifacts?.buildUrl || '');")
-          IOS_URL=$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('ios-build.json','utf8'));console.log(data[0]?.artifacts?.buildUrl || data.artifacts?.buildUrl || '');")
 
           if [ -z "$ANDROID_URL" ]; then
             echo "Android build artifact URL not found" >&2
             exit 1
           fi
-          if [ -z "$IOS_URL" ]; then
-            echo "iOS build artifact URL not found" >&2
-            exit 1
-          fi
 
           curl -L "$ANDROID_URL" -o "artifacts/driftBrowser.apk"
-          curl -L "$IOS_URL" -o "artifacts/driftBrowser.ipa"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
