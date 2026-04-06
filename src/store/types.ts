@@ -12,6 +12,13 @@ export interface SyncUser {
   uid: string;
 }
 
+export interface SyncPreferences {
+  syncHistory: boolean;
+  syncBookmarks: boolean;
+  syncTabs: boolean;
+  syncWorkspaces: boolean;
+}
+
 export interface Tab {
   id: string;
   workspaceId: string;
@@ -70,6 +77,7 @@ export interface BrowserState {
   isUrlOverlayOpen: boolean;
   syncUser: SyncUser | null;
   lastSyncedAt: number | null;
+  syncPreferences: SyncPreferences;
   bookmarks: Record<string, Bookmark>;
   bookmarkFolders: Record<string, BookmarkFolder>;
   history: HistoryEntry[];
@@ -148,6 +156,7 @@ export interface BrowserActions {
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;
+  setSyncPreferences: (prefs: Partial<SyncPreferences>) => void;
 }
 
 export type BrowserStore = BrowserState & BrowserActions;

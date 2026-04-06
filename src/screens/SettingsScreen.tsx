@@ -5,7 +5,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 
-import { signIn, signOut } from '../services/fxaService';
+import { getAccessToken, signIn, signOut } from '../services/fxaService';
+import { pushState } from '../services/syncService';
 import { useI18n } from '../i18n/useI18n';
 import { useBrowserStore } from '../store/browserStore';
 import type { AppLanguage, BarPosition, SearchEngine, TabListSize, ThemePreference } from '../store/types';
@@ -99,7 +100,11 @@ export const SettingsScreen = () => {
   const barPosition = useBrowserStore((state) => state.barPosition);
   const isCompactWorkspace = useBrowserStore((state) => state.isCompactWorkspace);
 
+  const syncPreferences = useBrowserStore((state) => state.syncPreferences);
+
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
+  const setLastSyncedAt = useBrowserStore((state) => state.setLastSyncedAt);
+  const setSyncPreferences = useBrowserStore((state) => state.setSyncPreferences);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
   const setSearchEngine = useBrowserStore((state) => state.setSearchEngine);
   const setLanguage = useBrowserStore((state) => state.setLanguage);
@@ -170,6 +175,23 @@ export const SettingsScreen = () => {
       Alert.alert(t('importData'), t('importDataInvalid'));
     }
   }, [importPayload, t]);
+
+  const handleSyncNow = React.useCallback(async () => {
+    const state = useBrowserStore.getState();
+    // Use the stored access token as hawkId. Full Hawk key derivation from FxA
+    // OAuth tokens requires a separate server-side key exchange; until that is
+    // implemented the server will reject the request, but we handle it gracefully.
+    const accessToken = await getAccessToken();
+    const auth = { keyId: accessToken ?? '', hawkId: accessToken ?? '', hawkKey: '' };
+    const ok = await pushState(state, auth, state.syncPreferences);
+    if (ok) {
+      setLastSyncedAt(Date.now());
+      Alert.alert(t('syncNow'), t('syncSuccess'));
+    } else {
+      Alert.alert(t('syncNow'), t('syncFailed'));
+    }
+  }, [setLastSyncedAt, t]);
+
   const setHideBarOnScroll = useBrowserStore((state) => state.setHideBarOnScroll);
   const setBarPosition = useBrowserStore((state) => state.setBarPosition);
 
@@ -235,6 +257,46 @@ export const SettingsScreen = () => {
             >
               <Text style={[styles.buttonLabel, { color: theme.text }]}>{syncUser ? t('signOut') : t('signInFirefox')}</Text>
             </Pressable>
+
+            {syncUser ? (
+              <>
+                <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('syncPreferences')}</Text>
+                <View style={styles.switchRow}>
+                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncTabs')}</Text>
+                  <Switch
+                    value={syncPreferences.syncTabs}
+                    onValueChange={(value) => setSyncPreferences({ syncTabs: value })}
+                  />
+                </View>
+                <View style={styles.switchRow}>
+                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncWorkspaces')}</Text>
+                  <Switch
+                    value={syncPreferences.syncWorkspaces}
+                    onValueChange={(value) => setSyncPreferences({ syncWorkspaces: value })}
+                  />
+                </View>
+                <View style={styles.switchRow}>
+                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncBookmarks')}</Text>
+                  <Switch
+                    value={syncPreferences.syncBookmarks}
+                    onValueChange={(value) => setSyncPreferences({ syncBookmarks: value })}
+                  />
+                </View>
+                <View style={styles.switchRow}>
+                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncHistory')}</Text>
+                  <Switch
+                    value={syncPreferences.syncHistory}
+                    onValueChange={(value) => setSyncPreferences({ syncHistory: value })}
+                  />
+                </View>
+                <Pressable
+                  style={[styles.button, { backgroundColor: theme.accent }]}
+                  onPress={handleSyncNow}
+                >
+                  <Text style={[styles.buttonLabel, { color: TEXT_ON_COLORED_BACKGROUND }]}>{t('syncNow')}</Text>
+                </Pressable>
+              </>
+            ) : null}
 
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
             <View style={styles.chipsRow}>
