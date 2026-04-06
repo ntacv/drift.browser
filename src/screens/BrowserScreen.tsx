@@ -13,9 +13,10 @@ import { useTheme } from '../theme';
 
 interface BrowserScreenProps {
   onOpenSettings: () => void;
+  onOpenHistory: () => void;
 }
 
-export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
+export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenProps) => {
   const { theme } = useTheme();
   const isFocused = useIsFocused();
   const { width, height } = useWindowDimensions();
@@ -29,6 +30,8 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
   const requestCloseUrlOverlay = useBrowserStore((state) => state.requestCloseUrlOverlay);
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
   const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
+  const linkActionPanel = useBrowserStore((state) => state.linkActionPanel);
+  const setLinkActionPanel = useBrowserStore((state) => state.setLinkActionPanel);
   const activeTab = useBrowserStore(getActiveTab);
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
 
@@ -89,6 +92,18 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
       return true;
     }
 
+    // Priority 3.5: Close link action panel if open
+    if (linkActionPanel) {
+      setLinkActionPanel(null);
+      return true;
+    }
+
+    // Priority 3.6: Close web error page if visible
+    if (activeTab?.webError) {
+      updateTabMeta(activeTab.id, { webError: null });
+      return true;
+    }
+
     // Priority 4: Close menu
     if (isMenuOpen) {
       setMenuOpen(false);
@@ -120,9 +135,12 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
     setUserFullscreen,
     updateTabMeta,
     requestCloseUrlOverlay,
+    linkActionPanel,
+    setLinkActionPanel,
     setTrayOpen,
     setMenuOpen,
     requestActiveTabNavigation,
+    onOpenHistory,
   ]);
 
   useEffect(() => {
@@ -139,7 +157,7 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
         </View>
 
         {!shouldHideUI ? <TabTray /> : null}
-        {!shouldHideUI ? <MenuSheet onOpenSettings={onOpenSettings} /> : null}
+        {!shouldHideUI ? <MenuSheet onOpenSettings={onOpenSettings} onOpenHistory={onOpenHistory} /> : null}
         {!shouldHideUI ? <UrlBar /> : null}
       </View>
     </SafeAreaView>

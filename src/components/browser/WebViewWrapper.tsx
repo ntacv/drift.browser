@@ -7,6 +7,8 @@ import * as Haptics from 'expo-haptics';
 import { faviconInjectionScript, parseWebViewBridgeMessage } from '../../hooks/useWebView';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
+import { ErrorPage } from './ErrorPage';
+import { LinkActionPanel } from './LinkActionPanel';
 
 const TRACKER_HOSTS = new Set([
   'doubleclick.net',
@@ -54,6 +56,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const addHistoryEntry = useBrowserStore((state) => state.addHistoryEntry);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const setUserFullscreen = useBrowserStore((state) => state.setUserFullscreen);
+  const setLinkActionPanel = useBrowserStore((state) => state.setLinkActionPanel);
 
   useEffect(() => {
     if (!tab?.pendingNavAction) {
@@ -85,6 +88,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
       isLoading: navState.loading,
       canGoBack: navState.canGoBack,
       canGoForward: navState.canGoForward,
+      ...(navState.loading ? { webError: null } : {}),
       // Clear stale theme color when a new page starts loading
       ...(navState.loading ? { themeColor: null } : {}),
     });
@@ -272,7 +276,47 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
 
           if (message.type === 'fullscreenExit') {
             updateTabMeta(tabId, { webContentFullscreen: false });
+            return;
           }
+
+          if (message.type === 'linkLongPress') {
+            setLinkActionPanel({
+              tabId,
+              href: message.href,
+              text: message.text,
+            });
+          }
+        }}
+        onLoadStart={() => {
+          updateTabMeta(tabId, { webError: null });
+        }}
+        onError={(event) => {
+          const code = String(event.nativeEvent?.code ?? 'WEBVIEW_ERROR');
+          const description = String(event.nativeEvent?.description ?? 'Navigation failed');
+          const failingUrl = String(event.nativeEvent?.url ?? tab.url);
+          updateTabMeta(tabId, {
+            isLoading: false,
+            webError: {
+              code,
+              message: description,
+              url: failingUrl,
+              at: Date.now(),
+            },
+          });
+        }}
+        onHttpError={(event) => {
+          const statusCode = Number(event.nativeEvent?.statusCode ?? 0);
+          const description = String(event.nativeEvent?.description ?? 'HTTP error');
+          const failingUrl = String(event.nativeEvent?.url ?? tab.url);
+          updateTabMeta(tabId, {
+            isLoading: false,
+            webError: {
+              code: statusCode > 0 ? `HTTP_${statusCode}` : 'HTTP_ERROR',
+              message: description,
+              url: failingUrl,
+              at: Date.now(),
+            },
+          });
         }}
         onShouldStartLoadWithRequest={(request) => {
           if (!blockTrackers) {
@@ -288,6 +332,19 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           }
         }}
       />
+
+      {tab.webError ? (
+        <ErrorPage
+          error={tab.webError}
+          onDismiss={() => updateTabMeta(tabId, { webError: null })}
+          onRetry={() => {
+            updateTabMeta(tabId, { webError: null });
+            webViewRef.current?.reload();
+          }}
+        />
+      ) : null}
+
+      <LinkActionPanel />
     </View>
   );
 };

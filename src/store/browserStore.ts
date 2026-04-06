@@ -8,6 +8,7 @@ import type {
   BarPosition,
   BookmarkFolder,
   BrowserStore,
+  LinkActionPanelPayload,
   SearchEngine,
   Tab,
   TabListSize,
@@ -80,6 +81,7 @@ const makeTab = (workspaceId: string, url = DEFAULT_URL): Tab => ({
   scrollY: 0,
   createdAt: Date.now(),
   webContentFullscreen: false,
+  webError: null,
 });
 
 const createWorkspaceWithTab = (
@@ -165,6 +167,7 @@ const buildInitialState = () => {
     debugMode: false,
     hideBarOnScroll: false,
     barPosition: 'bottom' as BarPosition,
+    linkActionPanel: null,
   };
 };
 
@@ -703,6 +706,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setDebugMode: (value) => set({ debugMode: value }),
       setHideBarOnScroll: (value) => set({ hideBarOnScroll: value }),
       setBarPosition: (position) => set({ barPosition: position }),
+      setLinkActionPanel: (payload) => set({ linkActionPanel: payload }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
@@ -745,6 +749,7 @@ export const useBrowserStore = create<BrowserStore>()(
                   ...(tab as Tab),
                   webContentFullscreen: false,
                   themeColor: null,
+                  webError: null,
                 },
               ]),
             )
@@ -784,6 +789,7 @@ export const useBrowserStore = create<BrowserStore>()(
         debugMode: state.debugMode,
         hideBarOnScroll: state.hideBarOnScroll,
         barPosition: state.barPosition,
+        linkActionPanel: null as LinkActionPanelPayload | null,
       }),
     },
   ),

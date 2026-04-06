@@ -41,7 +41,8 @@ export type WebViewBridgeMessage =
   | { type: 'overscrollProgress'; value: number }
   | { type: 'overscrollEnd' }
   | { type: 'fullscreenEnter' }
-  | { type: 'fullscreenExit' };
+  | { type: 'fullscreenExit' }
+  | { type: 'linkLongPress'; href: string; text: string };
 
 export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage | null => {
   try {
@@ -88,6 +89,21 @@ export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage
 
     if (parsed.type === 'fullscreenExit') {
       return { type: 'fullscreenExit' };
+    }
+
+    if (parsed.type === 'linkLongPress') {
+      const href = typeof (parsed as { href?: unknown }).href === 'string'
+        ? (parsed as { href: string }).href
+        : '';
+      const text = typeof (parsed as { text?: unknown }).text === 'string'
+        ? (parsed as { text: string }).text
+        : '';
+
+      if (!href) {
+        return null;
+      }
+
+      return { type: 'linkLongPress', href, text };
     }
 
     return null;
@@ -239,6 +255,103 @@ export const faviconInjectionScript = `
         armed = false;
         currentPullDown = 0;
       }
+    }, { passive: true });
+
+    var linkLongPressState = {
+      targetHref: null,
+      targetText: '',
+      touchStartTime: 0,
+      touchStartX: 0,
+      touchStartY: 0,
+      didLongPress: false,
+    };
+
+    var LINK_LONG_PRESS_DURATION = 500;
+    var LINK_MOVE_THRESHOLD = 10;
+
+    var getAnchorElement = function(node) {
+      var current = node;
+      while (current && current.tagName !== 'A') {
+        current = current.parentElement;
+      }
+      if (!current || current.tagName !== 'A') {
+        return null;
+      }
+      return current;
+    };
+
+    window.addEventListener('touchstart', function(event) {
+      if (!event.touches || event.touches.length === 0) {
+        linkLongPressState.targetHref = null;
+        return;
+      }
+
+      var anchor = getAnchorElement(event.target);
+      if (!anchor || !anchor.href) {
+        linkLongPressState.targetHref = null;
+        return;
+      }
+
+      linkLongPressState.targetHref = anchor.href;
+      linkLongPressState.targetText = (anchor.textContent || anchor.innerText || '').trim();
+      linkLongPressState.touchStartTime = Date.now();
+      linkLongPressState.touchStartX = event.touches[0].clientX;
+      linkLongPressState.touchStartY = event.touches[0].clientY;
+      linkLongPressState.didLongPress = false;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', function(event) {
+      if (!linkLongPressState.targetHref || !event.touches || event.touches.length === 0) {
+        return;
+      }
+
+      var dx = event.touches[0].clientX - linkLongPressState.touchStartX;
+      var dy = event.touches[0].clientY - linkLongPressState.touchStartY;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > LINK_MOVE_THRESHOLD) {
+        linkLongPressState.targetHref = null;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', function() {
+      if (!linkLongPressState.targetHref) {
+        return;
+      }
+
+      var elapsed = Date.now() - linkLongPressState.touchStartTime;
+      if (elapsed >= LINK_LONG_PRESS_DURATION) {
+        linkLongPressState.didLongPress = true;
+        post({
+          type: 'linkLongPress',
+          href: linkLongPressState.targetHref,
+          text: linkLongPressState.targetText,
+        });
+      }
+
+      linkLongPressState.targetHref = null;
+      linkLongPressState.targetText = '';
+    }, { passive: true });
+
+    window.addEventListener('click', function(event) {
+      if (!linkLongPressState.didLongPress) {
+        return;
+      }
+
+      var anchor = getAnchorElement(event.target);
+      if (!anchor) {
+        linkLongPressState.didLongPress = false;
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      linkLongPressState.didLongPress = false;
+    }, true);
+
+    window.addEventListener('touchcancel', function() {
+      linkLongPressState.targetHref = null;
+      linkLongPressState.targetText = '';
+      linkLongPressState.didLongPress = false;
     }, { passive: true });
   })();
   true;

@@ -54,10 +54,9 @@
 
 ### High priority
 
-- [ ] history page: dedicated screen showing browsing history, "clear history" button, tapping an entry opens the page
-- [ ] long press on any web link: panel with "open in new tab", "copy link", "share link" (2 tiles per row)
-- [ ] a way to scroll to the top of the current page (e.g. tap URL bar when already on the page, or a dedicated button)
-- [ ] error pages: when WebView hits ERR_CONNECTION_REFUSED, ERR_UNKNOWN_URL_SCHEME or other common errors, show a friendly error page with a retry button
+- [x] history page: dedicated screen showing browsing history, "clear history" button, tapping an entry opens the page
+- [x] long press on any web link: panel with "open in new tab", "copy link", "share link" (2 tiles per row)
+- [x] error pages: when WebView hits ERR_CONNECTION_REFUSED, ERR_UNKNOWN_URL_SCHEME or other common errors, show a friendly error page with a retry button
 
 ### Medium priority
 
@@ -73,3 +72,4 @@
 - [ ] onboarding flow: choose language, choose theme, quick tutorial (swipe to change workspace, long press a link, etc.)
 - [ ] extension support (second lightweight app variant)
 - [ ] typography refinement (Drift brand, digits, personal settings use cases)
+- [ ] firefox sync analysis and potential implementation

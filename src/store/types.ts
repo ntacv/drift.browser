@@ -12,6 +12,19 @@ export interface SyncUser {
   uid: string;
 }
 
+export interface TabWebError {
+  code: string;
+  message: string;
+  url: string;
+  at: number;
+}
+
+export interface LinkActionPanelPayload {
+  tabId: string;
+  href: string;
+  text: string;
+}
+
 export interface Tab {
   id: string;
   workspaceId: string;
@@ -28,6 +41,7 @@ export interface Tab {
   scrollY: number;
   createdAt: number;
   webContentFullscreen: boolean;
+  webError: TabWebError | null;
 }
 
 export interface Workspace {
@@ -94,6 +108,7 @@ export interface BrowserState {
   hideBarOnScroll: boolean;
   barPosition: BarPosition;
   isCompactWorkspace: boolean;
+  linkActionPanel: LinkActionPanelPayload | null;
 }
 
 export interface BrowserActions {
@@ -145,6 +160,7 @@ export interface BrowserActions {
   setHideBarOnScroll: (value: boolean) => void;
   setBarPosition: (position: BarPosition) => void;
   setCompactWorkspace: (value: boolean) => void;
+  setLinkActionPanel: (payload: LinkActionPanelPayload | null) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;

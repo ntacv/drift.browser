@@ -19,11 +19,13 @@ const TILE_SPAN_COUNT = 4;
 
 interface MenuSheetProps {
   onOpenSettings: () => void;
+  onOpenHistory: () => void;
 }
 
 type MenuTileId =
   | 'share'
   | 'settings'
+  | 'history'
   | 'workspace'
   | 'signout';
 
@@ -39,6 +41,7 @@ interface DisplayTile {
 const DEFAULT_TILE_ORDER: MenuTileId[] = [
   'share',
   'settings',
+  'history',
   'workspace',
   'signout',
 ];
@@ -53,6 +56,7 @@ const QUICK_TILES: DisplayTile[] = [
 const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
   share: 'm',
   settings: 'm',
+  history: 'm',
   workspace: 'm',
   signout: 'm',
 };
@@ -79,7 +83,7 @@ const TYPOGRAPHY = typography ?? {
   },
 };
 
-export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
+export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => {
   const { theme } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -115,6 +119,9 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     }
     if (id === 'settings') {
       return t('menuSettings');
+    }
+    if (id === 'history') {
+      return t('menuHistory');
     }
     if (id === 'workspace') {
       return t('menuNewWorkspace');
@@ -206,6 +213,9 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
     } else if (id === 'settings') {
       setMenuOpen(false);
       onOpenSettings();
+    } else if (id === 'history') {
+      setMenuOpen(false);
+      onOpenHistory();
     } else if (id === 'workspace') {
       createWorkspace(t('menuNewWorkspace'), 'star', DEFAULT_NEW_WORKSPACE_COLOR);
       setMenuOpen(false);
@@ -246,6 +256,15 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       return (
         <Pressable key={id} {...baseProps}>
           <MaterialIcons name="settings" size={18} color={theme.text} style={styles.actionIcon} />
+          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
+        </Pressable>
+      );
+    }
+
+    if (id === 'history') {
+      return (
+        <Pressable key={id} {...baseProps}>
+          <MaterialIcons name="history" size={18} color={theme.text} style={styles.actionIcon} />
           <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
         </Pressable>
       );
