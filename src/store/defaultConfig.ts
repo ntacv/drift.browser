@@ -69,6 +69,7 @@ const getFallbackConfig = (): DefaultConfig => ({
         isTransparentMode: true,
         isCompactTabList: false,
         isFullUrlVisible: false,
+        invertUrlBarSwipeDirection: false,
     },
     menuTileOrder: ['share', 'settings', 'workspace', 'signout'],
 });

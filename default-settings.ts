@@ -45,6 +45,7 @@ export interface DefaultPreferences {
     isTransparentMode: boolean;
     isCompactTabList: boolean;
     isFullUrlVisible: boolean;
+    invertUrlBarSwipeDirection: boolean;
 }
 
 export type MenuTileId = 'share' | 'settings' | 'workspace' | 'signout';
@@ -91,6 +92,7 @@ export const defaultSettings: DefaultConfig = {
         isTransparentMode: false,
         isCompactTabList: false,
         isFullUrlVisible: false,
+        invertUrlBarSwipeDirection: false,
     },
     menuTileOrder: ['share', 'settings', 'workspace', 'signout'],
 };

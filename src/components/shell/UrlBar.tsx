@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
   Keyboard,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -14,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Extrapolation, interpolate, useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { useSheetGesture } from '../../hooks/useGestures';
 import { useI18n } from '../../i18n/useI18n';
@@ -65,6 +67,7 @@ export const UrlBar = () => {
   const navigateActiveTab = useBrowserStore((state) => state.navigateActiveTab);
   const goToNextTab = useBrowserStore((state) => state.goToNextTab);
   const goToPreviousTab = useBrowserStore((state) => state.goToPreviousTab);
+  const requestPictureInPicture = useBrowserStore((state) => state.requestPictureInPicture);
   const isTrayOpen = useBrowserStore((state) => state.isTrayOpen);
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
@@ -72,6 +75,7 @@ export const UrlBar = () => {
   const setUrlOverlayOpen = useBrowserStore((state) => state.setUrlOverlayOpen);
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
   const hideBarOnScroll = useBrowserStore((state) => state.hideBarOnScroll);
+  const invertUrlBarSwipeDirection = useBrowserStore((state) => state.invertUrlBarSwipeDirection);
   const barPosition = useBrowserStore((state) => state.barPosition);
 
   const [isOverlayOpen, setOverlayOpen] = useState(false);
@@ -301,13 +305,24 @@ export const UrlBar = () => {
     const absY = Math.abs(event.translationY);
 
     if (absX > absY) {
-      if (event.translationX < -36 || event.velocityX < -260) {
-        runOnJS(goToNextTab)();
+      const isSwipeLeft = event.translationX < -36 || event.velocityX < -260;
+      const isSwipeRight = event.translationX > 36 || event.velocityX > 260;
+
+      if (isSwipeLeft) {
+        if (invertUrlBarSwipeDirection) {
+          runOnJS(goToPreviousTab)();
+        } else {
+          runOnJS(goToNextTab)();
+        }
         return;
       }
 
-      if (event.translationX > 36 || event.velocityX > 260) {
-        runOnJS(goToPreviousTab)();
+      if (isSwipeRight) {
+        if (invertUrlBarSwipeDirection) {
+          runOnJS(goToNextTab)();
+        } else {
+          runOnJS(goToPreviousTab)();
+        }
       }
       return;
     }
@@ -318,12 +333,13 @@ export const UrlBar = () => {
   });
 
   const controlOrder = isLeftHandMode
-    ? (['workspace', 'menu', 'newTab'] as const)
-    : (['newTab', 'menu', 'workspace'] as const);
+    ? (['workspace', 'menu', 'newTab', 'pip'] as const)
+    : (['newTab', 'pip', 'menu', 'workspace'] as const);
+  const visibleControlOrder = Platform.OS === 'android' ? controlOrder.filter((controlId) => controlId !== 'pip') : controlOrder;
 
   const controls = (
     <View style={styles.controlsGroup}>
-      {controlOrder.map((controlId) => {
+      {visibleControlOrder.map((controlId) => {
         if (controlId === 'newTab') {
           return (
             <Pressable key={controlId} onPress={() => createTab()} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
@@ -336,6 +352,23 @@ export const UrlBar = () => {
           return (
             <Pressable key={controlId} onPress={() => setMenuOpen(!isMenuOpen)} style={[styles.iconButton, { backgroundColor: theme.surface2 }]}>
               <Text style={[styles.iconText, styles.menuIconText, { color: theme.text }]}>⋯</Text>
+            </Pressable>
+          );
+        }
+
+        if (controlId === 'pip') {
+          if (!activeTab?.hasVideo) {
+            return null;
+          }
+
+          return (
+            <Pressable
+              key={controlId}
+              accessibilityLabel={t('pictureInPicture')}
+              onPress={() => requestPictureInPicture(activeTab.id)}
+              style={[styles.iconButton, { backgroundColor: theme.surface2 }]}
+            >
+              <MaterialIcons name="picture-in-picture-alt" size={18} color={theme.accent} />
             </Pressable>
           );
         }

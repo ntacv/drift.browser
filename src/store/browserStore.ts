@@ -82,6 +82,8 @@ const makeTab = (workspaceId: string, url = DEFAULT_URL): Tab => ({
   createdAt: Date.now(),
   webContentFullscreen: false,
   webError: null,
+  hasVideo: false,
+  pictureInPictureRequestId: 0,
 });
 
 const createWorkspaceWithTab = (
@@ -166,8 +168,10 @@ const buildInitialState = () => {
     useWebsiteThemeColor: false,
     debugMode: false,
     hideBarOnScroll: false,
+    invertUrlBarSwipeDirection: (config.preferences as { invertUrlBarSwipeDirection?: boolean }).invertUrlBarSwipeDirection ?? false,
     barPosition: 'bottom' as BarPosition,
     linkActionPanel: null,
+    hasCompletedOnboarding: false,
   };
 };
 
@@ -705,15 +709,34 @@ export const useBrowserStore = create<BrowserStore>()(
       setUseWebsiteThemeColor: (value) => set({ useWebsiteThemeColor: value }),
       setDebugMode: (value) => set({ debugMode: value }),
       setHideBarOnScroll: (value) => set({ hideBarOnScroll: value }),
+      setInvertUrlBarSwipeDirection: (value) => set({ invertUrlBarSwipeDirection: value }),
       setBarPosition: (position) => set({ barPosition: position }),
       setLinkActionPanel: (payload) => set({ linkActionPanel: payload }),
+      setHasCompletedOnboarding: (value) => set({ hasCompletedOnboarding: value }),
+      requestPictureInPicture: (tabId) =>
+        set((state) => {
+          const tab = state.tabs[tabId];
+          if (!tab) {
+            return state;
+          }
+
+          return {
+            tabs: {
+              ...state.tabs,
+              [tabId]: {
+                ...tab,
+                pictureInPictureRequestId: tab.pictureInPictureRequestId + 1,
+              },
+            },
+          };
+        }),
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
     }),
     {
       name: 'drift-browser-store-v2',
-      version: 4,
+      version: 6,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState: any, version: number) => {
         if (!persistedState || typeof persistedState !== 'object') {
@@ -750,6 +773,11 @@ export const useBrowserStore = create<BrowserStore>()(
                   webContentFullscreen: false,
                   themeColor: null,
                   webError: null,
+                  hasVideo: typeof (tab as Tab).hasVideo === 'boolean' ? (tab as Tab).hasVideo : false,
+                  pictureInPictureRequestId:
+                    typeof (tab as Tab).pictureInPictureRequestId === 'number'
+                      ? (tab as Tab).pictureInPictureRequestId
+                      : 0,
                 },
               ]),
             )
@@ -759,6 +787,10 @@ export const useBrowserStore = create<BrowserStore>()(
           ...persistedState,
           workspaces: normalizedWorkspaces,
           tabs: normalizedTabs,
+          hasCompletedOnboarding:
+            typeof persistedState.hasCompletedOnboarding === 'boolean'
+              ? persistedState.hasCompletedOnboarding
+              : false,
         };
       },
       partialize: (state) => ({
@@ -788,8 +820,10 @@ export const useBrowserStore = create<BrowserStore>()(
         useWebsiteThemeColor: state.useWebsiteThemeColor,
         debugMode: state.debugMode,
         hideBarOnScroll: state.hideBarOnScroll,
+        invertUrlBarSwipeDirection: state.invertUrlBarSwipeDirection,
         barPosition: state.barPosition,
         linkActionPanel: null as LinkActionPanelPayload | null,
+        hasCompletedOnboarding: state.hasCompletedOnboarding,
       }),
     },
   ),

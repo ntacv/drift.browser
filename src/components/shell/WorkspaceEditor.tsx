@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -8,6 +8,7 @@ import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import type { Workspace } from '../../store/types';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
+import { AppAlertDialog } from '../common/AppAlertDialog';
 
 interface WorkspaceEditorProps {
   visible: boolean;
@@ -54,6 +55,8 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
   const [label, setLabel] = useState(workspace?.label || '');
   const [emoji, setEmoji] = useState<string | null>(workspace?.emoji ?? 'home');
   const [color, setColor] = useState(workspace?.color || '#4B8BFF');
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [showCannotRemoveDialog, setShowCannotRemoveDialog] = useState(false);
 
   React.useEffect(() => {
     if (workspace) {
@@ -112,29 +115,11 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
 
     // Check if this is the last workspace
     if (workspaceOrder.length <= 1) {
-      Alert.alert(
-        t('removeWorkspace'),
-        'Cannot remove the last workspace.',
-        [{ text: 'OK' }]
-      );
+      setShowCannotRemoveDialog(true);
       return;
     }
 
-    Alert.alert(
-      t('removeWorkspace'),
-      t('removeWorkspaceConfirm'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('removeWorkspace'),
-          style: 'destructive',
-          onPress: () => {
-            useBrowserStore.getState().removeWorkspace(workspace.id);
-            onClose();
-          },
-        },
-      ]
-    );
+    setShowRemoveDialog(true);
   };
 
   const workspaceId = workspace?.id ?? null;
@@ -201,23 +186,24 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleCancel}>
-      <Pressable style={styles.backdrop} onPress={handleCancel}>
-        <Animated.View
-          style={[
-            styles.container,
-            {
-              backgroundColor: theme.surface,
-              borderTopColor: theme.border,
-              transform: [{ translateY }],
-            },
-          ]}
-          onStartShouldSetResponder={() => true}
-        >
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 16) }]}
+    <>
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={handleCancel}>
+        <Pressable style={styles.backdrop} onPress={handleCancel}>
+          <Animated.View
+            style={[
+              styles.container,
+              {
+                backgroundColor: theme.surface,
+                borderTopColor: theme.border,
+                transform: [{ translateY }],
+              },
+            ]}
+            onStartShouldSetResponder={() => true}
           >
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 16) }]}
+            >
             {/* Header */}
             <View style={styles.header} {...panResponder.panHandlers}>
               <View style={[styles.handle, { backgroundColor: theme.border }]} />
@@ -348,10 +334,50 @@ export const WorkspaceEditor = ({ visible, workspace, onClose }: WorkspaceEditor
                 <Text style={[styles.buttonText, { color: TEXT_ON_COLORED_BACKGROUND }]}>{t('save')}</Text>
               </Pressable>
             </View>
-          </ScrollView>
-        </Animated.View>
-      </Pressable>
-    </Modal>
+            </ScrollView>
+          </Animated.View>
+        </Pressable>
+      </Modal>
+
+      <AppAlertDialog
+        visible={showCannotRemoveDialog}
+        title={t('removeWorkspace')}
+        message={t('removeWorkspaceLastBlocked')}
+        onRequestClose={() => setShowCannotRemoveDialog(false)}
+        actions={[
+          {
+            id: 'ok',
+            label: t('ok'),
+            tone: 'accent',
+          },
+        ]}
+      />
+
+      <AppAlertDialog
+        visible={showRemoveDialog}
+        title={t('removeWorkspace')}
+        message={t('removeWorkspaceConfirm')}
+        onRequestClose={() => setShowRemoveDialog(false)}
+        actions={[
+          {
+            id: 'cancel',
+            label: t('cancel'),
+          },
+          {
+            id: 'remove',
+            label: t('removeWorkspace'),
+            tone: 'destructive',
+            onPress: () => {
+              if (!workspace) {
+                return;
+              }
+              useBrowserStore.getState().removeWorkspace(workspace.id);
+              onClose();
+            },
+          },
+        ]}
+      />
+    </>
   );
 };
 

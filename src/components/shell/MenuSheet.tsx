@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
@@ -12,6 +12,7 @@ import { useBrowserStore, getActiveTab } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import { typography } from '../../theme';
 import * as fxaService from '../../services/fxaService';
+import { AppAlertDialog } from '../common/AppAlertDialog';
 
 const SHEET_HEIGHT = 360;
 const TILE_GAP = 8;
@@ -89,6 +90,8 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   const insets = useSafeAreaInsets();
   const [draggedTile, setDraggedTile] = useState<MenuTileId | null>(null);
   const [tileAreaWidth, setTileAreaWidth] = useState(0);
+  const [showFullscreenDialog, setShowFullscreenDialog] = useState(false);
+  const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
 
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
   const setMenuOpen = useBrowserStore((state) => state.setMenuOpen);
@@ -177,14 +180,7 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     if (!isUserFullscreen) {
       setUserFullscreen(true);
       if (!hideFullscreenAlert) {
-        Alert.alert(
-          t('fullscreenEnabledTitle'),
-          t('fullscreenEnabledMessage'),
-          [
-            { text: t('dontShowAgain'), onPress: () => setHideFullscreenAlert(true) },
-            { text: t('ok'), style: 'default' },
-          ],
-        );
+        setShowFullscreenDialog(true);
       }
     } else {
       setUserFullscreen(false);
@@ -196,7 +192,7 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     if (id === 'share') {
       const url = activeTab?.url;
       if (!url) {
-        Alert.alert(t('share'), t('noActiveTab'));
+        setAlertDialog({ title: t('share'), message: t('noActiveTab') });
         return;
       }
 
@@ -206,7 +202,7 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
           url,
         });
       } catch {
-        Alert.alert(t('share'), url);
+        setAlertDialog({ title: t('share'), message: url });
       }
 
       setMenuOpen(false);
@@ -384,15 +380,16 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   }, [visibleTileOrder]);
 
   return (
-    <GestureDetector gesture={gesture.panGesture}>
-      <Animated.View
-        pointerEvents={isMenuOpen ? 'auto' : 'none'}
-        style={[
-          styles.container,
-          { backgroundColor: theme.surface, borderColor: theme.border },
-          gesture.animatedStyle,
-        ]}
-      >
+    <>
+      <GestureDetector gesture={gesture.panGesture}>
+        <Animated.View
+          pointerEvents={isMenuOpen ? 'auto' : 'none'}
+          style={[
+            styles.container,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            gesture.animatedStyle,
+          ]}
+        >
         <View style={styles.handle} />
 
         <ScrollView
@@ -419,7 +416,10 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
                   if (user) {
                     setSyncUser(user);
                   } else {
-                    Alert.alert(t('firefoxSignInNotConfiguredTitle'), t('firefoxSignInNotConfiguredMessage'));
+                    setAlertDialog({
+                      title: t('firefoxSignInNotConfiguredTitle'),
+                      message: t('firefoxSignInNotConfiguredMessage'),
+                    });
                   }
                 }}
               >
@@ -447,8 +447,42 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
             })}
           </View>
         </ScrollView>
-      </Animated.View>
-    </GestureDetector>
+        </Animated.View>
+      </GestureDetector>
+
+      <AppAlertDialog
+        visible={showFullscreenDialog}
+        title={t('fullscreenEnabledTitle')}
+        message={t('fullscreenEnabledMessage')}
+        onRequestClose={() => setShowFullscreenDialog(false)}
+        actions={[
+          {
+            id: 'hide-next-time',
+            label: t('dontShowAgain'),
+            onPress: () => setHideFullscreenAlert(true),
+          },
+          {
+            id: 'ok',
+            label: t('ok'),
+            tone: 'accent',
+          },
+        ]}
+      />
+
+      <AppAlertDialog
+        visible={Boolean(alertDialog)}
+        title={alertDialog?.title ?? ''}
+        message={alertDialog?.message}
+        onRequestClose={() => setAlertDialog(null)}
+        actions={[
+          {
+            id: 'ok',
+            label: t('ok'),
+            tone: 'accent',
+          },
+        ]}
+      />
+    </>
   );
 };
 

@@ -42,7 +42,8 @@ export type WebViewBridgeMessage =
   | { type: 'overscrollEnd' }
   | { type: 'fullscreenEnter' }
   | { type: 'fullscreenExit' }
-  | { type: 'linkLongPress'; href: string; text: string };
+  | { type: 'linkLongPress'; href: string; text: string }
+  | { type: 'videoDetected'; hasVideo: boolean };
 
 export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage | null => {
   try {
@@ -104,6 +105,13 @@ export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage
       }
 
       return { type: 'linkLongPress', href, text };
+    }
+
+    if (parsed.type === 'videoDetected') {
+      return {
+        type: 'videoDetected',
+        hasVideo: Boolean((parsed as { hasVideo?: unknown }).hasVideo),
+      };
     }
 
     return null;
@@ -192,6 +200,24 @@ export const faviconInjectionScript = `
 
     document.addEventListener('fullscreenchange', signalFullscreenState);
     document.addEventListener('webkitfullscreenchange', signalFullscreenState);
+
+    var sendVideoPresence = function() {
+      var videos = Array.prototype.slice.call(document.querySelectorAll('video'));
+      var hasVideo = videos.some(function(video) {
+        return !!video && typeof video === 'object';
+      });
+      post({ type: 'videoDetected', hasVideo: hasVideo });
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      sendVideoPresence();
+      var root = document.body || document.documentElement;
+      if (root) {
+        var videoObserver = new MutationObserver(sendVideoPresence);
+        videoObserver.observe(root, { childList: true, subtree: true, attributes: true });
+      }
+    });
+    sendVideoPresence();
 
     var lastScrollSentAt = 0;
     var sendScroll = function() {

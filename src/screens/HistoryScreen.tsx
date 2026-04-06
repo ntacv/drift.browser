@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { normalizeInputToUrl } from '../hooks/useWebView';
 import { useI18n } from '../i18n/useI18n';
 import { getActiveTab, useBrowserStore } from '../store/browserStore';
 import { useTheme } from '../theme';
+import { AppAlertDialog } from '../components/common/AppAlertDialog';
 
 export const HistoryScreen = () => {
     const { theme } = useTheme();
@@ -16,6 +17,7 @@ export const HistoryScreen = () => {
     const navigation = useNavigation();
     const [isSearchOpen, setSearchOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
+    const [showClearHistoryDialog, setShowClearHistoryDialog] = React.useState(false);
     const searchInputRef = React.useRef<TextInput | null>(null);
 
     const history = useBrowserStore((state) => state.history);
@@ -60,14 +62,7 @@ export const HistoryScreen = () => {
     };
 
     const confirmClearHistory = () => {
-        Alert.alert(t('clearHistory'), t('clearHistoryConfirm'), [
-            { text: t('cancel'), style: 'cancel' },
-            {
-                text: t('clearHistory'),
-                style: 'destructive',
-                onPress: () => clearHistory(),
-            },
-        ]);
+        setShowClearHistoryDialog(true);
     };
 
     const searchWebFromQuery = () => {
@@ -189,6 +184,22 @@ export const HistoryScreen = () => {
                     ))
                 )}
             </ScrollView>
+
+            <AppAlertDialog
+                visible={showClearHistoryDialog}
+                title={t('clearHistory')}
+                message={t('clearHistoryConfirm')}
+                onRequestClose={() => setShowClearHistoryDialog(false)}
+                actions={[
+                    { id: 'cancel', label: t('cancel') },
+                    {
+                        id: 'confirm',
+                        label: t('clearHistory'),
+                        tone: 'destructive',
+                        onPress: () => clearHistory(),
+                    },
+                ]}
+            />
         </SafeAreaView>
     );
 };

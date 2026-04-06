@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { ALL_TABS_WORKSPACE_COLOR, TEXT_ON_COLORED_BACKGROUND } from '../../../default-settings';
@@ -9,6 +9,7 @@ import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import type { Workspace } from '../../store/types';
 import { WorkspaceEditor } from './WorkspaceEditor';
+import { AppAlertDialog } from '../common/AppAlertDialog';
 
 const LEGACY_WORKSPACE_ICON_MAP: Record<string, string> = {
   '🏠': 'home',
@@ -44,6 +45,8 @@ export const WorkspaceChips = () => {
 
   const [editorVisible, setEditorVisible] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+  const [showAllTabsActions, setShowAllTabsActions] = useState(false);
+  const [showCloseAllTabsConfirm, setShowCloseAllTabsConfirm] = useState(false);
 
   const handleLongPress = (workspace: Workspace) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
@@ -58,27 +61,7 @@ export const WorkspaceChips = () => {
 
   const handleAllTabsLongPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
-    Alert.alert(t('allTabs'), undefined, [
-      {
-        text: t('closeAllTabs'),
-        style: 'destructive',
-        onPress: () => {
-          Alert.alert(t('closeAllTabs'), t('closeAllTabsConfirm'), [
-            { text: t('cancel'), style: 'cancel' },
-            {
-              text: t('closeAllTabs'),
-              style: 'destructive',
-              onPress: () => closeAllTabs(),
-            },
-          ]);
-        },
-      },
-      {
-        text: t('saveAllTabsAsWorkspace'),
-        onPress: () => saveAllTabsAsWorkspace(t('allTabs')),
-      },
-      { text: t('cancel'), style: 'cancel' },
-    ]);
+    setShowAllTabsActions(true);
   };
 
   return (
@@ -180,6 +163,48 @@ export const WorkspaceChips = () => {
         visible={editorVisible}
         workspace={editingWorkspace}
         onClose={() => setEditorVisible(false)}
+      />
+
+      <AppAlertDialog
+        visible={showAllTabsActions}
+        title={t('allTabs')}
+        onRequestClose={() => setShowAllTabsActions(false)}
+        actions={[
+          {
+            id: 'close-all',
+            label: t('closeAllTabs'),
+            tone: 'destructive',
+            onPress: () => setShowCloseAllTabsConfirm(true),
+          },
+          {
+            id: 'save-workspace',
+            label: t('saveAllTabsAsWorkspace'),
+            onPress: () => saveAllTabsAsWorkspace(t('allTabs')),
+          },
+          {
+            id: 'cancel',
+            label: t('cancel'),
+          },
+        ]}
+      />
+
+      <AppAlertDialog
+        visible={showCloseAllTabsConfirm}
+        title={t('closeAllTabs')}
+        message={t('closeAllTabsConfirm')}
+        onRequestClose={() => setShowCloseAllTabsConfirm(false)}
+        actions={[
+          {
+            id: 'cancel',
+            label: t('cancel'),
+          },
+          {
+            id: 'confirm-close-all',
+            label: t('closeAllTabs'),
+            tone: 'destructive',
+            onPress: () => closeAllTabs(),
+          },
+        ]}
       />
     </>
   );

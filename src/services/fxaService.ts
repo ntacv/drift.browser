@@ -1,6 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 
+import { isFirefoxSyncEnabled } from './securityConfig';
+
 const FXA_AUTH_BASE = 'https://accounts.firefox.com/oauth/authorization';
 const FXA_TOKEN_ENDPOINT = 'https://oauth.accounts.firefox.com/v1/token';
 const REDIRECT_URI = 'drift://fxa-oauth';
@@ -10,6 +12,10 @@ const REFRESH_TOKEN_KEY = 'fxa.refreshToken';
 const USER_ID_KEY = 'fxa.uid';
 
 export const signIn = async (): Promise<{ uid: string; email: string } | null> => {
+  if (!isFirefoxSyncEnabled()) {
+    return null;
+  }
+
   const authUrl = `${FXA_AUTH_BASE}?client_id=drift-dev&redirect_uri=${encodeURIComponent(
     REDIRECT_URI,
   )}&response_type=code&scope=profile`;

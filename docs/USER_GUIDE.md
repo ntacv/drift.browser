@@ -153,6 +153,11 @@ Changes take effect immediately and are persisted.
 
 Drift Browser supports two types of fullscreen modes:
 
+Android PiP note:
+
+- The browser currently hides the PiP action on Android while native PiP support is being stabilized.
+- On platforms where PiP is available, the action appears only when a playable video is detected.
+
 #### User Fullscreen
 
 - Activated by tapping the fullscreen button in the menu sheet

@@ -11,6 +11,7 @@
 - [x] compact workspace mode (icon-only chips, compact appearance setting)
 - [x] scroll down animation to hide bar (`hideBarOnScroll` setting)
 - [x] setting to remove fullscreen alert (`hideFullscreenAlert`)
+- [x] hide the Android PiP button until native PiP is fixed
 - [x] long press tab → context menu: change workspace, duplicate, copy URL, copy title
 - [x] in the main bar, the 3 buttons are uniform, respecting left/right-hand setting
 - [x] overscrolling the top of the URL editor closes it
@@ -45,25 +46,17 @@
 
 ## Bugs — Remaining
 
-- [ ] overscrolling the top of the tab list should close it
-- [ ] when closing the app in fullscreen mode, exit fullscreen so that on next launch the app is not stuck (no UI controls visible)
+- [ ] Android PiP native action does not work reliably on Android; revisit the browser-level PiP implementation later
 
----
-
-## Features — Remaining
-
-### High priority
-
-- [x] history page: dedicated screen showing browsing history, "clear history" button, tapping an entry opens the page
 - [x] long press on any web link: panel with "open in new tab", "copy link", "share link" (2 tiles per row)
 - [x] error pages: when WebView hits ERR_CONNECTION_REFUSED, ERR_UNKNOWN_URL_SCHEME or other common errors, show a friendly error page with a retry button
 
 ### Medium priority
 
-- [ ] invert URL bar swipe direction (setting)
-- [ ] long press on URL bar → copy URL with a toast pill that animates from the bar
-- [ ] update the Appearance settings section: group theme (dark/light/system), transparency, website theme color and bar position under a "Theme" subsection
-- [ ] updated alerts (Material 3 / iOS glass style — replace plain `Alert.alert` in fullscreen and other flows)
+- [x] invert URL bar swipe direction (setting)
+- [x] long press on URL bar → copy URL with a toast pill that animates from the bar
+- [x] update the Appearance settings section: group theme (dark/light/system), transparency, website theme color and bar position under a "Theme" subsection
+- [x] updated alerts (Material 3 / iOS glass style — replace plain `Alert.alert` in fullscreen and other flows)
 
 ### Low priority / Future
 

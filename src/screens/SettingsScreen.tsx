@@ -1,17 +1,19 @@
 import React from 'react';
-import { Alert, BackHandler, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { signIn, signOut } from '../services/fxaService';
+import { isFirefoxSyncEnabled } from '../services/securityConfig';
 import { useI18n } from '../i18n/useI18n';
 import { useBrowserStore } from '../store/browserStore';
 import type { AppLanguage, BarPosition, SearchEngine, TabListSize, ThemePreference } from '../store/types';
 import { useTheme } from '../theme';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 import { buildImportedState, createBackupJson, parseBackupJson } from '../services/dataTransferService';
+import { AppAlertDialog } from '../components/common/AppAlertDialog';
 
 const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
@@ -73,6 +75,7 @@ export const SettingsScreen = () => {
   const navigation = useNavigation();
   const [isImportModalVisible, setImportModalVisible] = React.useState(false);
   const [importPayload, setImportPayload] = React.useState('');
+  const [alertDialog, setAlertDialog] = React.useState<{ title: string; message: string } | null>(null);
 
   const syncUser = useBrowserStore((state) => state.syncUser);
   const lastSyncedAt = useBrowserStore((state) => state.lastSyncedAt);
@@ -96,6 +99,7 @@ export const SettingsScreen = () => {
   const workspaceCount = useBrowserStore((state) => Object.keys(state.workspaces).length);
   const tabCount = useBrowserStore((state) => Object.keys(state.tabs).length);
   const hideBarOnScroll = useBrowserStore((state) => state.hideBarOnScroll);
+  const invertUrlBarSwipeDirection = useBrowserStore((state) => state.invertUrlBarSwipeDirection);
   const barPosition = useBrowserStore((state) => state.barPosition);
   const isCompactWorkspace = useBrowserStore((state) => state.isCompactWorkspace);
 
@@ -113,6 +117,7 @@ export const SettingsScreen = () => {
   const setFullUrlVisible = useBrowserStore((state) => state.setFullUrlVisible);
   const setUseWebsiteThemeColor = useBrowserStore((state) => state.setUseWebsiteThemeColor);
   const setDebugMode = useBrowserStore((state) => state.setDebugMode);
+  const setInvertUrlBarSwipeDirection = useBrowserStore((state) => state.setInvertUrlBarSwipeDirection);
 
   const handleExportData = React.useCallback(async () => {
     try {
@@ -125,7 +130,7 @@ export const SettingsScreen = () => {
       console.log('Export payload length:', payload.length);
 
       if (!payload || payload.length < 50) {
-        Alert.alert(t('exportData'), 'Export payload is empty or too small');
+        setAlertDialog({ title: t('exportData'), message: t('exportPayloadTooSmall') });
         console.error('Export payload:', payload);
         return;
       }
@@ -147,14 +152,17 @@ export const SettingsScreen = () => {
       });
     } catch (error) {
       console.error('Export error:', error);
-      Alert.alert(t('exportData'), `Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setAlertDialog({
+        title: t('exportData'),
+        message: `${t('operationFailed')}: ${error instanceof Error ? error.message : t('unknownError')}`,
+      });
     }
   }, [t]);
 
   const handleImportData = React.useCallback(() => {
     const payload = importPayload.trim();
     if (!payload) {
-      Alert.alert(t('importData'), t('importDataEmpty'));
+      setAlertDialog({ title: t('importData'), message: t('importDataEmpty') });
       return;
     }
 
@@ -165,9 +173,9 @@ export const SettingsScreen = () => {
       useBrowserStore.setState(nextState);
       setImportPayload('');
       setImportModalVisible(false);
-      Alert.alert(t('importData'), t('importDataSuccess'));
+      setAlertDialog({ title: t('importData'), message: t('importDataSuccess') });
     } catch {
-      Alert.alert(t('importData'), t('importDataInvalid'));
+      setAlertDialog({ title: t('importData'), message: t('importDataInvalid') });
     }
   }, [importPayload, t]);
   const setHideBarOnScroll = useBrowserStore((state) => state.setHideBarOnScroll);
@@ -224,6 +232,14 @@ export const SettingsScreen = () => {
                 if (syncUser) {
                   await signOut();
                   setSyncUser(null);
+                  return;
+                }
+
+                if (!isFirefoxSyncEnabled()) {
+                  setAlertDialog({
+                    title: t('firefoxSyncLockedTitle'),
+                    message: t('firefoxSyncLockedMessage'),
+                  });
                   return;
                 }
 
@@ -360,6 +376,7 @@ export const SettingsScreen = () => {
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <CardTitle icon="palette" title={t('appearance')} theme={theme} />
+            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('theme')}</Text>
             <View style={styles.chipsRow}>
               {THEMES.map((pref) => (
                 <Pressable
@@ -417,6 +434,14 @@ export const SettingsScreen = () => {
             <View style={styles.switchRow}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('hideBarOnScroll')}</Text>
               <Switch value={hideBarOnScroll} onValueChange={setHideBarOnScroll} />
+            </View>
+
+            <View style={styles.switchRow}>
+              <View>
+                <Text style={[styles.rowText, { color: theme.text }]}>{t('invertUrlBarSwipeDirection')}</Text>
+                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('invertUrlBarSwipeDirectionHint')}</Text>
+              </View>
+              <Switch value={invertUrlBarSwipeDirection} onValueChange={setInvertUrlBarSwipeDirection} />
             </View>
 
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('barPosition')}</Text>
@@ -515,6 +540,20 @@ export const SettingsScreen = () => {
             </View>
           </View>
         </Modal>
+
+        <AppAlertDialog
+          visible={Boolean(alertDialog)}
+          title={alertDialog?.title ?? ''}
+          message={alertDialog?.message}
+          onRequestClose={() => setAlertDialog(null)}
+          actions={[
+            {
+              id: 'ok',
+              label: t('ok'),
+              tone: 'accent',
+            },
+          ]}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -20,11 +20,13 @@ import { handleOAuthCallback } from './src/services/fxaService';
 import { BrowserScreen } from './src/screens/BrowserScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { NewTabScreen } from './src/screens/NewTabScreen';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { getActiveTab, useBrowserStore } from './src/store/browserStore';
 import { ThemeProvider, isColorDark, useTheme } from './src/theme';
 
 type RootStackParams = {
+  Onboarding: undefined;
   Browser: undefined;
   Settings: undefined;
   NewTab: undefined;
@@ -50,6 +52,8 @@ const ThemedStack = () => {
   const { mode } = useTheme();
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
   const activeTab = useBrowserStore(getActiveTab);
+  const hasCompletedOnboarding = useBrowserStore((state) => state.hasCompletedOnboarding);
+  const setHasCompletedOnboarding = useBrowserStore((state) => state.setHasCompletedOnboarding);
 
   const statusBarStyle = (() => {
     if (useWebsiteThemeColor && activeTab?.themeColor) {
@@ -62,6 +66,19 @@ const ThemedStack = () => {
     <>
       <StatusBar style={statusBarStyle} />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!hasCompletedOnboarding ? (
+          <Stack.Screen
+            name="Onboarding"
+            children={({ navigation }) => (
+              <OnboardingScreen
+                onComplete={() => {
+                  setHasCompletedOnboarding(true);
+                  navigation.replace('Browser');
+                }}
+              />
+            )}
+          />
+        ) : null}
         <Stack.Screen
           name="Browser"
           children={({ navigation }) => (

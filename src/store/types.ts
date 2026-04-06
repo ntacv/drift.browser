@@ -42,6 +42,8 @@ export interface Tab {
   createdAt: number;
   webContentFullscreen: boolean;
   webError: TabWebError | null;
+  hasVideo: boolean;
+  pictureInPictureRequestId: number;
 }
 
 export interface Workspace {
@@ -106,9 +108,11 @@ export interface BrowserState {
   useWebsiteThemeColor: boolean;
   debugMode: boolean;
   hideBarOnScroll: boolean;
+  invertUrlBarSwipeDirection: boolean;
   barPosition: BarPosition;
   isCompactWorkspace: boolean;
   linkActionPanel: LinkActionPanelPayload | null;
+  hasCompletedOnboarding: boolean;
 }
 
 export interface BrowserActions {
@@ -158,9 +162,12 @@ export interface BrowserActions {
   setUseWebsiteThemeColor: (value: boolean) => void;
   setDebugMode: (value: boolean) => void;
   setHideBarOnScroll: (value: boolean) => void;
+  setInvertUrlBarSwipeDirection: (value: boolean) => void;
   setBarPosition: (position: BarPosition) => void;
   setCompactWorkspace: (value: boolean) => void;
   setLinkActionPanel: (payload: LinkActionPanelPayload | null) => void;
+  setHasCompletedOnboarding: (value: boolean) => void;
+  requestPictureInPicture: (tabId: string) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;

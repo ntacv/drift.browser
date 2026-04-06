@@ -74,6 +74,46 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
     updateTabMeta(tabId, { pendingNavAction: null });
   }, [tab?.pendingNavActionId, tab?.pendingNavAction, tabId, updateTabMeta]);
 
+  useEffect(() => {
+    if (!tab?.pictureInPictureRequestId || !tab.hasVideo) {
+      return;
+    }
+
+    webViewRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          var videos = Array.prototype.slice.call(document.querySelectorAll('video'));
+          if (!videos.length) {
+            return;
+          }
+
+          var candidate = videos.find(function(video) {
+            return video && !video.disablePictureInPicture && typeof video.requestPictureInPicture === 'function';
+          }) || videos.find(function(video) {
+            return video && typeof video.requestPictureInPicture === 'function';
+          }) || videos[0];
+
+          if (!candidate) {
+            return;
+          }
+
+          if (candidate.requestPictureInPicture) {
+            candidate.requestPictureInPicture().catch(function() {
+            });
+            return;
+          }
+
+          if (candidate.webkitSetPresentationMode) {
+            candidate.webkitSetPresentationMode('picture-in-picture');
+            return;
+          }
+        } catch (error) {
+        }
+      })();
+      true;
+    `);
+  }, [tab?.pictureInPictureRequestId, tab?.hasVideo]);
+
   if (!tab) {
     return null;
   }
@@ -88,6 +128,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
       isLoading: navState.loading,
       canGoBack: navState.canGoBack,
       canGoForward: navState.canGoForward,
+      hasVideo: navState.loading ? false : tab.hasVideo,
       ...(navState.loading ? { webError: null } : {}),
       // Clear stale theme color when a new page starts loading
       ...(navState.loading ? { themeColor: null } : {}),
@@ -190,6 +231,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
         domStorageEnabled
         allowsFullscreenVideo
         allowsInlineMediaPlayback
+        allowsPictureInPictureMediaPlayback
         allowsProtectedMedia
         setSupportMultipleWindows={false}
         style={[styles.webview, !visible && styles.hidden, { backgroundColor: hexToRgba(theme.bg, 0.15) }]}
@@ -210,6 +252,11 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
 
           if (message.type === 'themeColor') {
             updateTabMeta(tabId, { themeColor: message.themeColor });
+            return;
+          }
+
+          if (message.type === 'videoDetected') {
+            updateTabMeta(tabId, { hasVideo: message.hasVideo });
             return;
           }
 
