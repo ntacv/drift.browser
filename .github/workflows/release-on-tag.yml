@@ -46,13 +46,8 @@ jobs:
             echo "Android build artifact URL not found" >&2
             exit 1
           fi
-          if [ -z "$IOS_URL" ]; then
-            echo "iOS build artifact URL not found" >&2
-            exit 1
-          fi
 
           curl -L "$ANDROID_URL" -o "artifacts/driftBrowser.apk"
-          curl -L "$IOS_URL" -o "artifacts/driftBrowser.ipa"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -60,4 +55,3 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/driftBrowser.apk
-            artifacts/driftBrowser.ipa

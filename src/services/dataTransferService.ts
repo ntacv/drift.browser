@@ -69,6 +69,9 @@ const makeFallbackTab = (workspaceId: string, url: string): Tab => ({
     scrollY: 0,
     createdAt: Date.now(),
     webContentFullscreen: false,
+    webError: null,
+    hasVideo: false,
+    pictureInPictureRequestId: 0,
 });
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
