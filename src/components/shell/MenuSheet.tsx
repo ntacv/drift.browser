@@ -317,6 +317,21 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       );
     }
 
+    if (id === 'pip') {
+      return (
+        <Pressable
+          key={id}
+          onPress={() => {
+            requestPip();
+            setMenuOpen(false);
+          }}
+          style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
+        >
+          <MaterialIcons name="picture-in-picture-alt" size={18} color={theme.text} />
+        </Pressable>
+      );
+    }
+
     return (
       <Pressable
         key={id}
@@ -327,19 +342,6 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
       </Pressable>
     );
   };
-
-  const renderPipTile = () => (
-    <Pressable
-      key="pip"
-      onPress={() => {
-        requestPip();
-        setMenuOpen(false);
-      }}
-      style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
-    >
-      <MaterialIcons name="picture-in-picture-alt" size={18} color={theme.text} />
-    </Pressable>
-  );
 
   const DraggableTile = ({ id, size }: { id: MenuTileId; size: TileSize }) => {
     const scale = useSharedValue(1);
@@ -434,7 +436,7 @@ export const MenuSheet = ({ onOpenSettings }: MenuSheetProps) => {
               if (QUICK_TILE_IDS.has(tile.id as QuickTileId)) {
                 return (
                   <View key={tile.id} style={[styles.tileWrap, tileFrameStyle(tile.size)]}>
-                    {tile.id === 'pip' ? renderPipTile() : renderQuickTile(tile.id as QuickTileId)}
+                    {renderQuickTile(tile.id as QuickTileId)}
                   </View>
                 );
               }

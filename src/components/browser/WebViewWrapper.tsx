@@ -287,6 +287,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           }
 
           if (message.type === 'pipError') {
+            console.warn('[PiP]', message.message);
             return;
           }
         }}
