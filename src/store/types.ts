@@ -41,6 +41,7 @@ export interface Tab {
   canGoForward: boolean;
   pendingNavAction: 'back' | 'forward' | 'reload' | null;
   pendingNavActionId: number;
+  pendingPipRequestId: number;
   scrollY: number;
   createdAt: number;
   webContentFullscreen: boolean;
@@ -129,6 +130,7 @@ export interface BrowserActions {
   goToPreviousTab: () => void;
   navigateActiveTab: (nextUrl: string) => void;
   requestActiveTabNavigation: (action: 'back' | 'forward' | 'reload') => void;
+  requestPip: () => void;
   updateTabMeta: (tabId: string, patch: Partial<Tab>) => void;
 
   switchWorkspace: (workspaceId: string) => void;

@@ -43,7 +43,10 @@ export type WebViewBridgeMessage =
   | { type: 'fullscreenEnter' }
   | { type: 'fullscreenExit' }
   | { type: 'linkLongPress'; href: string; text: string }
-  | { type: 'videoDetected'; hasVideo: boolean };
+  | { type: 'videoDetected'; hasVideo: boolean }
+  | { type: 'pipEnter' }
+  | { type: 'pipExit' }
+  | { type: 'pipError'; message: string };
 
 export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage | null => {
   try {
@@ -111,6 +114,23 @@ export const parseWebViewBridgeMessage = (payload: string): WebViewBridgeMessage
       return {
         type: 'videoDetected',
         hasVideo: Boolean((parsed as { hasVideo?: unknown }).hasVideo),
+      };
+    }
+
+    if (parsed.type === 'pipEnter') {
+      return { type: 'pipEnter' };
+    }
+
+    if (parsed.type === 'pipExit') {
+      return { type: 'pipExit' };
+    }
+
+    if (parsed.type === 'pipError') {
+      return {
+        type: 'pipError',
+        message: typeof (parsed as { message?: unknown }).message === 'string'
+          ? (parsed as { message: string }).message
+          : '',
       };
     }
 
@@ -379,6 +399,58 @@ export const faviconInjectionScript = `
       linkLongPressState.targetText = '';
       linkLongPressState.didLongPress = false;
     }, { passive: true });
+  })();
+  true;
+`;
+
+/**
+ * JavaScript injected into the active WebView to request Picture-in-Picture
+ * for the currently playing (or first available) video element.
+ *
+ * The script uses the W3C Picture-in-Picture API which is supported by
+ * Chromium-based Android WebView on Android 8+ devices.
+ */
+export const pipRequestScript = `
+  (function() {
+    var post = function(payload) {
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+      }
+    };
+
+    if (!document.pictureInPictureEnabled) {
+      post({ type: 'pipError', message: 'not_supported' });
+      return;
+    }
+
+    var videos = document.querySelectorAll('video');
+    var target = null;
+
+    for (var i = 0; i < videos.length; i++) {
+      if (!videos[i].paused && !videos[i].ended && videos[i].readyState >= 2) {
+        target = videos[i];
+        break;
+      }
+    }
+
+    if (!target && videos.length > 0) {
+      target = videos[0];
+    }
+
+    if (!target) {
+      post({ type: 'pipError', message: 'no_video' });
+      return;
+    }
+
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture()
+        .then(function() { post({ type: 'pipExit' }); })
+        .catch(function() { post({ type: 'pipError', message: 'exit_failed' }); });
+    } else {
+      target.requestPictureInPicture()
+        .then(function() { post({ type: 'pipEnter' }); })
+        .catch(function(e) { post({ type: 'pipError', message: e && e.message ? e.message : 'failed' }); });
+    }
   })();
   true;
 `;
