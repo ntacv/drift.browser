@@ -280,7 +280,7 @@ export const pipRequestScript = `
     };
 
     if (!document.pictureInPictureEnabled) {
-      post({ type: 'pipError', message: 'not_supported' });
+      post({ type: 'pipError', message: 'Picture-in-Picture is not supported in this browser' });
       return;
     }
 
@@ -299,18 +299,18 @@ export const pipRequestScript = `
     }
 
     if (!target) {
-      post({ type: 'pipError', message: 'no_video' });
+      post({ type: 'pipError', message: 'No video element found on this page' });
       return;
     }
 
     if (document.pictureInPictureElement) {
       document.exitPictureInPicture()
         .then(function() { post({ type: 'pipExit' }); })
-        .catch(function() { post({ type: 'pipError', message: 'exit_failed' }); });
+        .catch(function() { post({ type: 'pipError', message: 'Failed to exit Picture-in-Picture mode' }); });
     } else {
       target.requestPictureInPicture()
         .then(function() { post({ type: 'pipEnter' }); })
-        .catch(function(e) { post({ type: 'pipError', message: e && e.message ? e.message : 'failed' }); });
+        .catch(function(e) { post({ type: 'pipError', message: e && e.message ? e.message : 'Failed to enter Picture-in-Picture mode' }); });
     }
   })();
   true;
