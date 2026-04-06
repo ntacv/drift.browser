@@ -60,6 +60,17 @@ export interface HistoryEntry {
   visitedAt: number;
 }
 
+export interface Extension {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  isEnabled: boolean;
+  iconUrl: string | null;
+  storeUrl: string | null;
+  installedAt: number;
+}
+
 export interface BrowserState {
   workspaces: Record<string, Workspace>;
   workspaceOrder: string[];
@@ -73,6 +84,7 @@ export interface BrowserState {
   bookmarks: Record<string, Bookmark>;
   bookmarkFolders: Record<string, BookmarkFolder>;
   history: HistoryEntry[];
+  extensions: Record<string, Extension>;
   themePreference: ThemePreference;
   searchEngine: SearchEngine;
   language: AppLanguage;
@@ -126,6 +138,10 @@ export interface BrowserActions {
   addBookmarkFromActiveTab: () => void;
   addHistoryEntry: (entry: Omit<HistoryEntry, 'id' | 'visitedAt'>) => void;
   clearHistory: () => void;
+
+  installExtension: (ext: Omit<Extension, 'id' | 'installedAt'>) => void;
+  uninstallExtension: (extensionId: string) => void;
+  toggleExtension: (extensionId: string) => void;
 
   setThemePreference: (preference: ThemePreference) => void;
   setSearchEngine: (searchEngine: SearchEngine) => void;

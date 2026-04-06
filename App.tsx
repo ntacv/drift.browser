@@ -18,6 +18,7 @@ import {
 
 import { handleOAuthCallback } from './src/services/fxaService';
 import { BrowserScreen } from './src/screens/BrowserScreen';
+import { ExtensionsScreen } from './src/screens/ExtensionsScreen';
 import { NewTabScreen } from './src/screens/NewTabScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { getActiveTab, useBrowserStore } from './src/store/browserStore';
@@ -27,6 +28,7 @@ type RootStackParams = {
   Browser: undefined;
   Settings: undefined;
   NewTab: undefined;
+  Extensions: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -63,10 +65,14 @@ const ThemedStack = () => {
         <Stack.Screen
           name="Browser"
           children={({ navigation }) => (
-            <BrowserScreen onOpenSettings={() => navigation.navigate('Settings')} />
+            <BrowserScreen
+              onOpenSettings={() => navigation.navigate('Settings')}
+              onOpenExtensions={() => navigation.navigate('Extensions')}
+            />
           )}
         />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Extensions" component={ExtensionsScreen} />
         <Stack.Screen
           name="NewTab"
           children={({ navigation }) => (

@@ -13,9 +13,10 @@ import { useTheme } from '../theme';
 
 interface BrowserScreenProps {
   onOpenSettings: () => void;
+  onOpenExtensions: () => void;
 }
 
-export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
+export const BrowserScreen = ({ onOpenSettings, onOpenExtensions }: BrowserScreenProps) => {
   const { theme } = useTheme();
   const isFocused = useIsFocused();
   const { width, height } = useWindowDimensions();
@@ -139,7 +140,7 @@ export const BrowserScreen = ({ onOpenSettings }: BrowserScreenProps) => {
         </View>
 
         {!shouldHideUI ? <TabTray /> : null}
-        {!shouldHideUI ? <MenuSheet onOpenSettings={onOpenSettings} /> : null}
+        {!shouldHideUI ? <MenuSheet onOpenSettings={onOpenSettings} onOpenExtensions={onOpenExtensions} /> : null}
         {!shouldHideUI ? <UrlBar /> : null}
       </View>
     </SafeAreaView>

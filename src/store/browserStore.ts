@@ -8,6 +8,7 @@ import type {
   BarPosition,
   BookmarkFolder,
   BrowserStore,
+  Extension,
   SearchEngine,
   Tab,
   TabListSize,
@@ -25,6 +26,7 @@ const HISTORY_CAP = 500;
 const DEFAULT_MENU_TILE_ORDER = [
   'share',
   'settings',
+  'extensions',
   'workspace',
   'fullscreen',
   'signout',
@@ -144,6 +146,7 @@ const buildInitialState = () => {
       [unsortedFolder.id]: unsortedFolder,
     },
     history: [],
+    extensions: {},
     themePreference: config.preferences.themePreference,
     searchEngine: config.preferences.searchEngine,
     language: config.preferences.language,
@@ -685,6 +688,37 @@ export const useBrowserStore = create<BrowserStore>()(
 
       clearHistory: () => set({ history: [] }),
 
+      installExtension: (ext) => {
+        const id = makeId('ext');
+        set((state) => ({
+          extensions: {
+            ...state.extensions,
+            [id]: { ...ext, id, installedAt: Date.now() },
+          },
+        }));
+      },
+
+      uninstallExtension: (extensionId) =>
+        set((state) => {
+          const next = { ...state.extensions };
+          delete next[extensionId];
+          return { extensions: next };
+        }),
+
+      toggleExtension: (extensionId) =>
+        set((state) => {
+          const ext = state.extensions[extensionId];
+          if (!ext) {
+            return state;
+          }
+          return {
+            extensions: {
+              ...state.extensions,
+              [extensionId]: { ...ext, isEnabled: !ext.isEnabled },
+            },
+          };
+        }),
+
       setThemePreference: (preference) => set({ themePreference: preference }),
       setSearchEngine: (searchEngine) => set({ searchEngine }),
       setLanguage: (language) => set({ language }),
@@ -766,6 +800,7 @@ export const useBrowserStore = create<BrowserStore>()(
         bookmarks: state.bookmarks,
         bookmarkFolders: state.bookmarkFolders,
         history: state.history,
+        extensions: state.extensions,
         themePreference: state.themePreference,
         searchEngine: state.searchEngine,
         language: state.language,
