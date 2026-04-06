@@ -261,33 +261,35 @@ export const SettingsScreen = () => {
             {syncUser ? (
               <>
                 <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('syncPreferences')}</Text>
-                <View style={styles.switchRow}>
-                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncTabs')}</Text>
-                  <Switch
-                    value={syncPreferences.syncTabs}
-                    onValueChange={(value) => setSyncPreferences({ syncTabs: value })}
-                  />
-                </View>
-                <View style={styles.switchRow}>
-                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncWorkspaces')}</Text>
-                  <Switch
-                    value={syncPreferences.syncWorkspaces}
-                    onValueChange={(value) => setSyncPreferences({ syncWorkspaces: value })}
-                  />
-                </View>
-                <View style={styles.switchRow}>
-                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncBookmarks')}</Text>
-                  <Switch
-                    value={syncPreferences.syncBookmarks}
-                    onValueChange={(value) => setSyncPreferences({ syncBookmarks: value })}
-                  />
-                </View>
-                <View style={styles.switchRow}>
-                  <Text style={[styles.rowText, { color: theme.text }]}>{t('syncHistory')}</Text>
-                  <Switch
-                    value={syncPreferences.syncHistory}
-                    onValueChange={(value) => setSyncPreferences({ syncHistory: value })}
-                  />
+                <View style={styles.syncPrefsRows}>
+                  <View style={styles.switchRow}>
+                    <Text style={[styles.rowText, { color: theme.text }]}>{t('syncTabs')}</Text>
+                    <Switch
+                      value={syncPreferences.syncTabs}
+                      onValueChange={(value) => setSyncPreferences({ syncTabs: value })}
+                    />
+                  </View>
+                  <View style={styles.switchRow}>
+                    <Text style={[styles.rowText, { color: theme.text }]}>{t('syncWorkspaces')}</Text>
+                    <Switch
+                      value={syncPreferences.syncWorkspaces}
+                      onValueChange={(value) => setSyncPreferences({ syncWorkspaces: value })}
+                    />
+                  </View>
+                  <View style={styles.switchRow}>
+                    <Text style={[styles.rowText, { color: theme.text }]}>{t('syncBookmarks')}</Text>
+                    <Switch
+                      value={syncPreferences.syncBookmarks}
+                      onValueChange={(value) => setSyncPreferences({ syncBookmarks: value })}
+                    />
+                  </View>
+                  <View style={styles.switchRow}>
+                    <Text style={[styles.rowText, { color: theme.text }]}>{t('syncHistory')}</Text>
+                    <Switch
+                      value={syncPreferences.syncHistory}
+                      onValueChange={(value) => setSyncPreferences({ syncHistory: value })}
+                    />
+                  </View>
                 </View>
                 <Pressable
                   style={[styles.button, { backgroundColor: theme.accent }]}
@@ -666,6 +668,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  syncPrefsRows: {
+    gap: 10,
   },
   debugPanel: {
     borderWidth: 1,
