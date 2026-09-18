@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ import { useTheme } from '../../theme';
 import { TabCard } from './TabCard';
 import { TabContextMenu } from './TabContextMenu';
 import { WorkspaceChips } from './WorkspaceChips';
+import { AppAlertDialog } from '../common/AppAlertDialog';
 import { SHEET_HANDLE_COLOR } from '../../../default-settings';
 
 const TAB_LIST_HEIGHTS = {
@@ -40,6 +42,10 @@ export const TabTray = () => {
   const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const workspaces = useBrowserStore((state) => state.workspaces);
   const tabs = useBrowserStore((state) => state.tabs);
+  const isTabSelectionMode = useBrowserStore((state) => state.isTabSelectionMode);
+  const selectedTabIds = useBrowserStore((state) => state.selectedTabIds);
+  const enterTabSelectionMode = useBrowserStore((state) => state.enterTabSelectionMode);
+  const toggleTabSelection = useBrowserStore((state) => state.toggleTabSelection);
   const expandedHeight = Math.max(300, screenHeight - insets.top);
   const trayHeight = tabListSize === 'expanded' ? expandedHeight : TAB_LIST_HEIGHTS[tabListSize];
   const pinnedTileHeight = isCompactTabList ? 42 : 60;
@@ -50,6 +56,7 @@ export const TabTray = () => {
   const scrollViewNativeGestureRef = useRef(Gesture.Native());
   const lastLongPressedPinnedTabIdRef = useRef<string | null>(null);
   const [contextMenuTab, setContextMenuTab] = useState<Tab | null>(null);
+  const [showNewTabActions, setShowNewTabActions] = useState(false);
 
   const workspace = workspaces[activeWorkspaceId];
   const allTabIds = useMemo(
@@ -142,6 +149,11 @@ export const TabTray = () => {
     });
 
   const handlePinnedTabPress = (tabId: string) => {
+    if (isTabSelectionMode) {
+      toggleTabSelection(tabId);
+      return;
+    }
+
     if (lastLongPressedPinnedTabIdRef.current === tabId) {
       lastLongPressedPinnedTabIdRef.current = null;
       return;
@@ -153,8 +165,17 @@ export const TabTray = () => {
   };
 
   const handlePinnedTabLongPress = (tabId: string) => {
+    if (isTabSelectionMode) {
+      toggleTabSelection(tabId);
+      return;
+    }
     lastLongPressedPinnedTabIdRef.current = tabId;
     updateTabMeta(tabId, { isPinned: false });
+  };
+
+  const handleCreateTabFromClipboard = async () => {
+    const clipboardText = (await Clipboard.getStringAsync()).trim();
+    createTab(undefined, clipboardText.length > 0 ? clipboardText : undefined);
   };
 
   if (!workspace) {
@@ -235,6 +256,8 @@ export const TabTray = () => {
 
           <Pressable
             onPress={() => createTab()}
+            onLongPress={() => setShowNewTabActions(true)}
+            delayLongPress={280}
             style={[styles.newCard, isCompactTabList && styles.newCardCompact, { borderColor: theme.border, backgroundColor: theme.surface2 }]}
           >
             <Text style={[styles.newCardText, isCompactTabList && styles.newCardTextCompact, { color: theme.text }]}>+ {t('newTabLabel')}</Text>
@@ -261,13 +284,25 @@ export const TabTray = () => {
                   tab={tab}
                   workspaceColor={tabWorkspaceColor}
                   isActive={activeTabId === tab.id}
+                  isSelectionMode={isTabSelectionMode}
+                  isSelected={selectedTabIds.includes(tab.id)}
                   onPress={() => {
+                    if (isTabSelectionMode) {
+                      toggleTabSelection(tab.id);
+                      return;
+                    }
                     setAllTabsView(false);
                     switchTab(tab.id);
                     setTrayOpen(false);
                   }}
                   onClose={() => closeTab(tab.id)}
-                  onLongPress={() => setContextMenuTab(tab)}
+                  onLongPress={() => {
+                    if (isTabSelectionMode) {
+                      toggleTabSelection(tab.id);
+                      return;
+                    }
+                    setContextMenuTab(tab);
+                  }}
                 />
               </View>
             );
@@ -278,6 +313,35 @@ export const TabTray = () => {
         visible={contextMenuTab !== null}
         tab={contextMenuTab}
         onClose={() => setContextMenuTab(null)}
+        onSelectTabs={(tabId) => enterTabSelectionMode(tabId)}
+      />
+      <AppAlertDialog
+        visible={showNewTabActions}
+        title={t('newTabActions')}
+        onRequestClose={() => setShowNewTabActions(false)}
+        actions={[
+          {
+            id: 'open-new-tab',
+            label: t('openNewTab'),
+            onPress: () => createTab(),
+          },
+          {
+            id: 'new-from-clipboard',
+            label: t('openFromClipboard'),
+            onPress: () => {
+              void handleCreateTabFromClipboard();
+            },
+          },
+          {
+            id: 'select-tabs',
+            label: t('selectTabs'),
+            onPress: () => enterTabSelectionMode(activeTabId ?? undefined),
+          },
+          {
+            id: 'cancel',
+            label: t('cancel'),
+          },
+        ]}
       />
     </Animated.View>
   );
