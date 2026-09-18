@@ -4,6 +4,7 @@ import {
   Keyboard,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,7 +21,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSheetGesture } from '../../hooks/useGestures';
 import { useI18n } from '../../i18n/useI18n';
 import { getActiveTab, useBrowserStore } from '../../store/browserStore';
-import type { HistoryEntry } from '../../store/types';
+import type { HistoryEntry, Tab } from '../../store/types';
 import { useTheme } from '../../theme';
 import { typography } from '../../theme';
 import { normalizeInputToUrl, toDomain } from '../../hooks/useWebView';
@@ -77,10 +78,20 @@ export const UrlBar = () => {
   const hideBarOnScroll = useBrowserStore((state) => state.hideBarOnScroll);
   const invertUrlBarSwipeDirection = useBrowserStore((state) => state.invertUrlBarSwipeDirection);
   const barPosition = useBrowserStore((state) => state.barPosition);
+  const workspaceOrder = useBrowserStore((state) => state.workspaceOrder);
+  const tabs = useBrowserStore((state) => state.tabs);
+  const isTabSelectionMode = useBrowserStore((state) => state.isTabSelectionMode);
+  const selectedTabIds = useBrowserStore((state) => state.selectedTabIds);
+  const clearTabSelection = useBrowserStore((state) => state.clearTabSelection);
+  const deleteSelectedTabs = useBrowserStore((state) => state.deleteSelectedTabs);
+  const moveSelectedTabsToWorkspace = useBrowserStore((state) => state.moveSelectedTabsToWorkspace);
+  const copySelectedTabsToWorkspace = useBrowserStore((state) => state.copySelectedTabsToWorkspace);
+  const setSelectedTabsPinned = useBrowserStore((state) => state.setSelectedTabsPinned);
 
   const [isOverlayOpen, setOverlayOpen] = useState(false);
   const [input, setInput] = useState('');
   const [showCopiedToast, setShowCopiedToast] = useState(false);
+  const [selectionWorkspaceAction, setSelectionWorkspaceAction] = useState<'move' | 'copy' | null>(null);
   const inputRef = useRef<TextInput | null>(null);
   const lastHandledOverlayRequestId = useRef(urlOverlayOpenRequestId);
   const lastHandledCloseRequestId = useRef(urlOverlayCloseRequestId);
@@ -89,6 +100,11 @@ export const UrlBar = () => {
 
   const activeTab = useBrowserStore(getActiveTab);
   const workspace = workspaces[activeWorkspaceId];
+  const selectedTabs = useMemo(
+    () => selectedTabIds.map((tabId) => tabs[tabId]).filter((tab): tab is Tab => Boolean(tab)),
+    [selectedTabIds, tabs],
+  );
+  const areAllSelectedTabsPinned = selectedTabs.length > 0 && selectedTabs.every((tab) => tab.isPinned);
 
   // Auto-hide animation: pixels the bar slides off-screen (larger than the bar's visual height)
   // Spacing between the bar pill and the screen edge
@@ -291,11 +307,14 @@ export const UrlBar = () => {
   };
 
   const urlLabel = useMemo(() => {
+    if (isTabSelectionMode) {
+      return `${selectedTabIds.length} ${t('selectedTabsCount')}`;
+    }
     if (!activeTab) {
       return t('newTabLabel');
     }
     return isFullUrlVisible ? activeTab.url : toDomain(activeTab.url);
-  }, [activeTab, isFullUrlVisible, t]);
+  }, [activeTab, isFullUrlVisible, isTabSelectionMode, selectedTabIds.length, t]);
 
   const urlBarBg =
     useWebsiteThemeColor && activeTab?.themeColor ? activeTab.themeColor : theme.surface;
@@ -336,6 +355,10 @@ export const UrlBar = () => {
     ? (['workspace', 'menu', 'newTab', 'pip'] as const)
     : (['newTab', 'pip', 'menu', 'workspace'] as const);
   const visibleControlOrder = Platform.OS === 'android' ? controlOrder.filter((controlId) => controlId !== 'pip') : controlOrder;
+  const selectionActionBarStyle = barPosition === 'top'
+    ? { top: topBarInset + 56 }
+    : { bottom: bottomBarInset + 56 };
+  const selectionActionButtonBase = [styles.selectionActionButton, { backgroundColor: theme.surface, borderColor: theme.border }];
 
   const controls = (
     <View style={styles.controlsGroup}>
@@ -399,7 +422,7 @@ export const UrlBar = () => {
             barAnimatedStyle,
           ]}
         >
-          {isLeftHandMode ? controls : null}
+          {isLeftHandMode && !isTabSelectionMode ? controls : null}
 
           <Pressable
             onPress={() => {
@@ -407,11 +430,17 @@ export const UrlBar = () => {
                 suppressNextPillPressRef.current = false;
                 return;
               }
+              if (isTabSelectionMode) {
+                return;
+              }
               setInput(activeTab?.url ?? '');
               setOverlayOpen(true);
               setUrlOverlayOpen(true);
             }}
             onLongPress={() => {
+              if (isTabSelectionMode) {
+                return;
+              }
               void handleLongPressCopyUrl();
             }}
             delayLongPress={280}
@@ -422,9 +451,82 @@ export const UrlBar = () => {
             </Text>
           </Pressable>
 
-          {!isLeftHandMode ? controls : null}
+          {!isLeftHandMode && !isTabSelectionMode ? controls : null}
         </Animated.View>
       </GestureDetector>
+
+      {isTabSelectionMode ? (
+        <View style={[styles.selectionActionWrap, selectionActionBarStyle]}>
+          {selectionWorkspaceAction ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectionWorkspaceRow}>
+              {workspaceOrder.map((workspaceId) => {
+                const candidateWorkspace = workspaces[workspaceId];
+                if (!candidateWorkspace) {
+                  return null;
+                }
+                return (
+                  <Pressable
+                    key={`${selectionWorkspaceAction}-${workspaceId}`}
+                    style={[styles.selectionWorkspaceChip, { borderColor: candidateWorkspace.color, backgroundColor: theme.surface }]}
+                    onPress={() => {
+                      if (selectionWorkspaceAction === 'move') {
+                        moveSelectedTabsToWorkspace(workspaceId);
+                      } else {
+                        copySelectedTabsToWorkspace(workspaceId);
+                      }
+                      setSelectionWorkspaceAction(null);
+                    }}
+                  >
+                    <View style={[styles.selectionWorkspaceDot, { backgroundColor: candidateWorkspace.color }]} />
+                    <Text style={[styles.selectionWorkspaceLabel, { color: theme.text }]}>{candidateWorkspace.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          ) : null}
+          <View style={styles.selectionActionRow}>
+            <Pressable
+              style={selectionActionButtonBase}
+              onPress={() => {
+                deleteSelectedTabs();
+                setSelectionWorkspaceAction(null);
+              }}
+            >
+              <MaterialIcons name="delete" size={18} color={theme.danger} />
+            </Pressable>
+            <Pressable
+              style={selectionActionButtonBase}
+              onPress={() => setSelectionWorkspaceAction((current) => (current === 'move' ? null : 'move'))}
+            >
+              <MaterialIcons name="drive-file-move" size={18} color={theme.text} />
+            </Pressable>
+            <Pressable
+              style={selectionActionButtonBase}
+              onPress={() => setSelectionWorkspaceAction((current) => (current === 'copy' ? null : 'copy'))}
+            >
+              <MaterialIcons name="content-copy" size={18} color={theme.text} />
+            </Pressable>
+            <Pressable
+              style={selectionActionButtonBase}
+              onPress={() => {
+                setSelectedTabsPinned(!areAllSelectedTabsPinned);
+                setSelectionWorkspaceAction(null);
+              }}
+            >
+              <MaterialIcons name="push-pin" size={18} color={areAllSelectedTabsPinned ? theme.accent : theme.text} />
+            </Pressable>
+            <Pressable
+              style={selectionActionButtonBase}
+              onPress={() => {
+                clearTabSelection();
+                setSelectionWorkspaceAction(null);
+              }}
+            >
+              <Text style={[styles.selectionCancelText, { color: theme.text2 }]}>{t('cancel')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
 
       {showCopiedToast ? (
         <Animated.View
@@ -594,6 +696,53 @@ const styles = StyleSheet.create({
   copyToastText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  selectionActionWrap: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    gap: 8,
+    zIndex: 35,
+  },
+  selectionActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectionActionButton: {
+    minWidth: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  selectionCancelText: {
+    fontSize: 12,
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
+  },
+  selectionWorkspaceRow: {
+    gap: 8,
+    paddingRight: 8,
+  },
+  selectionWorkspaceChip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    height: 34,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectionWorkspaceDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 999,
+  },
+  selectionWorkspaceLabel: {
+    fontSize: 12,
+    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
   },
   overlayBackdrop: {
     ...StyleSheet.absoluteFillObject,
