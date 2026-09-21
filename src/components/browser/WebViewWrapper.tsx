@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Linking, StyleSheet, View } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -32,6 +32,13 @@ const TRACKER_HOSTS = new Set([
   'widget.intercom.io',
   'cdn.mxpnl.com',
 ]);
+
+const WEBVIEW_SAFE_SCHEMES = new Set(['http', 'https', 'about', 'data', 'file', 'javascript', 'blob']);
+
+const extractScheme = (url: string): string | null => {
+  const match = /^([a-z][a-z0-9+\-.]*):/i.exec(url);
+  return match?.[1]?.toLowerCase() ?? null;
+};
 
 interface WebViewWrapperProps {
   tabId: string;
@@ -366,6 +373,12 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           });
         }}
         onShouldStartLoadWithRequest={(request) => {
+          const scheme = extractScheme(request.url);
+          if (scheme && !WEBVIEW_SAFE_SCHEMES.has(scheme)) {
+            void Linking.openURL(request.url).catch(() => {});
+            return false;
+          }
+
           if (!blockTrackers) {
             return true;
           }
