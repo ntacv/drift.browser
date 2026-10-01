@@ -421,6 +421,12 @@ export const useBrowserStore = create<BrowserStore>()(
           if (!tab) {
             return state;
           }
+
+          const hasChanges = Object.entries(patch).some(([key, value]) => tab[key as keyof Tab] !== value);
+          if (!hasChanges) {
+            return state;
+          }
+
           return {
             tabs: {
               ...state.tabs,
