@@ -32,6 +32,7 @@ export const translations = {
         compactWorkspace: 'Compact workspace',
         compactWorkspaceHint: 'Show only icons in the workspace bar',
         language: 'Language',
+        nativeName: 'English',
         languageEnglish: 'English',
         languageFrench: 'French',
         transparentMode: 'Transparent mode',
@@ -194,6 +195,7 @@ export const translations = {
         compactWorkspace: 'Espace de travail compact',
         compactWorkspaceHint: 'Afficher uniquement les icônes dans la barre des espaces',
         language: 'Langue',
+        nativeName: 'Français',
         languageEnglish: 'Anglais',
         languageFrench: 'Francais',
         transparentMode: 'Mode transparent',
@@ -356,6 +358,7 @@ export const translations = {
         compactWorkspace: 'Espacio de trabajo compacto',
         compactWorkspaceHint: 'Mostrar solo iconos en la barra de espacios de trabajo',
         language: 'Idioma',
+        nativeName: 'Español',
         languageEnglish: 'Inglés',
         languageFrench: 'Francés',
         transparentMode: 'Modo transparente',
@@ -518,6 +521,7 @@ export const translations = {
         compactWorkspace: '紧凑工作区',
         compactWorkspaceHint: '仅在工作区栏中显示图标',
         language: '语言',
+        nativeName: '中文',
         languageEnglish: '英语',
         languageFrench: '法语',
         transparentMode: '透明模式',
@@ -680,6 +684,7 @@ export const translations = {
         compactWorkspace: 'مساحة عمل مضغوطة',
         compactWorkspaceHint: 'إظهار الأيقونات فقط في شريط مساحات العمل',
         language: 'اللغة',
+        nativeName: 'العربية',
         languageEnglish: 'الإنجليزية',
         languageFrench: 'الفرنسية',
         transparentMode: 'الوضع الشفاف',
@@ -812,3 +817,10 @@ export const translations = {
 } as const;
 
 export type TranslationKey = keyof (typeof translations)['en'];
+
+export type AppLanguage = keyof typeof translations;
+
+export const APP_LANGUAGES = Object.keys(translations) as AppLanguage[];
+
+export const getLanguageNativeName = (language: AppLanguage): string =>
+    translations[language].nativeName;

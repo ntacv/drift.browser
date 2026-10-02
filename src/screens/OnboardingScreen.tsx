@@ -3,8 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useI18n } from '../i18n/useI18n';
+import { APP_LANGUAGES, getLanguageNativeName } from '../i18n/translations';
 import { useBrowserStore } from '../store/browserStore';
-import type { AppLanguage, ThemePreference } from '../store/types';
+import type { ThemePreference } from '../store/types';
 import { useTheme } from '../theme';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 
@@ -12,13 +13,7 @@ interface OnboardingScreenProps {
   onComplete: () => void;
 }
 
-const LANGUAGES: AppLanguage[] = ['en', 'fr'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
-
-const LANGUAGE_LABEL_KEY: Record<AppLanguage, 'languageEnglish' | 'languageFrench'> = {
-  en: 'languageEnglish',
-  fr: 'languageFrench',
-};
 
 const THEME_LABEL_KEY: Record<ThemePreference, 'themeSystem' | 'themeDark' | 'themeLight'> = {
   system: 'themeSystem',
@@ -55,7 +50,7 @@ export const OnboardingScreen = ({ onComplete }: OnboardingScreenProps) => {
 
             <Text style={[styles.label, { color: theme.text }]}>{t('language')}</Text>
             <View style={styles.chipsRow}>
-              {LANGUAGES.map((nextLanguage) => (
+              {APP_LANGUAGES.map((nextLanguage) => (
                 <Pressable
                   key={nextLanguage}
                   onPress={() => setLanguage(nextLanguage)}
@@ -72,7 +67,7 @@ export const OnboardingScreen = ({ onComplete }: OnboardingScreenProps) => {
                       { color: language === nextLanguage ? TEXT_ON_COLORED_BACKGROUND : theme.text },
                     ]}
                   >
-                    {t(LANGUAGE_LABEL_KEY[nextLanguage])}
+                    {getLanguageNativeName(nextLanguage)}
                   </Text>
                 </Pressable>
               ))}

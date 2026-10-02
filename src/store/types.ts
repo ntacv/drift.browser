@@ -1,7 +1,10 @@
+import type { AppLanguage } from '../i18n/translations';
+
+export type { AppLanguage };
+
 export type ThemePreference = 'light' | 'dark' | 'system';
 
 export type SearchEngine = 'brave' | 'duckduckgo' | 'google' | 'bing';
-export type AppLanguage = 'en' | 'fr';
 
 export type TabListSize = 'compact' | 'comfortable' | 'expanded';
 

@@ -8,8 +8,9 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { signIn, signOut } from '../services/fxaService';
 import { isFirefoxSyncEnabled } from '../services/securityConfig';
 import { useI18n } from '../i18n/useI18n';
+import { APP_LANGUAGES, getLanguageNativeName } from '../i18n/translations';
 import { useBrowserStore } from '../store/browserStore';
-import type { AppLanguage, BarPosition, SearchEngine, TabListSize, ThemePreference } from '../store/types';
+import type { BarPosition, SearchEngine, TabListSize, ThemePreference } from '../store/types';
 import { useTheme } from '../theme';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 import { buildImportedState, createBackupJson, parseBackupJson } from '../services/dataTransferService';
@@ -17,7 +18,6 @@ import { AppAlertDialog } from '../components/common/AppAlertDialog';
 
 const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
-const LANGUAGES: AppLanguage[] = ['en', 'fr'];
 const TAB_LIST_SIZES: TabListSize[] = ['compact', 'comfortable', 'expanded'];
 const NEW_TAB_PRESETS = ['about:blank', 'https://www.google.com'];
 const BAR_POSITIONS: BarPosition[] = ['bottom', 'top'];
@@ -39,11 +39,6 @@ const SEARCH_ENGINE_LABEL_KEY: Record<SearchEngine, 'searchEngineGoogle' | 'sear
   brave: 'searchEngineBrave',
   duckduckgo: 'searchEngineDuckduckgo',
   bing: 'searchEngineBing',
-};
-
-const LANGUAGE_LABEL_KEY: Record<AppLanguage, 'languageEnglish' | 'languageFrench'> = {
-  en: 'languageEnglish',
-  fr: 'languageFrench',
 };
 
 const BAR_POSITION_LABEL_KEY: Record<BarPosition, 'barPositionBottom' | 'barPositionTop'> = {
@@ -254,13 +249,13 @@ export const SettingsScreen = () => {
 
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
             <View style={styles.chipsRow}>
-              {LANGUAGES.map((lang) => (
+              {APP_LANGUAGES.map((lang) => (
                 <Pressable
                   key={lang}
                   onPress={() => setLanguage(lang)}
                   style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
                 >
-                  <Text style={[styles.chipLabel, { color: language === lang ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(LANGUAGE_LABEL_KEY[lang])}</Text>
+                  <Text style={[styles.chipLabel, { color: language === lang ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{getLanguageNativeName(lang)}</Text>
                 </Pressable>
               ))}
             </View>
