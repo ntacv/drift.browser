@@ -5,11 +5,12 @@
  * Flow:
  *   1. Verify the working tree is clean and pull the default branch
  *   2. Ask for the new semantic version (or take it from argv)
- *   3. Bump package.json / package-lock.json (no tag yet)
- *   4. Sync app.json expo.version
- *   5. Commit "chore(release): prepare vX.Y.Z"
- *   6. Create annotated tag vX.Y.Z
- *   7. Push the commit and the tag -> triggers .github/workflows/release-on-tag.yml
+ *   3. Generate release notes from conventional commit messages since the last tag
+ *   4. Bump package.json / package-lock.json (no tag yet)
+ *   5. Sync app.json expo.version
+ *   6. Commit version bump + release notes
+ *   7. Create annotated tag vX.Y.Z
+ *   8. Push the commit and the tag -> triggers .github/workflows/release-on-tag.yml
  *
  * Usage:
  *   npm run release            # interactive prompt
@@ -17,7 +18,7 @@
  */
 
 import { execFileSync, execSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
@@ -45,8 +46,10 @@ const run = (cmd, args = []) => {
   execFileSync(cmd, args, { stdio: 'inherit' });
 };
 
+// `git` is a real .exe, so it can be spawned without a shell. Using execFileSync
+// (instead of a shell string) keeps characters like `%` in format strings intact.
 const capture = (cmd, args = []) =>
-  execSync(`${cmd}${args.length ? ' ' + args.join(' ') : ''}`, {
+  execFileSync(cmd, args, {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   }).trim();
@@ -57,8 +60,123 @@ const readJson = (path) =>
 const writeJson = (path, data) =>
   writeFileSync(path, JSON.stringify(data, null, 2) + '\n', 'utf8');
 
+// --- Release notes ----------------------------------------------------------
+
+const CONVENTIONAL_RE =
+  /^(?<type>[a-zA-Z]+)(?:\((?<scope>[^)]*)\))?(?<bang>!)?:\s*(?<subject>.+)$/;
+
+const CATEGORIES = [
+  { key: 'feat', title: '✨ Features' },
+  { key: 'fix', title: '🐛 Bug Fixes' },
+  { key: 'perf', title: '⚡ Performance' },
+  { key: 'refactor', title: '♻️ Refactoring' },
+  { key: 'style', title: '💄 Style' },
+  { key: 'test', title: '✅ Tests' },
+  { key: 'docs', title: '📝 Documentation' },
+  { key: 'build', title: '🏗️ Build & CI' },
+  { key: 'chore', title: '🔧 Chores' },
+  { key: 'revert', title: '⏪ Reverts' },
+];
+
+const repoUrl = () => {
+  try {
+    let url = capture('git', ['remote', 'get-url', 'origin']);
+    url = url.replace(/\.git$/, '').replace(/\/$/, '');
+    if (url.startsWith('git@')) {
+      url = 'https://' + url.replace(/^git@/, '').replace(':', '/');
+    }
+    return url;
+  } catch {
+    return '';
+  }
+};
+
+// Most recent tag reachable from HEAD (the release tag does not exist yet).
+const findPreviousTag = () => {
+  try {
+    return capture('git', ['describe', '--tags', '--abbrev=0', 'HEAD']);
+  } catch {
+    return null;
+  }
+};
+
+const collectCommits = (range) => {
+  const out = capture('git', ['log', range, '--pretty=format:%H%x1e%s']);
+  return out
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const idx = line.indexOf('\x1e');
+      return { hash: line.slice(0, idx), subject: line.slice(idx + 1) };
+    });
+};
+
+const linkPr = (url, subject) =>
+  subject.replace(
+    /\s*\(#(\d+)\)\s*$/,
+    url ? ` [#$1](${url}/pull/$1)` : ` #$1`
+  );
+
+const buildReleaseNotes = (prevTag, tag) => {
+  const url = repoUrl();
+  const commits = collectCommits(prevTag ? `${prevTag}..HEAD` : 'HEAD');
+
+  const buckets = new Map();
+  for (const c of commits) {
+    const match = c.subject.match(CONVENTIONAL_RE);
+    let type = match ? match.groups.type.toLowerCase() : 'other';
+    if (type === 'ci') type = 'build';
+    const subject = match ? match.groups.subject : c.subject;
+    if (!buckets.has(type)) buckets.set(type, []);
+    buckets.get(type).push({ hash: c.hash, subject: linkPr(url, subject) });
+  }
+
+  const sha = (hash) =>
+    url ? `[\`${hash.slice(0, 7)}\`](${url}/commit/${hash})` : `\`${hash.slice(0, 7)}\``;
+
+  const lines = [`# ${tag}`, ''];
+
+  if (commits.length === 0) {
+    lines.push('_No changes recorded since the previous release._', '');
+  }
+
+  for (const cat of CATEGORIES) {
+    const items = buckets.get(cat.key);
+    if (!items) continue;
+    buckets.delete(cat.key);
+    lines.push(`## ${cat.title}`, '');
+    for (const it of items) lines.push(`- ${it.subject} (${sha(it.hash)})`);
+    lines.push('');
+  }
+
+  // Catch-all for non-conventional subjects.
+  const other = buckets.get('other');
+  if (other) {
+    buckets.delete('other');
+    lines.push('## Other Changes', '');
+    for (const it of other) lines.push(`- ${it.subject} (${sha(it.hash)})`);
+    lines.push('');
+  }
+
+  // Safety net for anything not mapped above.
+  for (const [type, items] of buckets) {
+    lines.push(`## ${type}`, '');
+    for (const it of items) lines.push(`- ${it.subject}`);
+    lines.push('');
+  }
+
+  if (url && prevTag) {
+    lines.push(
+      `**Full Changelog:** [\`${prevTag}...${tag}\`](${url}/compare/${prevTag}...${tag})`
+    );
+  }
+
+  return lines.join('\n').trimEnd() + '\n';
+};
+
 async function main() {
   const repoRoot = capture('git', ['rev-parse', '--show-toplevel']);
+  process.chdir(repoRoot);
 
   // --- Preflight ------------------------------------------------------------
   step('Checking git state');
@@ -132,6 +250,18 @@ async function main() {
 
   log(`\n  ${current}  ->  ${next}  (tag ${tag})`);
 
+  // --- Release notes --------------------------------------------------------
+  // Generate BEFORE the version-bump commit so the release commit itself is
+  // excluded from the notes.
+  const prevTag = findPreviousTag();
+  step('Generating release notes from commit messages');
+  const notes = buildReleaseNotes(prevTag, tag);
+  const notesDir = `${repoRoot}/docs/releases`;
+  const notesRel = `docs/releases/${tag}.md`;
+  mkdirSync(notesDir, { recursive: true });
+  writeFileSync(`${notesDir}/${tag}.md`, notes, 'utf8');
+  log(`  Wrote ${notesRel} (from ${prevTag ?? 'the first commit'})`);
+
   // --- Bump metadata --------------------------------------------------------
   step('Bumping package.json / package-lock.json');
   run('npm', ['version', next, '--no-git-tag-version', '--ignore-scripts']);
@@ -143,8 +273,14 @@ async function main() {
   log(`  app.json expo.version -> ${next}`);
 
   // --- Commit + tag ---------------------------------------------------------
-  step('Committing version bump');
-  run('git', ['add', 'package.json', 'package-lock.json', 'app.json']);
+  step('Committing version bump and release notes');
+  run('git', [
+    'add',
+    'package.json',
+    'package-lock.json',
+    'app.json',
+    notesRel,
+  ]);
   run('git', ['commit', '-m', `chore(release): prepare ${tag}`]);
 
   step(`Creating annotated tag ${tag}`);
