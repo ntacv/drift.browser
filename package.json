@@ -15,6 +15,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "release": "node scripts/release.mjs",
     "release:android": "eas build --platform android --profile production",
     "release:ios": "eas build --platform ios --profile production",
     "release:all": "eas build --platform all --profile production"

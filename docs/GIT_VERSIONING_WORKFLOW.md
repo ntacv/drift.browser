@@ -78,28 +78,41 @@ Examples:
 
 ### B) Create a version tag
 
-From local clone on `main`:
+From a local clone on `main`, run the interactive release script:
 
-1. Bump version metadata first (example `1.1.0`):
+```bash
+npm run release
+```
+
+It will ask for the new version number, then:
+
+1. Check the working tree is clean and pull `main`
+2. Bump `package.json` and `package-lock.json`
+3. Sync `app.json` `expo.version`
+4. Commit `chore(release): prepare vX.Y.Z`
+5. Create an annotated tag `vX.Y.Z`
+6. Push the commit and the tag
+
+You can also pass the version directly (non-interactive):
+
+```bash
+npm run release -- 1.1.0
+```
+
+<details>
+<summary>Manual equivalent (if you prefer doing it by hand)</summary>
 
 ```bash
 npm version 1.1.0 --no-git-tag-version
-```
-
-2. Commit version bump:
-
-```bash
 git add package.json package-lock.json app.json
 git commit -m "chore(release): prepare v1.1.0"
-```
-
-3. Create and push the tag:
-
-```bash
 git pull origin main
 git tag -a v1.1.0 -m "Release v1.1.0"
+git push origin main
 git push origin v1.1.0
 ```
+
+</details>
 
 ### C) Automatic GitHub Release
 
