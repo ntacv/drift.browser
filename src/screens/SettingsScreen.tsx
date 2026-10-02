@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -14,6 +14,7 @@ import { useTheme } from '../theme';
 import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 import { buildImportedState, createBackupJson, parseBackupJson } from '../services/dataTransferService';
 import { AppAlertDialog } from '../components/common/AppAlertDialog';
+import { AnimatedSwitch } from '../components/common/AnimatedSwitch';
 
 const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
@@ -66,6 +67,29 @@ const CardTitle = ({
     </View>
     <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
   </View>
+);
+
+const SwitchRow = ({
+  value,
+  onValueChange,
+  children,
+  accessibilityLabel,
+}: {
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  children: React.ReactNode;
+  accessibilityLabel?: string;
+}) => (
+  <Pressable
+    onPress={() => onValueChange(!value)}
+    style={styles.switchRow}
+    accessibilityRole="switch"
+    accessibilityState={{ checked: value }}
+    accessibilityLabel={accessibilityLabel}
+  >
+    <View style={styles.switchRowContent}>{children}</View>
+    <AnimatedSwitch value={value} />
+  </Pressable>
 );
 
 export const SettingsScreen = () => {
@@ -268,10 +292,9 @@ export const SettingsScreen = () => {
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <CardTitle icon="shield" title={t('privacy')} theme={theme} />
-            <View style={styles.switchRow}>
+            <SwitchRow value={blockTrackers} onValueChange={setBlockTrackers} accessibilityLabel={t('blockTrackers')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('blockTrackers')}</Text>
-              <Switch value={blockTrackers} onValueChange={setBlockTrackers} />
-            </View>
+            </SwitchRow>
 
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('defaultSearchEngine')}</Text>
             <View style={styles.chipsRow}>
@@ -340,10 +363,9 @@ export const SettingsScreen = () => {
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <CardTitle icon="tab" title={t('tabs')} theme={theme} />
-            <View style={styles.switchRow}>
+            <SwitchRow value={isLeftHandMode} onValueChange={setLeftHandMode} accessibilityLabel={t('leftHandMode')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('leftHandMode')}</Text>
-              <Switch value={isLeftHandMode} onValueChange={setLeftHandMode} />
-            </View>
+            </SwitchRow>
             <Text style={[styles.rowText, { color: theme.text2 }]}>{t('verticalTabListSize')}</Text>
             <View style={styles.chipsRow}>
               {TAB_LIST_SIZES.map((size) => (
@@ -357,21 +379,15 @@ export const SettingsScreen = () => {
               ))}
             </View>
 
-            <View style={styles.switchRow}>
-              <View>
-                <Text style={[styles.rowText, { color: theme.text }]}>{t('compactTabList')}</Text>
-                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('compactTabListHint')}</Text>
-              </View>
-              <Switch value={isCompactTabList} onValueChange={setCompactTabList} />
-            </View>
+            <SwitchRow value={isCompactTabList} onValueChange={setCompactTabList} accessibilityLabel={t('compactTabList')}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('compactTabList')}</Text>
+              <Text style={[styles.helperText, { color: theme.text3 }]}>{t('compactTabListHint')}</Text>
+            </SwitchRow>
 
-            <View style={styles.switchRow}>
-              <View>
-                <Text style={[styles.rowText, { color: theme.text }]}>{t('compactWorkspace')}</Text>
-                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('compactWorkspaceHint')}</Text>
-              </View>
-              <Switch value={isCompactWorkspace} onValueChange={setCompactWorkspace} />
-            </View>
+            <SwitchRow value={isCompactWorkspace} onValueChange={setCompactWorkspace} accessibilityLabel={t('compactWorkspace')}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('compactWorkspace')}</Text>
+              <Text style={[styles.helperText, { color: theme.text3 }]}>{t('compactWorkspaceHint')}</Text>
+            </SwitchRow>
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
@@ -389,18 +405,14 @@ export const SettingsScreen = () => {
               ))}
             </View>
 
-            <View style={styles.switchRow}>
+            <SwitchRow value={isTransparentMode} onValueChange={setTransparentMode} accessibilityLabel={t('transparentMode')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('transparentMode')}</Text>
-              <Switch value={isTransparentMode} onValueChange={setTransparentMode} />
-            </View>
+            </SwitchRow>
 
-            <View style={styles.switchRow}>
-              <View>
-                <Text style={[styles.rowText, { color: theme.text }]}>{t('websiteThemeColor')}</Text>
-                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('websiteThemeColorHint')}</Text>
-              </View>
-              <Switch value={useWebsiteThemeColor} onValueChange={setUseWebsiteThemeColor} />
-            </View>
+            <SwitchRow value={useWebsiteThemeColor} onValueChange={setUseWebsiteThemeColor} accessibilityLabel={t('websiteThemeColor')}>
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('websiteThemeColor')}</Text>
+              <Text style={[styles.helperText, { color: theme.text3 }]}>{t('websiteThemeColorHint')}</Text>
+            </SwitchRow>
 
             {debugMode ? (
               <View style={[styles.debugPanel, { borderColor: theme.border, backgroundColor: theme.surface2 }]}>
@@ -431,18 +443,18 @@ export const SettingsScreen = () => {
               </View>
             ) : null}
 
-            <View style={styles.switchRow}>
+            <SwitchRow value={hideBarOnScroll} onValueChange={setHideBarOnScroll} accessibilityLabel={t('hideBarOnScroll')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('hideBarOnScroll')}</Text>
-              <Switch value={hideBarOnScroll} onValueChange={setHideBarOnScroll} />
-            </View>
+            </SwitchRow>
 
-            <View style={styles.switchRow}>
-              <View>
-                <Text style={[styles.rowText, { color: theme.text }]}>{t('invertUrlBarSwipeDirection')}</Text>
-                <Text style={[styles.helperText, { color: theme.text3 }]}>{t('invertUrlBarSwipeDirectionHint')}</Text>
-              </View>
-              <Switch value={invertUrlBarSwipeDirection} onValueChange={setInvertUrlBarSwipeDirection} />
-            </View>
+            <SwitchRow
+              value={invertUrlBarSwipeDirection}
+              onValueChange={setInvertUrlBarSwipeDirection}
+              accessibilityLabel={t('invertUrlBarSwipeDirection')}
+            >
+              <Text style={[styles.rowText, { color: theme.text }]}>{t('invertUrlBarSwipeDirection')}</Text>
+              <Text style={[styles.helperText, { color: theme.text3 }]}>{t('invertUrlBarSwipeDirectionHint')}</Text>
+            </SwitchRow>
 
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('barPosition')}</Text>
             <View style={styles.chipsRow}>
@@ -459,10 +471,9 @@ export const SettingsScreen = () => {
               ))}
             </View>
 
-            <View style={styles.switchRow}>
+            <SwitchRow value={isFullUrlVisible} onValueChange={setFullUrlVisible} accessibilityLabel={t('displayFullUrl')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('displayFullUrl')}</Text>
-              <Switch value={isFullUrlVisible} onValueChange={setFullUrlVisible} />
-            </View>
+            </SwitchRow>
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
@@ -643,6 +654,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
+    minHeight: 44,
+    paddingVertical: 4,
+  },
+  switchRowContent: {
+    flex: 1,
   },
   debugPanel: {
     borderWidth: 1,
