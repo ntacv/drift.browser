@@ -84,7 +84,7 @@ From a local clone on `main`, run the interactive release script:
 npm run release
 ```
 
-It will ask for the new version number, then:
+It will ask for the new version number (press Enter to accept the suggested next patch version), then:
 
 1. Check the working tree is clean and pull `main`
 2. Generate release notes from conventional commit messages (`docs/releases/vX.Y.Z.md`)

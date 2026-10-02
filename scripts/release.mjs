@@ -24,6 +24,13 @@ import { stdin as input, stdout as output } from 'node:process';
 
 const SEMVER_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
+// Default used when the prompt is answered with an empty line: next patch version.
+const suggestNextVersion = (version) => {
+  const match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) return version;
+  return `${match[1]}.${match[2]}.${Number(match[3]) + 1}`;
+};
+
 const log = (msg) => console.log(msg);
 const step = (msg) => console.log(`\n\u2192 ${msg}`);
 const fail = (msg) => {
@@ -226,8 +233,19 @@ async function main() {
   const rl = createInterface({ input, output });
   try {
     if (!next) {
+      const suggested = suggestNextVersion(current);
       step(`Current version: ${current}`);
-      next = (await rl.question('Enter the new version (e.g. 1.4.0): ')).trim();
+      const answer = (
+        await rl.question(
+          `Enter the new version (e.g. ${suggested}, Enter to accept): `
+        )
+      ).trim();
+      if (answer) {
+        next = answer;
+      } else {
+        next = suggested;
+        log(`  No input; using suggested version ${suggested}.`);
+      }
     }
   } finally {
     rl.close();
