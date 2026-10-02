@@ -221,7 +221,7 @@ export const buildImportedState = (
         history: Array.isArray(next.history) ? next.history : [],
         themePreference: next.themePreference,
         searchEngine: next.searchEngine,
-        language: next.language,
+        language: next.language === 'fr' ? 'fr' : 'en',
         tabListSize: next.tabListSize,
         menuTileOrder: Array.isArray(next.menuTileOrder) ? next.menuTileOrder : current.menuTileOrder,
         isLeftHandMode: Boolean(next.isLeftHandMode),
