@@ -113,6 +113,8 @@ export interface BrowserState {
   isCompactWorkspace: boolean;
   linkActionPanel: LinkActionPanelPayload | null;
   hasCompletedOnboarding: boolean;
+  isTabSelectionMode: boolean;
+  selectedTabIds: string[];
 }
 
 export interface BrowserActions {
@@ -168,6 +170,13 @@ export interface BrowserActions {
   setLinkActionPanel: (payload: LinkActionPanelPayload | null) => void;
   setHasCompletedOnboarding: (value: boolean) => void;
   requestPictureInPicture: (tabId: string) => void;
+  enterTabSelectionMode: (initialTabId?: string) => void;
+  toggleTabSelection: (tabId: string) => void;
+  clearTabSelection: () => void;
+  deleteSelectedTabs: () => void;
+  moveSelectedTabsToWorkspace: (targetWorkspaceId: string) => void;
+  copySelectedTabsToWorkspace: (targetWorkspaceId: string) => void;
+  setSelectedTabsPinned: (pinned: boolean) => void;
 
   setSyncUser: (syncUser: SyncUser | null) => void;
   setLastSyncedAt: (timestamp: number | null) => void;

@@ -32,6 +32,8 @@ export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenPr
   const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const linkActionPanel = useBrowserStore((state) => state.linkActionPanel);
   const setLinkActionPanel = useBrowserStore((state) => state.setLinkActionPanel);
+  const isTabSelectionMode = useBrowserStore((state) => state.isTabSelectionMode);
+  const clearTabSelection = useBrowserStore((state) => state.clearTabSelection);
   const activeTab = useBrowserStore(getActiveTab);
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
 
@@ -104,6 +106,12 @@ export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenPr
       return true;
     }
 
+    // Priority 3.7: Exit tab selection mode
+    if (isTabSelectionMode) {
+      clearTabSelection();
+      return true;
+    }
+
     // Priority 4: Close menu
     if (isMenuOpen) {
       setMenuOpen(false);
@@ -137,6 +145,8 @@ export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenPr
     requestCloseUrlOverlay,
     linkActionPanel,
     setLinkActionPanel,
+    isTabSelectionMode,
+    clearTabSelection,
     setTrayOpen,
     setMenuOpen,
     requestActiveTabNavigation,

@@ -13,6 +13,8 @@ interface TabCardProps {
   tab: Tab;
   isActive: boolean;
   workspaceColor: string;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
   onPress: () => void;
   onClose: () => void;
   onLongPress?: () => void;
@@ -22,6 +24,8 @@ export const TabCard = ({
   tab,
   isActive,
   workspaceColor,
+  isSelectionMode = false,
+  isSelected = false,
   onPress,
   onClose,
   onLongPress,
@@ -55,13 +59,15 @@ export const TabCard = ({
         isCompactTabList && styles.cardCompact,
         {
           backgroundColor: theme.surface2,
-          borderColor: isActive ? workspaceColor : theme.border,
+          borderColor: isSelectionMode
+            ? (isSelected ? workspaceColor : theme.border)
+            : (isActive ? workspaceColor : theme.border),
         },
       ]}
     >
       <View style={[styles.activeBar, { backgroundColor: isActive ? workspaceColor : 'transparent' }]} />
       <View style={[styles.contentRow, isCompactTabList && styles.contentRowCompact]}>
-        {isLeftHandMode ? (
+        {isLeftHandMode && !isSelectionMode ? (
           <Pressable
             onPress={() => {
               onClose();
@@ -102,6 +108,16 @@ export const TabCard = ({
           </Text>
         </View>
 
+        {isSelectionMode ? (
+          <View style={styles.selectionIconSlot}>
+            <MaterialIcons
+              name={isSelected ? 'check-circle' : 'radio-button-unchecked'}
+              size={18}
+              color={isSelected ? workspaceColor : theme.text2}
+            />
+          </View>
+        ) : null}
+
         {tab.isPinned ? (
           <View style={[styles.pinIconSlot, isCompactTabList && styles.pinIconSlotCompact]}>
             <MaterialIcons
@@ -113,7 +129,7 @@ export const TabCard = ({
           </View>
         ) : null}
 
-        {!isLeftHandMode ? (
+        {!isLeftHandMode && !isSelectionMode ? (
           <Pressable
             onPress={() => {
               onClose();
@@ -203,6 +219,12 @@ const styles = StyleSheet.create({
   },
   pinIcon: {
     textAlign: 'center',
+  },
+  selectionIconSlot: {
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textBlock: {
     flex: 1,
