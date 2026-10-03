@@ -32,7 +32,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ntacv.drift"
+      "package": "com.ntacv.drift",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
