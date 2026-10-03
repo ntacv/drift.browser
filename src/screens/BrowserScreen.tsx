@@ -173,6 +173,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   websiteLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 });

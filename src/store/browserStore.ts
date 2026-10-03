@@ -742,7 +742,7 @@ export const useBrowserStore = create<BrowserStore>()(
     }),
     {
       name: 'drift-browser-store-v2',
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState: any, version: number) => {
         if (!persistedState || typeof persistedState !== 'object') {
@@ -789,10 +789,71 @@ export const useBrowserStore = create<BrowserStore>()(
             )
             : tabs;
 
+        const repairedTabs: Record<string, Tab> = normalizedTabs ?? {};
+        const defaultUrl =
+          typeof persistedState.defaultNewTabUrl === 'string' && persistedState.defaultNewTabUrl.trim()
+            ? persistedState.defaultNewTabUrl
+            : DEFAULT_URL;
+        const workspaceIds: string[] = Array.isArray(persistedState.workspaceOrder)
+          ? persistedState.workspaceOrder.filter(
+            (id: unknown): id is string => typeof id === 'string' && Boolean(normalizedWorkspaces[id]),
+          )
+          : Object.keys(normalizedWorkspaces);
+
+        if (workspaceIds.length === 0) {
+          const fallbackWorkspaceId = 'ws-personal';
+          const fallbackTab = makeTab(fallbackWorkspaceId, defaultUrl);
+          repairedTabs[fallbackTab.id] = fallbackTab;
+          normalizedWorkspaces[fallbackWorkspaceId] = {
+            id: fallbackWorkspaceId,
+            label: 'Personal',
+            emoji: 'home',
+            color: '#4B8BFF',
+            tabIds: [fallbackTab.id],
+            activeTabId: fallbackTab.id,
+          };
+          workspaceIds.push(fallbackWorkspaceId);
+        }
+
+        workspaceIds.forEach((workspaceId) => {
+          const workspace = normalizedWorkspaces[workspaceId];
+          const validTabIds = Array.isArray(workspace.tabIds)
+            ? workspace.tabIds.filter(
+              (tabId): tabId is string => Boolean(repairedTabs[tabId]) && repairedTabs[tabId].workspaceId === workspaceId,
+            )
+            : [];
+
+          if (validTabIds.length === 0) {
+            const fallbackTab = makeTab(workspaceId, defaultUrl);
+            repairedTabs[fallbackTab.id] = fallbackTab;
+            normalizedWorkspaces[workspaceId] = {
+              ...workspace,
+              tabIds: [fallbackTab.id],
+              activeTabId: fallbackTab.id,
+            };
+            return;
+          }
+
+          normalizedWorkspaces[workspaceId] = {
+            ...workspace,
+            tabIds: validTabIds,
+            activeTabId: validTabIds.includes(workspace.activeTabId ?? '')
+              ? workspace.activeTabId
+              : validTabIds[0],
+          };
+        });
+
+        const activeWorkspaceId =
+          typeof persistedState.activeWorkspaceId === 'string' && workspaceIds.includes(persistedState.activeWorkspaceId)
+            ? persistedState.activeWorkspaceId
+            : workspaceIds[0];
+
         return {
           ...persistedState,
           workspaces: normalizedWorkspaces,
-          tabs: normalizedTabs,
+          workspaceOrder: workspaceIds,
+          activeWorkspaceId,
+          tabs: repairedTabs,
           hasCompletedOnboarding:
             typeof persistedState.hasCompletedOnboarding === 'boolean'
               ? persistedState.hasCompletedOnboarding

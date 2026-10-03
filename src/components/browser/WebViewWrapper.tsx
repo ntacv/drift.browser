@@ -398,7 +398,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
 
 const styles = StyleSheet.create({
   webview: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   hidden: {
     opacity: 0,
