@@ -50,7 +50,7 @@ export const ErrorPage = ({ error, onRetry, onDismiss }: ErrorPageProps) => {
 
 const styles = StyleSheet.create({
     overlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
