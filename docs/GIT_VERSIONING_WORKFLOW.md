@@ -8,6 +8,17 @@ This workflow keeps feature history easy to read and makes releases traceable.
 - Keep one feature per commit when possible
 - Use semantic version tags (`vX.Y.Z`)
 - Auto-publish GitHub Releases from tags
+- Keep `main` linear: **always rebase, never merge**
+
+## 0) History Rule: Never Merge, Always Rebase
+
+**Never create merge commits. Always rebase.**
+
+- Update a branch against `main` with `git rebase main` (or `git pull --rebase`), never `git merge`
+- Integrate work into `main` with a fast-forward or rebase, never a merge commit
+- If a pull request offers merge strategies, choose **Rebase and merge** (or squash), not a merge commit
+- Never `git merge` a release or tooling branch into `main`
+- Rationale: a linear history keeps release notes readable and lets `scripts/release.mjs` keep generating one entry per change
 
 ## 1) Branching
 
@@ -70,11 +81,12 @@ Examples:
 
 ## 5) Release Flow
 
-### A) Prepare and merge
+### A) Prepare and integrate (rebase only)
 
 1. Create feature/fix branch
 2. Commit with conventional messages
-3. Open PR and merge to `main`
+3. Rebase onto `main` and open a PR
+4. Integrate with **Rebase and merge** (or squash) — never a merge commit
 
 ### B) Create a version tag
 

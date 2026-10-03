@@ -1,3 +1,7 @@
+# Release On Tag
+#
+# Repo history rule: never merge, always rebase. Keep `main` linear so release
+# notes (generated from conventional commits) stay readable and traceable.
 name: Release On Tag
 
 on:
