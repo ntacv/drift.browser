@@ -97,6 +97,28 @@ npx expo run:ios
 - `npm run ios`
 - `npm run web`
 
+## Release Pipeline (Tag-Triggered)
+
+1. Work from an issue on a focused branch (`fix/...`, `feat/...`, etc.).
+2. Run checks needed for the change (`npx tsc --noEmit`, plus tests if applicable).
+3. Start the release helper on the branch you want to release:
+
+```bash
+npm run release
+# or: npm run release -- 1.4.0
+```
+
+This script generates release notes in `docs/releases/vX.Y.Z.md`, bumps app/package versions, commits, and creates/pushes tag `vX.Y.Z`.
+
+When the tag is pushed, `.github/workflows/release-on-tag.yml` runs automatically and:
+
+- builds Android via EAS (`production` profile),
+- creates/updates the GitHub Release,
+- appends EAS build/download links to the release notes,
+- uploads `driftBrowser.apk` when the CI runner can download it.
+
+Full process details: [docs/GIT_VERSIONING_WORKFLOW.md](docs/GIT_VERSIONING_WORKFLOW.md)
+
 ## Stack
 
 - Expo SDK 55

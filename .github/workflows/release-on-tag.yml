@@ -40,23 +40,59 @@ jobs:
         run: |
           eas build --platform android --profile production --non-interactive --wait --json > android-build.json
 
-      - name: Download build artifacts
+      - name: Prepare release body and artifacts
+        id: prepare_release
         run: |
           mkdir -p artifacts
+          mkdir -p release
           TAG_NAME="${GITHUB_REF_NAME}"
 
           ANDROID_URL=$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('android-build.json','utf8'));console.log(data[0]?.artifacts?.buildUrl || data.artifacts?.buildUrl || '');")
+          BUILD_DETAILS_URL=$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('android-build.json','utf8'));console.log(data[0]?.buildDetailsPageUrl || data.buildDetailsPageUrl || '');")
 
           if [ -z "$ANDROID_URL" ]; then
             echo "Android build artifact URL not found" >&2
             exit 1
           fi
 
-          curl -L "$ANDROID_URL" -o "artifacts/driftBrowser.apk"
+          echo "android_url=$ANDROID_URL" >> "$GITHUB_OUTPUT"
+          echo "build_details_url=$BUILD_DETAILS_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub Release
+          NOTES_PATH="docs/releases/${TAG_NAME}.md"
+          RELEASE_BODY_PATH="release/release-body.md"
+
+          if [ -f "$NOTES_PATH" ]; then
+            cat "$NOTES_PATH" > "$RELEASE_BODY_PATH"
+          else
+            printf "# %s\n\n_Release notes file not found: %s_\n\n" "$TAG_NAME" "$NOTES_PATH" > "$RELEASE_BODY_PATH"
+          fi
+
+          {
+            printf "\n## Android Build\n\n"
+            printf "- Download URL: %s\n" "$ANDROID_URL"
+            if [ -n "$BUILD_DETAILS_URL" ]; then
+              printf -- "- EAS build details: %s\n" "$BUILD_DETAILS_URL"
+            fi
+          } >> "$RELEASE_BODY_PATH"
+
+          echo "release_body_path=$RELEASE_BODY_PATH" >> "$GITHUB_OUTPUT"
+
+          if curl -fL "$ANDROID_URL" -o "artifacts/driftBrowser.apk"; then
+            echo "apk_path=artifacts/driftBrowser.apk" >> "$GITHUB_OUTPUT"
+          else
+            echo "APK download failed in workflow runner; publishing release with URL only."
+          fi
+
+      - name: Create GitHub Release (with APK)
+        if: ${{ steps.prepare_release.outputs.apk_path != '' }}
         uses: softprops/action-gh-release@v2
         with:
-          body_path: docs/releases/${{ github.ref_name }}.md
+          body_path: ${{ steps.prepare_release.outputs.release_body_path }}
           files: |
-            artifacts/driftBrowser.apk
+            ${{ steps.prepare_release.outputs.apk_path }}
+
+      - name: Create GitHub Release (URL only)
+        if: ${{ steps.prepare_release.outputs.apk_path == '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ steps.prepare_release.outputs.release_body_path }}
