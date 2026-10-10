@@ -1,8 +1,11 @@
-import Hawk from 'hawk';
+import { hmac } from '@noble/hashes/hmac.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 
 import type { BrowserState, SyncPreferences } from '../store/types';
 
 const SYNC_BASE_URL = 'https://sync-1-us-west4-g.sync.services.mozilla.com';
+const SYNC_HOST = 'sync-1-us-west4-g.sync.services.mozilla.com';
+const SYNC_PORT = '443';
 const COLLECTION_PATH = '/storage/drift-state/state';
 
 const encryptPayload = async (plain: string): Promise<string> => {
@@ -21,15 +24,46 @@ interface SyncAuth {
   hawkKey: string;
 }
 
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const NONCE_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const textEncoder = new TextEncoder();
+
+const toBase64 = (bytes: Uint8Array): string => {
+  let encoded = '';
+  for (let i = 0; i < bytes.length; i += 3) {
+    const b0 = bytes[i];
+    const b1 = bytes[i + 1];
+    const b2 = bytes[i + 2];
+    encoded += BASE64_ALPHABET[b0 >> 2];
+    encoded += BASE64_ALPHABET[((b0 & 0x03) << 4) | (b1 === undefined ? 0 : b1 >> 4)];
+    encoded += b1 === undefined ? '=' : BASE64_ALPHABET[((b1 & 0x0f) << 2) | (b2 === undefined ? 0 : b2 >> 6)];
+    encoded += b2 === undefined ? '=' : BASE64_ALPHABET[b2 & 0x3f];
+  }
+  return encoded;
+};
+
+const randomNonce = (): string => {
+  let nonce = '';
+  for (let i = 0; i < 6; i += 1) {
+    nonce += NONCE_ALPHABET[Math.floor(Math.random() * NONCE_ALPHABET.length)];
+  }
+  return nonce;
+};
+
+/**
+ * Build a Hawk Authorization header (https://github.com/hueniverse/hawk).
+ *
+ * Reimplements Hawk.client.header's MAC generation so sync requests work on
+ * React Native, where the Node-only "hawk" package cannot be bundled.
+ */
 const buildHawkHeader = (auth: SyncAuth, method: 'GET' | 'PUT', resource: string): string => {
-  const { field } = Hawk.client.header(`${SYNC_BASE_URL}${resource}`, method, {
-    credentials: {
-      id: auth.hawkId,
-      key: auth.hawkKey,
-      algorithm: 'sha256',
-    },
-  });
-  return field;
+  const ts = Math.floor(Date.now() / 1000);
+  const nonce = randomNonce();
+  // Matches hawk's generateNormalizedString for a header request without a
+  // payload hash, ext, app or dlg: seven fields followed by two empty lines.
+  const normalized = `hawk.1.header\n${ts}\n${nonce}\n${method}\n${resource}\n${SYNC_HOST}\n${SYNC_PORT}\n\n\n`;
+  const mac = toBase64(hmac(sha256, textEncoder.encode(auth.hawkKey), textEncoder.encode(normalized)));
+  return `Hawk id="${auth.hawkId}", ts="${ts}", nonce="${nonce}", mac="${mac}"`;
 };
 
 /** Return a filtered snapshot of state containing only the categories enabled in prefs. */
