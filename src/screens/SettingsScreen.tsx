@@ -213,9 +213,9 @@ export const SettingsScreen = () => {
     const ok = await pushState(state, auth, state.syncPreferences);
     if (ok) {
       setLastSyncedAt(Date.now());
-      Alert.alert(t('syncNow'), t('syncSuccess'));
+      setAlertDialog({ title: t('syncNow'), message: t('syncSuccess') });
     } else {
-      Alert.alert(t('syncNow'), t('syncFailed'));
+      setAlertDialog({ title: t('syncNow'), message: t('syncFailed') });
     }
   }, [setLastSyncedAt, t]);
 
@@ -297,34 +297,34 @@ export const SettingsScreen = () => {
               <>
                 <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('syncPreferences')}</Text>
                 <View style={styles.syncPrefsRows}>
-                  <View style={styles.switchRow}>
+                  <SwitchRow
+                    value={syncPreferences.syncTabs}
+                    onValueChange={(value) => setSyncPreferences({ syncTabs: value })}
+                    accessibilityLabel={t('syncTabs')}
+                  >
                     <Text style={[styles.rowText, { color: theme.text }]}>{t('syncTabs')}</Text>
-                    <Switch
-                      value={syncPreferences.syncTabs}
-                      onValueChange={(value) => setSyncPreferences({ syncTabs: value })}
-                    />
-                  </View>
-                  <View style={styles.switchRow}>
+                  </SwitchRow>
+                  <SwitchRow
+                    value={syncPreferences.syncWorkspaces}
+                    onValueChange={(value) => setSyncPreferences({ syncWorkspaces: value })}
+                    accessibilityLabel={t('syncWorkspaces')}
+                  >
                     <Text style={[styles.rowText, { color: theme.text }]}>{t('syncWorkspaces')}</Text>
-                    <Switch
-                      value={syncPreferences.syncWorkspaces}
-                      onValueChange={(value) => setSyncPreferences({ syncWorkspaces: value })}
-                    />
-                  </View>
-                  <View style={styles.switchRow}>
+                  </SwitchRow>
+                  <SwitchRow
+                    value={syncPreferences.syncBookmarks}
+                    onValueChange={(value) => setSyncPreferences({ syncBookmarks: value })}
+                    accessibilityLabel={t('syncBookmarks')}
+                  >
                     <Text style={[styles.rowText, { color: theme.text }]}>{t('syncBookmarks')}</Text>
-                    <Switch
-                      value={syncPreferences.syncBookmarks}
-                      onValueChange={(value) => setSyncPreferences({ syncBookmarks: value })}
-                    />
-                  </View>
-                  <View style={styles.switchRow}>
+                  </SwitchRow>
+                  <SwitchRow
+                    value={syncPreferences.syncHistory}
+                    onValueChange={(value) => setSyncPreferences({ syncHistory: value })}
+                    accessibilityLabel={t('syncHistory')}
+                  >
                     <Text style={[styles.rowText, { color: theme.text }]}>{t('syncHistory')}</Text>
-                    <Switch
-                      value={syncPreferences.syncHistory}
-                      onValueChange={(value) => setSyncPreferences({ syncHistory: value })}
-                    />
-                  </View>
+                  </SwitchRow>
                 </View>
                 <Pressable
                   style={[styles.button, { backgroundColor: theme.accent }]}
