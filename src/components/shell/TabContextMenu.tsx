@@ -23,9 +23,10 @@ interface TabContextMenuProps {
   visible: boolean;
   tab: Tab | null;
   onClose: () => void;
+  onSelectTabs?: (tabId: string) => void;
 }
 
-export const TabContextMenu = ({ visible, tab, onClose }: TabContextMenuProps) => {
+export const TabContextMenu = ({ visible, tab, onClose, onSelectTabs }: TabContextMenuProps) => {
   const { theme } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -37,13 +38,11 @@ export const TabContextMenu = ({ visible, tab, onClose }: TabContextMenuProps) =
   const closeTab = useBrowserStore((state) => state.closeTab);
 
   const translateY = useRef(new Animated.Value(0)).current;
-  const [showWorkspacePicker, setShowWorkspacePicker] = useState(false);
   const [copiedFeedback, setCopiedFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) {
       translateY.setValue(0);
-      setShowWorkspacePicker(false);
       setCopiedFeedback(null);
     }
   }, [translateY, visible]);
@@ -120,6 +119,12 @@ export const TabContextMenu = ({ visible, tab, onClose }: TabContextMenuProps) =
     onClose();
   };
 
+  const handleSelectTabs = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+    onSelectTabs?.(tab.id);
+    onClose();
+  };
+
   const otherWorkspaces = workspaceOrder
     .map((id) => workspaces[id])
     .filter((ws) => ws && ws.id !== tab.workspaceId);
@@ -162,33 +167,25 @@ export const TabContextMenu = ({ visible, tab, onClose }: TabContextMenuProps) =
 
             {/* Move to workspace */}
             {otherWorkspaces.length > 0 && (
-              <>
-                <MenuRow
-                  icon="drive-file-move"
-                  label={t('moveToWorkspace')}
-                  theme={theme}
-                  trailingIcon={showWorkspacePicker ? 'expand-less' : 'expand-more'}
-                  onPress={() => setShowWorkspacePicker((v) => !v)}
-                />
-                {showWorkspacePicker && (
-                  <View style={[styles.workspaceList, { backgroundColor: theme.surface2, borderColor: theme.border }]}>
-                    {otherWorkspaces.map((ws) => (
-                      <Pressable
-                        key={ws.id}
-                        style={({ pressed }) => [
-                          styles.workspaceItem,
-                          { borderBottomColor: theme.border },
-                          pressed && { opacity: 0.7 },
-                        ]}
-                        onPress={() => handleMoveToWorkspace(ws.id)}
-                      >
-                        <View style={[styles.workspaceDot, { backgroundColor: ws.color }]} />
-                        <Text style={[styles.workspaceLabel, { color: theme.text }]}>{ws.label}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                )}
-              </>
+              <View style={styles.workspaceTagsBlock}>
+                <Text style={[styles.workspaceTagsTitle, { color: theme.text2 }]}>{t('moveToWorkspace')}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.workspaceTagsRow}>
+                  {otherWorkspaces.map((ws) => (
+                    <Pressable
+                      key={ws.id}
+                      style={({ pressed }) => [
+                        styles.workspaceTag,
+                        { borderColor: ws.color, backgroundColor: theme.surface2 },
+                        pressed && { opacity: 0.7 },
+                      ]}
+                      onPress={() => handleMoveToWorkspace(ws.id)}
+                    >
+                      <View style={[styles.workspaceDot, { backgroundColor: ws.color }]} />
+                      <Text style={[styles.workspaceLabel, { color: theme.text }]}>{ws.label}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
             )}
 
             {/* Duplicate */}
@@ -213,6 +210,13 @@ export const TabContextMenu = ({ visible, tab, onClose }: TabContextMenuProps) =
               label={copiedFeedback === 'title' ? t('copiedToClipboard') : t('copyTitle')}
               theme={theme}
               onPress={handleCopyTitle}
+            />
+
+            <MenuRow
+              icon="checklist"
+              label={t('selectTabs')}
+              theme={theme}
+              onPress={handleSelectTabs}
             />
 
             {/* Pin / Unpin */}
@@ -350,21 +354,27 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     marginHorizontal: -14,
   },
-  workspaceList: {
-    marginTop: -1,
-    marginBottom: 2,
-    marginHorizontal: 38,
-    borderRadius: 10,
-    borderWidth: 1,
-    overflow: 'hidden',
+  workspaceTagsBlock: {
+    marginTop: 2,
+    marginBottom: 8,
   },
-  workspaceItem: {
+  workspaceTagsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  workspaceTagsRow: {
+    gap: 8,
+    paddingRight: 10,
+  },
+  workspaceTag: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 8,
     gap: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
+    borderRadius: 999,
   },
   workspaceDot: {
     width: 10,
