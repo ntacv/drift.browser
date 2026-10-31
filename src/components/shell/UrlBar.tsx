@@ -185,15 +185,16 @@ export const UrlBar = () => {
     : { bottom: bottomBarInset };
 
   const overlayHeight = Math.min(screenHeight * 0.78, screenHeight - insets.top - 20);
+  const overlaySpringConfig = useMemo(() => ({
+    damping: 24,
+    stiffness: 340,
+    mass: 0.65,
+  }), []);
   const overlayGesture = useSheetGesture({
     isOpen: isOverlayOpen,
     sheetHeight: overlayHeight,
     closedOffset: 0,
-    springConfig: {
-      damping: 24,
-      stiffness: 340,
-      mass: 0.65,
-    },
+    springConfig: overlaySpringConfig,
     onOpenChange: (isOpen) => {
       setOverlayOpen(isOpen);
       setUrlOverlayOpen(isOpen);

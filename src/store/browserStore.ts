@@ -418,7 +418,9 @@ export const useBrowserStore = create<BrowserStore>()(
       updateTabMeta: (tabId, patch) =>
         set((state) => {
           const tab = state.tabs[tabId];
-          if (!tab) {
+          if (!tab || Object.keys(patch).every((key) =>
+            Object.is(tab[key as keyof Tab], patch[key as keyof Tab]),
+          )) {
             return state;
           }
 

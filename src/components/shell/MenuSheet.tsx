@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -82,6 +82,51 @@ const TYPOGRAPHY = typography ?? {
     xxl: 22,
     display: 24,
   },
+};
+
+interface DraggableTileProps {
+  id: MenuTileId;
+  isDragging: boolean;
+  onDragStart: (id: MenuTileId) => void;
+  frameStyle: { width: number } | null;
+  children: React.ReactNode;
+}
+
+const DraggableTile = ({ id, isDragging, onDragStart, frameStyle, children }: DraggableTileProps) => {
+  const { theme } = useTheme();
+  const { t } = useI18n();
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (!isDragging) {
+      scale.value = withSpring(1);
+    }
+  }, [isDragging, scale]);
+
+  const longPress = Gesture.LongPress()
+    .minDuration(400)
+    .onStart(() => {
+      runOnJS(onDragStart)(id);
+      scale.value = withSpring(1.05);
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: isDragging ? 0.7 : 1,
+  }));
+
+  return (
+    <GestureDetector gesture={longPress}>
+      <Animated.View style={[styles.tileWrap, frameStyle, animatedStyle]}>
+        {children}
+        {isDragging && (
+          <View style={styles.dragHint}>
+            <Text style={[styles.dragHintText, { color: theme.text2 }]}>{t('menuDragHint')}</Text>
+          </View>
+        )}
+      </Animated.View>
+    </GestureDetector>
+  );
 };
 
 export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => {
@@ -341,36 +386,6 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     );
   };
 
-  const DraggableTile = ({ id, size }: { id: MenuTileId; size: TileSize }) => {
-    const scale = useSharedValue(1);
-    const isDragging = draggedTile === id;
-
-    const longPress = Gesture.LongPress()
-      .minDuration(400)
-      .onStart(() => {
-        runOnJS(setDraggedTile)(id);
-        scale.value = withSpring(1.05);
-      });
-
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }],
-      opacity: isDragging ? 0.7 : 1,
-    }));
-
-    return (
-      <GestureDetector gesture={longPress}>
-        <Animated.View style={[styles.tileWrap, tileFrameStyle(size), animatedStyle]}>
-          {renderMenuTile(id)}
-          {isDragging && (
-            <View style={styles.dragHint}>
-              <Text style={[styles.dragHintText, { color: theme.text2 }]}>{t('menuDragHint')}</Text>
-            </View>
-          )}
-        </Animated.View>
-      </GestureDetector>
-    );
-  };
-
   const visibleTileOrder = tileOrder.filter((id) => !(id === 'signout' && !syncUser));
 
   const displayTiles = useMemo<DisplayTile[]>(() => {
@@ -443,7 +458,17 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
                 );
               }
 
-              return <DraggableTile key={tile.id} id={tile.id as MenuTileId} size={tile.size} />;
+              return (
+                <DraggableTile
+                  key={tile.id}
+                  id={tile.id as MenuTileId}
+                  isDragging={draggedTile === tile.id}
+                  onDragStart={setDraggedTile}
+                  frameStyle={tileFrameStyle(tile.size)}
+                >
+                  {renderMenuTile(tile.id as MenuTileId)}
+                </DraggableTile>
+              );
             })}
           </View>
         </ScrollView>

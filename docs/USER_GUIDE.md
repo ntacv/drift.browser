@@ -233,6 +233,8 @@ Key pattern:
 
 State is managed in `browserStore` and persisted using AsyncStorage.
 
+`updateTabMeta` ignores patches whose fields are all unchanged (`Object.is` comparison). Repeated WebView metadata reports must preserve tab/state identity and avoid notifying subscribers; changed fields still merge into the existing tab.
+
 Persisted domains include:
 
 - Tabs/workspaces
@@ -259,6 +261,9 @@ For input sheets (URL editor):
 
 - Focus input when opening
 - Dismiss keyboard when closing
+- Keep custom spring configuration references stable (module constants or `useMemo`) so typing and unrelated renders do not restart the sheet animation effect
+
+Define stateful gesture components, such as draggable menu tiles, at module scope. Defining them inside a parent component remounts them on every parent render, resetting gesture and animation state.
 
 ### 2.4 Feature Development Workflow
 
