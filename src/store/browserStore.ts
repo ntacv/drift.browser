@@ -78,6 +78,7 @@ const makeTab = (workspaceId: string, url = DEFAULT_URL): Tab => ({
   canGoForward: false,
   pendingNavAction: null,
   pendingNavActionId: 0,
+  pendingPipRequestId: 0,
   scrollY: 0,
   createdAt: Date.now(),
   webContentFullscreen: false,
@@ -416,6 +417,29 @@ export const useBrowserStore = create<BrowserStore>()(
           };
         }),
 
+      requestPip: () =>
+        set((state) => {
+          const workspace = state.workspaces[state.activeWorkspaceId];
+          if (!workspace?.activeTabId) {
+            return state;
+          }
+
+          const tab = state.tabs[workspace.activeTabId];
+          if (!tab) {
+            return state;
+          }
+
+          return {
+            tabs: {
+              ...state.tabs,
+              [tab.id]: {
+                ...tab,
+                pendingPipRequestId: tab.pendingPipRequestId + 1,
+              },
+            },
+          };
+        }),
+
       updateTabMeta: (tabId, patch) =>
         set((state) => {
           const tab = state.tabs[tabId];
@@ -746,7 +770,7 @@ export const useBrowserStore = create<BrowserStore>()(
     }),
     {
       name: 'drift-browser-store-v2',
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState: any, version: number) => {
         if (!persistedState || typeof persistedState !== 'object') {
@@ -781,6 +805,7 @@ export const useBrowserStore = create<BrowserStore>()(
                 {
                   ...(tab as Tab),
                   webContentFullscreen: false,
+                  pendingPipRequestId: 0,
                   themeColor: null,
                   webError: null,
                   hasVideo: typeof (tab as Tab).hasVideo === 'boolean' ? (tab as Tab).hasVideo : false,

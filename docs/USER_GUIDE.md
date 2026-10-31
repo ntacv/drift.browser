@@ -89,6 +89,7 @@ Quick-action tiles (always visible):
 - **Forward** — navigate forward in web history (disabled when unavailable)
 - **Refresh** — reload the current page
 - **Fullscreen** — toggle user fullscreen mode
+- **Picture in Picture (PiP)** — request a floating video window for the current tab and close the menu; availability depends on the page and platform (see [Picture in Picture](#picture-in-picture-pip))
 
 Configurable tiles:
 
@@ -175,11 +176,6 @@ Changes take effect immediately and are persisted.
 
 Drift Browser supports two types of fullscreen modes:
 
-Android PiP note:
-
-- The browser currently hides the PiP action on Android while native PiP support is being stabilized.
-- On platforms where PiP is available, the action appears only when a playable video is detected.
-
 #### User Fullscreen
 
 - Activated by tapping the fullscreen button in the menu sheet
@@ -206,6 +202,24 @@ Exit methods:
 - Website's native fullscreen exit button
 
 **Note**: Both fullscreen modes can be active simultaneously, though this is rare.
+
+#### Picture in Picture (PiP)
+
+PiP requests a floating video window rather than hiding the browser UI in fullscreen. The current implementation has two entry points:
+
+- **Menu sheet:** open `...` and tap the picture-in-picture icon. This tile is always present, including on Android and pages without detected video. The menu closes immediately; this does not mean the request succeeded.
+- **URL bar:** on non-Android platforms, a PiP button appears when the page reports a `<video>` element. This button remains hidden on Android. Detection indicates an element is present, not that playback or PiP is supported.
+
+To try the menu action, start a video on the current page, then tap the PiP tile. It prefers a playing video with loaded data and otherwise selects the first video in the page. If that document is already in PiP, the menu action requests an exit instead. The URL-bar action only requests entry and has a separate WebKit fallback.
+
+**Current limitations:**
+
+- The page's video API and embedded WebView must support and permit PiP. The menu action checks `document.pictureInPictureEnabled`; a visible tile is not a capability guarantee.
+- Videos inside embedded frames or shadow roots are not searched by the page-level video selectors. Playback readiness, site restrictions, and user-activation requirements may also prevent entry.
+- Android configuration now declares PiP support on the main activity, but this branch does not implement a native Android PiP entry call or automatic entry when leaving the app. Reliable Android PiP is not established by that declaration alone.
+- Menu failures are written to the developer console with a `[PiP]` prefix, not shown in an alert. The URL-bar path silently ignores failures. There is no PiP-active indicator in Drift.
+
+See [PiP implementation](#210-picture-in-picture-implementation) for the request flow and native-build requirements.
 
 ### 1.8 Screen Rotation
 
@@ -410,10 +424,45 @@ Tiles in the menu sheet use a column-fraction system (`tileFrameStyle` in `MenuS
 
 - The tile area is divided into `TILE_SPAN_COUNT = 4` equal columns.
 - `s` tiles span 1 column (4 per row), `m` span 2 (2 per row), `l` span all 4 (full row).
-- Quick-action tiles (back, forward, refresh, fullscreen) are always `s` and pinned to the top row.
+- Quick-action tiles (back, forward, refresh, fullscreen, PiP) are always `s` and precede configurable tiles. With four columns, the fifth quick action wraps onto the next row.
 - Configurable menu tiles default to `m`.
 
 Long-press a configurable tile to enter drag mode; tap another tile to swap positions.
+
+### 2.10 Picture-in-Picture Implementation
+
+#### Changes on the PiP branch
+
+- [MenuSheet.tsx](../src/components/shell/MenuSheet.tsx) adds a fixed PiP quick-action tile without a platform or video-presence gate.
+- [browserStore.ts](../src/store/browserStore.ts) and [types.ts](../src/store/types.ts) add `requestPip()` and the per-tab `pendingPipRequestId` counter. New tabs initialize it to zero; persisted-store migration version 8 initializes or resets it to zero, and [dataTransferService.ts](../src/services/dataTransferService.ts) initializes it for fallback tabs created during import. Existing tab records from backup JSON are copied rather than normalized, so older backups can still lack this counter and produce `NaN` when the menu action increments it.
+- [useWebView.ts](../src/hooks/useWebView.ts) adds the injected `pipRequestScript` and parsing for `pipEnter`, `pipExit`, and `pipError` bridge messages.
+- [WebViewWrapper.tsx](../src/components/browser/WebViewWrapper.tsx) injects the script when the new counter changes, enables `allowsPictureInPictureMediaPlayback`, and logs PiP errors.
+- [withAndroidPip.js](../plugins/withAndroidPip.js), registered in [app.json](../app.json), sets `android:supportsPictureInPicture="true"` on `.MainActivity` during native configuration generation.
+- [translations.ts](../src/i18n/translations.ts) includes `menuPip` in all five languages, though the new menu tile currently renders only an icon and does not use that label.
+
+#### Menu request flow
+
+1. Tapping the tile calls `requestPip()` for the active workspace's active tab, increments `pendingPipRequestId`, and closes the menu. If there is no active tab, the store action does nothing.
+2. The tab's WebView effect observes the changed counter and injects `pipRequestScript`.
+3. The script checks `document.pictureInPictureEnabled`, then searches `document.querySelectorAll('video')`. It prefers the first video that is not paused or ended and has `readyState >= 2`; otherwise it takes the first video. Unsupported PiP or no video produces a `pipError` message.
+4. After finding a video, it calls `document.exitPictureInPicture()` if that document already has a PiP element; otherwise it calls the selected video's `requestPictureInPicture()`.
+5. Promise results send `pipEnter`, `pipExit`, or `pipError` through `window.ReactNativeWebView.postMessage`. The wrapper logs errors with `console.warn('[PiP]', message.message)` but does not update UI state for entry/exit. There are no listeners here for subsequent system-initiated PiP changes, and synchronous API exceptions are not caught by this script.
+
+#### Existing URL-bar path remains separate
+
+[UrlBar.tsx](../src/components/shell/UrlBar.tsx) still hides its PiP control on Android and gates it on `hasVideo` elsewhere. The page bridge detects video-element presence initially and through DOM observation. This path calls `requestPictureInPicture(tabId)`, increments the older `pictureInPictureRequestId`, and triggers a different inline script in [WebViewWrapper.tsx](../src/components/browser/WebViewWrapper.tsx).
+
+That script prefers a video exposing `requestPictureInPicture` without `disablePictureInPicture`, then any video exposing the method, then the first video. It uses the standard API when present, otherwise `webkitSetPresentationMode('picture-in-picture')`. It does not use the menu script's playing-video preference, explicit exit behavior, or error reporting. The two counters and scripts have not been unified.
+
+#### Native support and verification boundary
+
+For the proposed native implementation, build setup, and device acceptance criteria, see the [Android PiP implementation plan](./ANDROID_PIP_IMPLEMENTATION_PLAN.md). In Expo Go, the project cannot load its own native PiP module or apply its manifest plugin; an unsupported-browser warning from the current menu script occurs before video selection. A custom build is necessary, but the native implementation is still required.
+
+The Android plugin changes the manifest only. It adds no `enterPictureInPictureMode()` call, lifecycle handling, or native bridge. The installed React Native WebView implementation exposes `allowsPictureInPictureMediaPlayback` on Apple platforms; adding that prop does not implement native Android PiP. The comment in the injected script claiming Android 8+ WebView support is not a runtime capability check or device-validation result.
+
+The manifest change requires native regeneration and a new Android build; a JavaScript-only update or an unchanged Expo Go binary cannot apply it. For build instructions, see [README.md](../README.md).
+
+[tab-metadata.test.cjs](../tests/tab-metadata.test.cjs) checks migration from version 7 and that a migrated tab can increment its PiP request counter. It does not test video playback or an OS floating window. End-to-end support still needs device testing: verify entry and exit, unavailable/blocked APIs, pages without video, embedded players, switching tabs/apps, and closing the window through system controls. This documentation describes the code paths, not a successful Android or iOS device test.
 
 ## 3. Related Documentation
 

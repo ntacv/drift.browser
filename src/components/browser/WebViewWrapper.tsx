@@ -4,7 +4,7 @@ import { WebView, type WebViewNavigation } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { faviconInjectionScript, parseWebViewBridgeMessage } from '../../hooks/useWebView';
+import { faviconInjectionScript, parseWebViewBridgeMessage, pipRequestScript } from '../../hooks/useWebView';
 import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import { ErrorPage } from './ErrorPage';
@@ -123,6 +123,14 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   useEffect(() => {
     if (isExternalSource && tab) externalLinks.request(tab.url);
   }, [isExternalSource, tab?.url, externalLinks.request]);
+
+  useEffect(() => {
+    if (!tab?.pendingPipRequestId) {
+      return;
+    }
+
+    webViewRef.current?.injectJavaScript(pipRequestScript);
+  }, [tab?.pendingPipRequestId]);
 
   if (!tab) {
     return null;
@@ -344,6 +352,15 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
               href: message.href,
               text: message.text,
             });
+          }
+
+          if (message.type === 'pipEnter' || message.type === 'pipExit') {
+            return;
+          }
+
+          if (message.type === 'pipError') {
+            console.warn('[PiP]', message.message);
+            return;
           }
         }}
         onLoadStart={() => {
