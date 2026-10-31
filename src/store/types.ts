@@ -102,6 +102,7 @@ export interface BrowserState {
   urlOverlayOpenRequestId: number;
   urlOverlayCloseRequestId: number;
   blockTrackers: boolean;
+  externalLinkAction: 'ask' | 'stay' | 'external';
   isUserFullscreen: boolean;
   isTransparentMode: boolean;
   isCompactTabList: boolean;
@@ -157,6 +158,7 @@ export interface BrowserActions {
   setLeftHandMode: (value: boolean) => void;
   setDefaultNewTabUrl: (url: string) => void;
   setBlockTrackers: (value: boolean) => void;
+  setExternalLinkAction: (value: 'ask' | 'stay' | 'external') => void;
   setUserFullscreen: (value: boolean) => void;
   setTransparentMode: (value: boolean) => void;
   setCompactTabList: (value: boolean) => void;

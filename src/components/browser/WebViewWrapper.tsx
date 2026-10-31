@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Linking, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -9,6 +9,9 @@ import { useBrowserStore } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import { ErrorPage } from './ErrorPage';
 import { LinkActionPanel } from './LinkActionPanel';
+import { ExternalLinkSheet } from './ExternalLinkSheet';
+import { useExternalLinks } from '../../hooks/useExternalLinks';
+import { isWebViewUrl } from '../../hooks/externalLinks';
 
 const TRACKER_HOSTS = new Set([
   'doubleclick.net',
@@ -33,13 +36,6 @@ const TRACKER_HOSTS = new Set([
   'cdn.mxpnl.com',
 ]);
 
-const WEBVIEW_SAFE_SCHEMES = new Set(['http', 'https', 'about', 'data', 'file', 'javascript', 'blob']);
-
-const extractScheme = (url: string): string | null => {
-  const match = /^([a-z][a-z0-9+\-.]*):/i.exec(url);
-  return match?.[1]?.toLowerCase() ?? null;
-};
-
 interface WebViewWrapperProps {
   tabId: string;
   visible: boolean;
@@ -50,6 +46,8 @@ const AnimatedMaterialIcon = Animated.createAnimatedComponent(MaterialIcons);
 export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const { mode, theme } = useTheme();
   const webViewRef = useRef<WebView>(null);
+  const reloadWebView = useCallback(() => webViewRef.current?.reload(), []);
+  const externalLinks = useExternalLinks(tabId, visible, reloadWebView);
   const lastScrollYRef = useRef<number | null>(null);
   const overscrollProgress = useRef(new Animated.Value(0)).current;
   const refreshSpin = useRef(new Animated.Value(0)).current;
@@ -121,14 +119,21 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
     `);
   }, [tab?.pictureInPictureRequestId, tab?.hasVideo]);
 
+  const isExternalSource = !!tab && !isWebViewUrl(tab.url);
+  useEffect(() => {
+    if (isExternalSource && tab) externalLinks.request(tab.url);
+  }, [isExternalSource, tab?.url, externalLinks.request]);
+
   if (!tab) {
     return null;
   }
 
-  const isBlankPage = tab.url === 'about:blank';
+  const isBlankPage = tab.url === 'about:blank' || isExternalSource;
   const blankHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html,body{height:100%;margin:0;background:${theme.bg};color:${theme.text};}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}</style></head><body></body></html>`;
 
   const handleNavChange = (navState: WebViewNavigation) => {
+    if (!isWebViewUrl(navState.url)) return;
+    if (navState.loading) externalLinks.navigationStarted(navState.url);
     updateTabMeta(tabId, {
       title: navState.title || tab.title,
       url: navState.url,
@@ -348,6 +353,10 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           const code = String(event.nativeEvent?.code ?? 'WEBVIEW_ERROR');
           const description = String(event.nativeEvent?.description ?? 'Navigation failed');
           const failingUrl = String(event.nativeEvent?.url ?? tab.url);
+          if (!isWebViewUrl(failingUrl)) {
+            externalLinks.request(failingUrl);
+            return;
+          }
           updateTabMeta(tabId, {
             isLoading: false,
             webError: {
@@ -373,11 +382,8 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           });
         }}
         onShouldStartLoadWithRequest={(request) => {
-          const scheme = extractScheme(request.url);
-          if (scheme && !WEBVIEW_SAFE_SCHEMES.has(scheme)) {
-            void Linking.openURL(request.url).catch(() => {});
-            return false;
-          }
+          if (request.isTopFrame === false && !isWebViewUrl(request.url)) return false;
+          if (request.isTopFrame !== false && externalLinks.request(request.url)) return false;
 
           if (!blockTrackers) {
             return true;
@@ -404,6 +410,17 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
         />
       ) : null}
 
+      {externalLinks.pending && (
+        <ExternalLinkSheet
+          key={externalLinks.pending.url}
+          url={externalLinks.pending.url}
+          visible={visible}
+          failed={externalLinks.failed}
+          opening={externalLinks.opening}
+          onChoose={externalLinks.choose}
+          onDismiss={externalLinks.dismiss}
+        />
+      )}
       <LinkActionPanel />
     </View>
   );

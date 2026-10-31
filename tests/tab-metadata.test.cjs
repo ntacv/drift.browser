@@ -31,6 +31,16 @@ function loadStore() {
   return load(path.resolve(__dirname, '..', 'src', 'store', 'browserStore.ts')).useBrowserStore;
 }
 
+test('external app link preference defaults to ask and is included in persisted state', () => {
+  const store = loadStore();
+  assert.equal(store.getState().externalLinkAction, 'ask');
+  for (const action of ['stay', 'external', 'ask']) {
+    store.getState().setExternalLinkAction(action);
+    assert.equal(store.getState().externalLinkAction, action);
+    assert.equal(store.persist.getOptions().partialize(store.getState()).externalLinkAction, action);
+  }
+});
+
 test('unchanged tab metadata preserves state and does not notify subscribers', () => {
   const store = loadStore();
   const before = store.getState();

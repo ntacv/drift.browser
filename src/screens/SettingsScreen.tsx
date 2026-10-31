@@ -99,6 +99,8 @@ export const SettingsScreen = () => {
   const syncUser = useBrowserStore((state) => state.syncUser);
   const lastSyncedAt = useBrowserStore((state) => state.lastSyncedAt);
   const blockTrackers = useBrowserStore((state) => state.blockTrackers);
+  const externalLinkAction = useBrowserStore((state) => state.externalLinkAction);
+  const setExternalLinkAction = useBrowserStore((state) => state.setExternalLinkAction);
   const themePreference = useBrowserStore((state) => state.themePreference);
   const searchEngine = useBrowserStore((state) => state.searchEngine);
   const tabListSize = useBrowserStore((state) => state.tabListSize);
@@ -290,6 +292,24 @@ export const SettingsScreen = () => {
             <SwitchRow value={blockTrackers} onValueChange={setBlockTrackers} accessibilityLabel={t('blockTrackers')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('blockTrackers')}</Text>
             </SwitchRow>
+
+            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('externalLinkSetting')}</Text>
+            <Text style={[styles.rowText, { color: theme.text2 }]}>{t('externalLinkHint')}</Text>
+            <View style={styles.chipsRow}>
+              {(['ask', 'stay', 'external'] as const).map((action) => (
+                <Pressable
+                  key={action}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: externalLinkAction === action }}
+                  onPress={() => setExternalLinkAction(action)}
+                  style={[styles.chip, { backgroundColor: externalLinkAction === action ? theme.accent : theme.surface2 }]}
+                >
+                  <Text style={[styles.chipLabel, { color: externalLinkAction === action ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>
+                    {t(action === 'ask' ? 'externalLinkAsk' : action === 'stay' ? 'externalLinkStay' : 'externalLinkOpen')}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('defaultSearchEngine')}</Text>
             <View style={styles.chipsRow}>

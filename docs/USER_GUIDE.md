@@ -108,6 +108,28 @@ Configurable tiles:
 
 - Block trackers toggle
 - Default search engine (Google, Brave, DuckDuckGo, Bing)
+- External app links: **Ask every time** (default), **Stay in Drift**, or **Open external app**. This preference applies globally and persists across restarts.
+
+App links show a bottom sheet with the full, scrollable link, a close button in the top-right, and side-by-side **Stay in Drift** / **Open external app** actions. Enable **Always use this action for app links** to remember the choice; change it later under Settings → Privacy. Closing the sheet cancels without changing the preference. Failed launches keep the sheet open and do not save a new external-app preference.
+
+Custom app schemes and Android `intent:` links are intercepted generically. HTTP(S) app-link candidates cover **29 services**:
+
+| Category | Services |
+| --- | --- |
+| Social and communities | Reddit, Instagram, Facebook, Threads, X/Twitter, TikTok, Snapchat, Pinterest, LinkedIn, Bluesky, Tumblr |
+| Messaging | Messenger, WhatsApp, Telegram, Signal, Discord |
+| Video and music | YouTube, Spotify, Apple Music, SoundCloud, Twitch, Netflix |
+| Knowledge and development | Wikipedia, GitHub |
+| Work and meetings | Zoom, Microsoft Teams, Slack |
+| Navigation | Google Maps, Waze |
+
+The registry in `src/hooks/externalLinks.ts` includes language/mobile subdomains (such as `en.m.wikipedia.org`) and service-specific share links such as `youtu.be`, `wa.me`, `t.me`, `discord.gg`, and `pin.it`. Google Maps URLs on shared Google domains are path-restricted; ordinary Google searches, generic shorteners such as `bit.ly` and `t.co`, and unrelated Apple/Microsoft pages are not intercepted. Arbitrary federated Mastodon servers are not guessed from their hostnames; custom-scheme links are still detected.
+
+This is a candidate list, **not an installed-app check or a guarantee that every URL on these domains opens an app**. Other HTTP(S) sites browse normally. Staying in Drift opens the original HTTP(S) link or a safe HTTP(S) fallback supplied by an Android intent; without a fallback, the current page stays open. Background tabs cannot launch external apps.
+
+Official link-format references: [Google Maps URLs](https://developers.google.com/maps/documentation/urls/get-started), [Waze deep links](https://developers.google.com/waze/deeplinks), [Spotify content linking](https://developer.spotify.com/documentation/ios/tutorials/content-linking).
+
+**Current Android limitation:** the JavaScript flow expects a native `ExternalLinks.open` module, which is not implemented yet. Until that launcher is added and included in a new Android build, choosing **Open external app** displays the failure message. Expanding this candidate list does not remove that limitation. On iOS, link handling uses the system URL opener and depends on the target app's Universal Link configuration.
 
 #### New Tabs
 
