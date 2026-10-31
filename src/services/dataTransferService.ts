@@ -66,6 +66,7 @@ const makeFallbackTab = (workspaceId: string, url: string): Tab => ({
     canGoForward: false,
     pendingNavAction: null,
     pendingNavActionId: 0,
+    pendingPipRequestId: 0,
     scrollY: 0,
     createdAt: Date.now(),
     webContentFullscreen: false,

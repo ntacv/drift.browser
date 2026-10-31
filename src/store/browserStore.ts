@@ -770,7 +770,7 @@ export const useBrowserStore = create<BrowserStore>()(
     }),
     {
       name: 'drift-browser-store-v2',
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState: any, version: number) => {
         if (!persistedState || typeof persistedState !== 'object') {
@@ -805,6 +805,7 @@ export const useBrowserStore = create<BrowserStore>()(
                 {
                   ...(tab as Tab),
                   webContentFullscreen: false,
+                  pendingPipRequestId: 0,
                   themeColor: null,
                   webError: null,
                   hasVideo: typeof (tab as Tab).hasVideo === 'boolean' ? (tab as Tab).hasVideo : false,

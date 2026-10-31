@@ -41,6 +41,21 @@ test('external app link preference defaults to ask and is included in persisted 
   }
 });
 
+test('saved tabs initialize PiP requests when upgrading from main', () => {
+  const store = loadStore();
+  const options = store.persist.getOptions();
+  const persisted = options.partialize(store.getState());
+  const tabId = Object.keys(persisted.tabs)[0];
+  const tabs = { ...persisted.tabs, [tabId]: { ...persisted.tabs[tabId] } };
+  delete tabs[tabId].pendingPipRequestId;
+  assert.ok(options.version > 7);
+  const migrated = options.migrate({ ...persisted, tabs }, 7);
+  assert.equal(migrated.tabs[tabId].pendingPipRequestId, 0);
+  store.setState(migrated);
+  store.getState().requestPip();
+  assert.equal(store.getState().tabs[tabId].pendingPipRequestId, 1);
+});
+
 test('unchanged tab metadata preserves state and does not notify subscribers', () => {
   const store = loadStore();
   const before = store.getState();
