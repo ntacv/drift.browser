@@ -104,6 +104,8 @@ Configurable tiles:
 - Sign in / sign out of Firefox Account
 - Language selection
 
+Firefox Account sign-in follows Mozilla's relying-party integration guide: [Integration with FxA](https://mozilla.github.io/ecosystem-platform/relying-parties/tutorials/integration-with-fxa).
+
 #### Privacy
 
 - Block trackers toggle

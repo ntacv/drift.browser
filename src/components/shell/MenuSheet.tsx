@@ -12,6 +12,7 @@ import { useBrowserStore, getActiveTab } from '../../store/browserStore';
 import { useTheme } from '../../theme';
 import { typography } from '../../theme';
 import * as fxaService from '../../services/fxaService';
+import { isFirefoxSyncEnabled } from '../../services/securityConfig';
 import { AppAlertDialog } from '../common/AppAlertDialog';
 
 const SHEET_HEIGHT = 360;
@@ -415,33 +416,35 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
             paddingBottom: Math.max(insets.bottom, 10) + 150,
           }}
         >
-          <View style={[styles.accountCard, { backgroundColor: theme.surface2 }]}>
-            {syncUser ? (
-              <>
-                <Text style={[styles.accountTitle, { color: theme.text }]}>{syncUser.email}</Text>
-                <Text style={[styles.accountSub, { color: theme.text2 }]}>{t('synced')}</Text>
-                <Text style={[styles.accountSub, { color: theme.text3 }]}>
-                  {t('lastSync')}: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString() : t('never')}
-                </Text>
-              </>
-            ) : (
-              <Pressable
-                onPress={async () => {
-                  const user = await fxaService.signIn();
-                  if (user) {
-                    setSyncUser(user);
-                  } else {
-                    setAlertDialog({
-                      title: t('firefoxSignInNotConfiguredTitle'),
-                      message: t('firefoxSignInNotConfiguredMessage'),
-                    });
-                  }
-                }}
-              >
-                <Text style={[styles.accountTitle, { color: theme.text }]}>{t('signInToFirefox')}</Text>
-              </Pressable>
-            )}
-          </View>
+          {isFirefoxSyncEnabled() ? (
+            <View style={[styles.accountCard, { backgroundColor: theme.surface2 }]}>
+              {syncUser ? (
+                <>
+                  <Text style={[styles.accountTitle, { color: theme.text }]}>{syncUser.email}</Text>
+                  <Text style={[styles.accountSub, { color: theme.text2 }]}>{t('synced')}</Text>
+                  <Text style={[styles.accountSub, { color: theme.text3 }]}>
+                    {t('lastSync')}: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString() : t('never')}
+                  </Text>
+                </>
+              ) : (
+                <Pressable
+                  onPress={async () => {
+                    const user = await fxaService.signIn();
+                    if (user) {
+                      setSyncUser(user);
+                    } else {
+                      setAlertDialog({
+                        title: t('firefoxSignInNotConfiguredTitle'),
+                        message: t('firefoxSignInNotConfiguredMessage'),
+                      });
+                    }
+                  }}
+                >
+                  <Text style={[styles.accountTitle, { color: theme.text }]}>{t('signInToFirefox')}</Text>
+                </Pressable>
+              )}
+            </View>
+          ) : null}
 
           <View
             style={styles.tilesGrid}

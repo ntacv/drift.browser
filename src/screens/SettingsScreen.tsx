@@ -5,8 +5,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 
-import { signIn, signOut } from '../services/fxaService';
+import { getAccessToken, signIn, signOut } from '../services/fxaService';
 import { isFirefoxSyncEnabled } from '../services/securityConfig';
+import { pushState } from '../services/syncService';
 import { useI18n } from '../i18n/useI18n';
 import { APP_LANGUAGES, getLanguageNativeName } from '../i18n/translations';
 import { useBrowserStore } from '../store/browserStore';
@@ -124,7 +125,11 @@ export const SettingsScreen = () => {
   const barPosition = useBrowserStore((state) => state.barPosition);
   const isCompactWorkspace = useBrowserStore((state) => state.isCompactWorkspace);
 
+  const syncPreferences = useBrowserStore((state) => state.syncPreferences);
+
   const setSyncUser = useBrowserStore((state) => state.setSyncUser);
+  const setLastSyncedAt = useBrowserStore((state) => state.setLastSyncedAt);
+  const setSyncPreferences = useBrowserStore((state) => state.setSyncPreferences);
   const setThemePreference = useBrowserStore((state) => state.setThemePreference);
   const setSearchEngine = useBrowserStore((state) => state.setSearchEngine);
   const setLanguage = useBrowserStore((state) => state.setLanguage);
@@ -199,6 +204,23 @@ export const SettingsScreen = () => {
       setAlertDialog({ title: t('importData'), message: t('importDataInvalid') });
     }
   }, [importPayload, t]);
+
+  const handleSyncNow = React.useCallback(async () => {
+    const state = useBrowserStore.getState();
+    // Use the stored access token as hawkId. Full Hawk key derivation from FxA
+    // OAuth tokens requires a separate server-side key exchange; until that is
+    // implemented the server will reject the request, but we handle it gracefully.
+    const accessToken = await getAccessToken();
+    const auth = { keyId: accessToken ?? '', hawkId: accessToken ?? '', hawkKey: '' };
+    const ok = await pushState(state, auth, state.syncPreferences);
+    if (ok) {
+      setLastSyncedAt(Date.now());
+      setAlertDialog({ title: t('syncNow'), message: t('syncSuccess') });
+    } else {
+      setAlertDialog({ title: t('syncNow'), message: t('syncFailed') });
+    }
+  }, [setLastSyncedAt, t]);
+
   const setHideBarOnScroll = useBrowserStore((state) => state.setHideBarOnScroll);
   const setBarPosition = useBrowserStore((state) => state.setBarPosition);
 
@@ -239,39 +261,77 @@ export const SettingsScreen = () => {
           keyboardDismissMode="on-drag"
         >
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <CardTitle icon="person" title={t('account')} theme={theme} />
-            <Text style={[styles.rowText, { color: theme.text2 }]}>
-              {syncUser ? syncUser.email : t('notSignedIn')}
-            </Text>
-            <Text style={[styles.rowText, { color: theme.text3 }]}>
-              {t('lastSynced')}: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleString() : t('never')}
-            </Text>
+            {isFirefoxSyncEnabled() ? (
+              <>
+                <CardTitle icon="person" title={t('account')} theme={theme} />
+                <Text style={[styles.rowText, { color: theme.text2 }]}>
+                  {syncUser ? syncUser.email : t('notSignedIn')}
+                </Text>
+                <Text style={[styles.rowText, { color: theme.text3 }]}>
+                  {t('lastSynced')}: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleString() : t('never')}
+                </Text>
 
-            <Pressable
-              style={[styles.button, { backgroundColor: theme.surface2 }]}
-              onPress={async () => {
-                if (syncUser) {
-                  await signOut();
-                  setSyncUser(null);
-                  return;
-                }
+                <Pressable
+                  style={[styles.button, { backgroundColor: theme.surface2 }]}
+                  onPress={async () => {
+                    if (syncUser) {
+                      await signOut();
+                      setSyncUser(null);
+                      return;
+                    }
 
-                if (!isFirefoxSyncEnabled()) {
-                  setAlertDialog({
-                    title: t('firefoxSyncLockedTitle'),
-                    message: t('firefoxSyncLockedMessage'),
-                  });
-                  return;
-                }
+                    const user = await signIn();
+                    if (user) {
+                      setSyncUser(user);
+                    }
+                  }}
+                >
+                  <Text style={[styles.buttonLabel, { color: theme.text }]}>{syncUser ? t('signOut') : t('signInFirefox')}</Text>
+                </Pressable>
 
-                const user = await signIn();
-                if (user) {
-                  setSyncUser(user);
-                }
-              }}
-            >
-              <Text style={[styles.buttonLabel, { color: theme.text }]}>{syncUser ? t('signOut') : t('signInFirefox')}</Text>
-            </Pressable>
+                {syncUser ? (
+                  <>
+                    <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('syncPreferences')}</Text>
+                    <View style={styles.syncPrefsRows}>
+                      <SwitchRow
+                        value={syncPreferences.syncTabs}
+                        onValueChange={(value) => setSyncPreferences({ syncTabs: value })}
+                        accessibilityLabel={t('syncTabs')}
+                      >
+                        <Text style={[styles.rowText, { color: theme.text }]}>{t('syncTabs')}</Text>
+                      </SwitchRow>
+                      <SwitchRow
+                        value={syncPreferences.syncWorkspaces}
+                        onValueChange={(value) => setSyncPreferences({ syncWorkspaces: value })}
+                        accessibilityLabel={t('syncWorkspaces')}
+                      >
+                        <Text style={[styles.rowText, { color: theme.text }]}>{t('syncWorkspaces')}</Text>
+                      </SwitchRow>
+                      <SwitchRow
+                        value={syncPreferences.syncBookmarks}
+                        onValueChange={(value) => setSyncPreferences({ syncBookmarks: value })}
+                        accessibilityLabel={t('syncBookmarks')}
+                      >
+                        <Text style={[styles.rowText, { color: theme.text }]}>{t('syncBookmarks')}</Text>
+                      </SwitchRow>
+                      <SwitchRow
+                        value={syncPreferences.syncHistory}
+                        onValueChange={(value) => setSyncPreferences({ syncHistory: value })}
+                        accessibilityLabel={t('syncHistory')}
+                      >
+                        <Text style={[styles.rowText, { color: theme.text }]}>{t('syncHistory')}</Text>
+                      </SwitchRow>
+                    </View>
+                    <Pressable
+                      style={[styles.button, { backgroundColor: theme.accent }]}
+                      onPress={handleSyncNow}
+                    >
+                      <Text style={[styles.buttonLabel, { color: TEXT_ON_COLORED_BACKGROUND }]}>{t('syncNow')}</Text>
+                    </Pressable>
+                  </>
+                ) : null}
+              </>
+            ) : null}
 
             <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
             <View style={styles.chipsRow}>
@@ -675,6 +735,9 @@ const styles = StyleSheet.create({
   },
   switchRowContent: {
     flex: 1,
+  },
+  syncPrefsRows: {
+    gap: 10,
   },
   debugPanel: {
     borderWidth: 1,

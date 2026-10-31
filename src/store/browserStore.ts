@@ -10,6 +10,7 @@ import type {
   BrowserStore,
   LinkActionPanelPayload,
   SearchEngine,
+  SyncPreferences,
   Tab,
   TabListSize,
   ThemePreference,
@@ -143,6 +144,12 @@ const buildInitialState = () => {
     isUrlOverlayOpen: false,
     syncUser: null,
     lastSyncedAt: null,
+    syncPreferences: {
+      syncHistory: true,
+      syncBookmarks: true,
+      syncTabs: true,
+      syncWorkspaces: true,
+    },
     bookmarks: {},
     bookmarkFolders: {
       [unsortedFolder.id]: unsortedFolder,
@@ -743,6 +750,8 @@ export const useBrowserStore = create<BrowserStore>()(
 
       setSyncUser: (syncUser) => set({ syncUser }),
       setLastSyncedAt: (timestamp) => set({ lastSyncedAt: timestamp }),
+      setSyncPreferences: (prefs) =>
+        set((state) => ({ syncPreferences: { ...state.syncPreferences, ...prefs } })),
     }),
     {
       name: 'drift-browser-store-v2',
@@ -862,6 +871,12 @@ export const useBrowserStore = create<BrowserStore>()(
             typeof persistedState.hasCompletedOnboarding === 'boolean'
               ? persistedState.hasCompletedOnboarding
               : false,
+          syncPreferences: persistedState.syncPreferences ?? {
+            syncHistory: true,
+            syncBookmarks: true,
+            syncTabs: true,
+            syncWorkspaces: true,
+          },
         };
       },
       partialize: (state) => ({
@@ -871,6 +886,7 @@ export const useBrowserStore = create<BrowserStore>()(
         activeWorkspaceId: state.activeWorkspaceId,
         syncUser: state.syncUser,
         lastSyncedAt: state.lastSyncedAt,
+        syncPreferences: state.syncPreferences,
         bookmarks: state.bookmarks,
         bookmarkFolders: state.bookmarkFolders,
         history: state.history,
