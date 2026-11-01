@@ -4,6 +4,10 @@ WARNING: This application has been developed by ai agents. It may contain bugs, 
 
 Technical setup and run instructions for the Expo/React Native workspace.
 
+Official website: [drift-browser.vercel.app](https://drift-browser.vercel.app/).
+
+The bottom of **Settings** displays the app name, the current app version, and a tappable link to the official website.
+
 ## Screenshots
 
 <p align="center">

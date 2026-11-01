@@ -161,6 +161,10 @@ Official link-format references: [Google Maps URLs](https://developers.google.co
 - **Export data** — serialises all workspaces, tabs, history, bookmarks and preferences into a `drift-backup-<timestamp>.json` file and shares it via the native share sheet
 - **Import data** — paste a previously exported Drift backup JSON to restore data
 
+#### App Information Footer
+
+At the bottom of Settings, the footer displays **Drift Browser**, the current app version (for example, `v1.3.6`), and a tappable link to the [official website](https://drift-browser.vercel.app/). The name and version come from the app configuration and update automatically with releases.
+
 ### 1.6 Workspace Editor
 
 Each workspace can be customised. Long-press a workspace chip (or use the workspace editor button) to open the editor:

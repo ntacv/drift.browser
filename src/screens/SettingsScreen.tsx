@@ -16,6 +16,7 @@ import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 import { buildImportedState, createBackupJson, parseBackupJson } from '../services/dataTransferService';
 import { AppAlertDialog } from '../components/common/AppAlertDialog';
 import { AnimatedSwitch } from '../components/common/AnimatedSwitch';
+import { AppInfoFooter } from '../components/common/AppInfoFooter';
 
 const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
@@ -521,6 +522,8 @@ export const SettingsScreen = () => {
               <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('importData')}</Text>
             </Pressable>
           </View>
+
+          <AppInfoFooter />
 
           <Pressable
             onPress={() => setDebugMode(!debugMode)}
