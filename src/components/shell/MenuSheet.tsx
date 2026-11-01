@@ -151,7 +151,9 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   const hideFullscreenAlert = useBrowserStore((state) => state.hideFullscreenAlert);
   const setHideFullscreenAlert = useBrowserStore((state) => state.setHideFullscreenAlert);
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
-  const activeTab = useBrowserStore(getActiveTab);
+  const activeUrl = useBrowserStore((state) => getActiveTab(state)?.url);
+  const canGoBack = useBrowserStore((state) => getActiveTab(state)?.canGoBack);
+  const canGoForward = useBrowserStore((state) => getActiveTab(state)?.canGoForward);
 
   const gesture = useSheetGesture({
     isOpen: isMenuOpen,
@@ -235,7 +237,7 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
 
   const executeTileAction = async (id: MenuTileId) => {
     if (id === 'share') {
-      const url = activeTab?.url;
+      const url = activeUrl;
       if (!url) {
         setAlertDialog({ title: t('share'), message: t('noActiveTab') });
         return;
@@ -334,11 +336,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
         <Pressable
           key={id}
           onPress={() => requestActiveTabNavigation('back')}
-          disabled={!activeTab?.canGoBack}
+          disabled={!canGoBack}
           style={[
             styles.quickActionButton,
             { backgroundColor: theme.surface2 },
-            !activeTab?.canGoBack && styles.quickActionDisabled,
+            !canGoBack && styles.quickActionDisabled,
           ]}
         >
           <MaterialIcons name="arrow-back" size={18} color={theme.text} />
@@ -351,11 +353,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
         <Pressable
           key={id}
           onPress={() => requestActiveTabNavigation('forward')}
-          disabled={!activeTab?.canGoForward}
+          disabled={!canGoForward}
           style={[
             styles.quickActionButton,
             { backgroundColor: theme.surface2 },
-            !activeTab?.canGoForward && styles.quickActionDisabled,
+            !canGoForward && styles.quickActionDisabled,
           ]}
         >
           <MaterialIcons name="arrow-forward" size={18} color={theme.text} />
@@ -386,13 +388,13 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     );
   };
 
-  const visibleTileOrder = tileOrder.filter((id) => !(id === 'signout' && !syncUser));
-
   const displayTiles = useMemo<DisplayTile[]>(() => {
-    const menuTiles = visibleTileOrder.map((id) => ({ id, size: MENU_TILE_SIZE[id] }));
+    const menuTiles = tileOrder
+      .filter((id) => !(id === 'signout' && !syncUser))
+      .map((id) => ({ id, size: MENU_TILE_SIZE[id] }));
 
     return [...QUICK_TILES, ...menuTiles];
-  }, [visibleTileOrder]);
+  }, [tileOrder, syncUser]);
 
   return (
     <>

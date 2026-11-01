@@ -51,13 +51,13 @@ const AppNavigator = () => {
 const ThemedStack = () => {
   const { mode } = useTheme();
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
-  const activeTab = useBrowserStore(getActiveTab);
+  const activeThemeColor = useBrowserStore((state) => getActiveTab(state)?.themeColor);
   const hasCompletedOnboarding = useBrowserStore((state) => state.hasCompletedOnboarding);
   const setHasCompletedOnboarding = useBrowserStore((state) => state.setHasCompletedOnboarding);
 
   const statusBarStyle = (() => {
-    if (useWebsiteThemeColor && activeTab?.themeColor) {
-      return isColorDark(activeTab.themeColor) ? ('light' as const) : ('dark' as const);
+    if (useWebsiteThemeColor && activeThemeColor) {
+      return isColorDark(activeThemeColor) ? ('light' as const) : ('dark' as const);
     }
     return mode === 'dark' ? ('light' as const) : ('dark' as const);
   })();
