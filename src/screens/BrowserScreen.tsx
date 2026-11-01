@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { BackHandler, StatusBar, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,7 +33,16 @@ export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenPr
   const updateTabMeta = useBrowserStore((state) => state.updateTabMeta);
   const linkActionPanel = useBrowserStore((state) => state.linkActionPanel);
   const setLinkActionPanel = useBrowserStore((state) => state.setLinkActionPanel);
-  const activeTab = useBrowserStore(getActiveTab);
+  const activeTab = useBrowserStore(useShallow((state) => {
+    const tab = getActiveTab(state);
+    return tab ? {
+      id: tab.id,
+      webContentFullscreen: tab.webContentFullscreen,
+      themeColor: tab.themeColor,
+      webError: tab.webError,
+      canGoBack: tab.canGoBack,
+    } : null;
+  }));
   const useWebsiteThemeColor = useBrowserStore((state) => state.useWebsiteThemeColor);
 
   // Calculate orientation and determine if UI should be hidden

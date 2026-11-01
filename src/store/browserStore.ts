@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+import { createBrowserStorage, createTabProjection, TAB_RUNTIME_DEFAULTS } from './browserPersistence';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import type {
@@ -177,6 +178,8 @@ const buildInitialState = () => {
 };
 
 const initialState = buildInitialState();
+const projectTabs = createTabProjection();
+const browserStorage = createBrowserStorage(AsyncStorage);
 
 export const useBrowserStore = create<BrowserStore>()(
   persist(
@@ -747,7 +750,24 @@ export const useBrowserStore = create<BrowserStore>()(
     {
       name: 'drift-browser-store-v2',
       version: 7,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: browserStorage,
+      onRehydrateStorage: () => (state, error) => {
+        if (state && !error) {
+          const options = useBrowserStore.persist.getOptions();
+          browserStorage.prime({ state: options.partialize!(state), version: options.version });
+        }
+      },
+      merge: (persistedState, currentState) => {
+        const saved = persistedState as Partial<BrowserStore> | undefined;
+        return {
+          ...currentState,
+          ...saved,
+          tabs: Object.fromEntries(Object.entries(saved?.tabs ?? currentState.tabs).map(([id, tab]) => [
+            id, { ...tab, ...TAB_RUNTIME_DEFAULTS },
+          ])),
+          linkActionPanel: null,
+        };
+      },
       migrate: (persistedState: any, version: number) => {
         if (!persistedState || typeof persistedState !== 'object') {
           return persistedState;
@@ -867,7 +887,7 @@ export const useBrowserStore = create<BrowserStore>()(
       partialize: (state) => ({
         workspaces: state.workspaces,
         workspaceOrder: state.workspaceOrder,
-        tabs: state.tabs,
+        tabs: projectTabs(state.tabs),
         activeWorkspaceId: state.activeWorkspaceId,
         syncUser: state.syncUser,
         lastSyncedAt: state.lastSyncedAt,

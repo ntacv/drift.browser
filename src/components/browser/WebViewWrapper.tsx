@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 
 import { faviconInjectionScript, parseWebViewBridgeMessage } from '../../hooks/useWebView';
 import { useBrowserStore } from '../../store/browserStore';
+import { TAB_RUNTIME_DEFAULTS } from '../../store/browserPersistence';
 import { useTheme } from '../../theme';
 import { ErrorPage } from './ErrorPage';
 import { LinkActionPanel } from './LinkActionPanel';
@@ -51,6 +52,7 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const lastScrollYRef = useRef<number | null>(null);
   const overscrollProgress = useRef(new Animated.Value(0)).current;
   const refreshSpin = useRef(new Animated.Value(0)).current;
+  const refreshTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showRefreshIndicator, setShowRefreshIndicator] = useState(false);
   const tab = useBrowserStore((state) => state.tabs[tabId]);
@@ -62,6 +64,25 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const setTrayOpen = useBrowserStore((state) => state.setTrayOpen);
   const setUserFullscreen = useBrowserStore((state) => state.setUserFullscreen);
   const setLinkActionPanel = useBrowserStore((state) => state.setLinkActionPanel);
+
+  useEffect(() => () => {
+    updateTabMeta(tabId, TAB_RUNTIME_DEFAULTS);
+    refreshSpin.stopAnimation();
+    if (refreshTimeout.current) clearTimeout(refreshTimeout.current);
+  }, [tabId, updateTabMeta, refreshSpin]);
+
+  useEffect(() => {
+    if (!visible) {
+      if (useBrowserStore.getState().linkActionPanel?.tabId === tabId) setLinkActionPanel(null);
+      updateTabMeta(tabId, { webContentFullscreen: false });
+      webViewRef.current?.injectJavaScript(`
+        if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(function() {});
+        }
+        true;
+      `);
+    }
+  }, [visible, tabId, updateTabMeta, setLinkActionPanel]);
 
   useEffect(() => {
     if (!tab?.pendingNavAction) {
@@ -208,7 +229,12 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   });
 
   return (
-    <View style={styles.webview}>
+    <View
+      style={[styles.webview, !visible && styles.hidden]}
+      pointerEvents={visible ? 'auto' : 'none'}
+      accessibilityElementsHidden={!visible}
+      importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
+    >
       {showRefreshIndicator && (
         <Animated.View style={[styles.refreshIndicatorOverlay, { opacity }]}>
           <Animated.View
@@ -272,6 +298,10 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
             return;
           }
 
+          if (!visible) {
+            return;
+          }
+
           if (message.type === 'scrollY') {
             updateTabMeta(tabId, { scrollY: message.value });
             const previous = lastScrollYRef.current;
@@ -319,7 +349,9 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
               setRefreshing(true);
               startRefreshSpin();
               webViewRef.current?.reload();
-              setTimeout(() => {
+              if (refreshTimeout.current) clearTimeout(refreshTimeout.current);
+              refreshTimeout.current = setTimeout(() => {
+                refreshTimeout.current = null;
                 stopRefreshSpin();
                 setRefreshing(false);
                 setShowRefreshIndicator(false);
@@ -421,20 +453,18 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
           onDismiss={externalLinks.dismiss}
         />
       )}
-      <LinkActionPanel />
+      {visible ? <LinkActionPanel /> : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  webview: {
-    ...StyleSheet.absoluteFill,
-  },
   hidden: {
     opacity: 0,
-    position: 'absolute',
-    width: 0,
-    height: 0,
+    zIndex: -1,
+  },
+  webview: {
+    ...StyleSheet.absoluteFill,
   },
   refreshIndicatorOverlay: {
     position: 'absolute',
