@@ -101,6 +101,44 @@ test('legacy migration and ordered durable changes survive a restart', async () 
   assert.equal(restored.getState().tabs[activeId(restored)].url, 'https://example.org');
 });
 
+test('failed removal reports its error without blocking queued reads, writes or removals', async () => {
+  const backend = memoryStorage();
+  const originalError = new Error('Storage temporarily unavailable');
+  let failRemoval = true;
+  const storage = loader()('src/store/browserPersistence.ts').createBrowserStorage({
+    ...backend,
+    removeItem: async (name) => {
+      if (failRemoval) {
+        failRemoval = false;
+        throw originalError;
+      }
+      return backend.removeItem(name);
+    },
+  });
+  const initial = { version: 7, state: { language: 'en' } };
+  backend.seed(initial);
+  const failedRemoval = storage.removeItem('browser');
+  const read = storage.getItem('browser');
+  await assert.rejects(failedRemoval, (error) => error === originalError);
+  assert.deepEqual(await read, initial);
+
+  failRemoval = true;
+  const nextFailure = storage.removeItem('browser');
+  const next = { version: 7, state: { language: 'fr' } };
+  const write = storage.setItem('browser', next);
+  await assert.rejects(nextFailure, (error) => error === originalError);
+  await write;
+  assert.equal(backend.writes.length, 1);
+  assert.deepEqual(await storage.getItem('browser'), next);
+
+  failRemoval = true;
+  const lastFailure = storage.removeItem('browser');
+  const removal = storage.removeItem('browser');
+  await assert.rejects(lastFailure, (error) => error === originalError);
+  await removal;
+  assert.equal(await storage.getItem('browser'), null);
+});
+
 test('live tab cache retains recent tabs, evicts LRU and removes closed tabs', () => {
   const { selectLiveTabs } = loader()('src/hooks/liveTabs.ts');
   const ids = new Set(['a', 'b', 'c', 'd']);

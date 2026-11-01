@@ -67,8 +67,9 @@ export const createBrowserStorage = <T extends object>(storage: StateStorage): P
     },
     removeItem: (name) => {
       last = undefined;
-      pending = pending.then(() => json.removeItem(name)).then(() => undefined);
-      return pending;
+      const removal = pending.then(() => json.removeItem(name)).then(() => undefined);
+      pending = removal.catch(() => undefined);
+      return removal;
     },
   };
 };

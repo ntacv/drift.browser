@@ -64,7 +64,7 @@ Drift targets native Android and iOS apps; running Drift itself in a desktop web
 
 Drift retains the three most recently used tabs across workspaces. Switching between retained tabs preserves their live page state and native back/forward history. Background media is allowed to continue while a tab remains cached (subject to OS and website restrictions). Opening a fourth live tab evicts the least recently used one; revisiting it reloads its saved URL, without restoring forms or native navigation history. Closing a tab disposes of its page immediately.
 
-Tab URLs, titles, pins, workspaces, bookmarks, history and preferences are persisted. Loading, scrolling, fullscreen, media and navigation-command state are transient and reset on restart. Runtime-only and unchanged updates do not write the durable store.
+Tab URLs, titles, pins, workspaces, bookmarks, history and preferences are persisted. Loading, scrolling, fullscreen, media and navigation-command state are transient and reset on restart. Runtime-only and unchanged updates do not write the durable store. A failed storage removal reports its error to the caller without blocking subsequent storage operations.
 
 ## Regression Tests
 
