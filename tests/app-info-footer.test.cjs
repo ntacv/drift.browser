@@ -9,36 +9,36 @@ const root = path.resolve(__dirname, '..');
 const appConfig = require('../app.json');
 const website = 'https://drift-browser.vercel.app/';
 
-const renderFooter = (expoConfig, openURL) => {
+const renderFooter = (expoConfig) => {
   const filename = path.join(root, 'src', 'components', 'common', 'AppInfoFooter.tsx');
   const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true },
   }).outputText;
   const exports = {};
-  const warnings = [];
+  const actions = [];
   vm.runInNewContext(output, {
     exports,
-    console: { warn: (...args) => warnings.push(args) },
     require: (name) => {
       if (name === 'react') return { createElement: (type, props, ...children) => ({ type, props: { ...props, children } }) };
       if (name === 'react-native') return {
         View: 'View', Text: 'Text', Pressable: 'Pressable',
-        StyleSheet: { create: (styles) => styles }, Linking: { openURL },
+        StyleSheet: { create: (styles) => styles },
       };
+      if (name === '@react-navigation/native') return { useNavigation: () => ({ goBack: () => actions.push(['goBack']) }) };
+      if (name.endsWith('/browserStore')) return { useBrowserStore: (selector) => selector({ createTab: (...args) => actions.push(['createTab', ...args]) }) };
       if (name === 'expo-constants') return { expoConfig };
       if (name.endsWith('/app.json')) return appConfig;
       if (name.endsWith('/theme')) return { useTheme: () => ({ theme: { text: '#fff', text3: '#aaa', accent: '#abc' } }) };
       throw new Error(name);
     },
   });
-  return { tree: exports.AppInfoFooter(), warnings };
+  return { tree: exports.AppInfoFooter(), actions };
 };
 
 const text = (node) => node.props.children.join('');
 
-test('footer displays runtime app metadata and opens the official website', async () => {
-  let opened;
-  const { tree } = renderFooter({ name: 'Drift Browser', version: '1.3.6' }, async (url) => { opened = url; });
+test('footer displays runtime app metadata and opens the website in a Drift tab before closing settings', () => {
+  const { tree, actions } = renderFooter({ name: 'Drift Browser', version: '1.3.6' });
   const [name, version, link] = tree.props.children;
   assert.equal(text(name), 'Drift Browser');
   assert.equal(text(version), 'v1.3.6');
@@ -47,18 +47,14 @@ test('footer displays runtime app metadata and opens the official website', asyn
   assert.equal(text(link.props.children[0]), website);
   assert.ok(link.props.style.minHeight >= 44);
   link.props.onPress();
-  await Promise.resolve();
-  assert.equal(opened, website);
+  assert.deepEqual(actions, [['createTab', undefined, website], ['goBack']]);
 });
 
-test('footer falls back to app configuration and handles failed website launches', async () => {
-  const { tree, warnings } = renderFooter(undefined, () => Promise.reject(new Error('Unavailable')));
-  const [name, version, link] = tree.props.children;
+test('footer falls back to app configuration', () => {
+  const { tree } = renderFooter(undefined);
+  const [name, version] = tree.props.children;
   assert.equal(text(name), appConfig.expo.name);
   assert.equal(text(version), `v${appConfig.expo.version}`);
-  link.props.onPress();
-  await Promise.resolve();
-  assert.equal(warnings.length, 1);
 });
 
 test('settings places app information after the final card and preserves the debug hotspot', () => {

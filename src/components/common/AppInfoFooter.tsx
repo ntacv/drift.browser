@@ -1,14 +1,18 @@
 import React from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 
 import appConfig from '../../../app.json';
 import { useTheme } from '../../theme';
+import { useBrowserStore } from '../../store/browserStore';
 
 const APP_WEBSITE_URL = 'https://drift-browser.vercel.app/';
 
 export const AppInfoFooter = () => {
   const { theme } = useTheme();
+  const navigation = useNavigation();
+  const createTab = useBrowserStore((state) => state.createTab);
   const appName = Constants.expoConfig?.name ?? appConfig.expo.name;
   const appVersion = Constants.expoConfig?.version ?? appConfig.expo.version;
 
@@ -21,9 +25,8 @@ export const AppInfoFooter = () => {
         accessibilityLabel={APP_WEBSITE_URL}
         style={styles.websiteLink}
         onPress={() => {
-          void Linking.openURL(APP_WEBSITE_URL).catch((error) => {
-            console.warn('Unable to open Drift website', error);
-          });
+          createTab(undefined, APP_WEBSITE_URL);
+          navigation.goBack();
         }}
       >
         <Text style={[styles.website, { color: theme.accent }]}>{APP_WEBSITE_URL}</Text>

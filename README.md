@@ -6,7 +6,7 @@ Technical setup and run instructions for the Expo/React Native workspace.
 
 Official website: [drift-browser.vercel.app](https://drift-browser.vercel.app/).
 
-The bottom of **Settings** displays the app name, the current app version, and a tappable link to the official website.
+The bottom of **Settings** displays the app name, the current app version, and a tappable link to the official website. The link opens in a new Drift tab and closes Settings, without launching another browser.
 
 ## Screenshots
 

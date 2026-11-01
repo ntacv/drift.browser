@@ -163,7 +163,7 @@ Official link-format references: [Google Maps URLs](https://developers.google.co
 
 #### App Information Footer
 
-At the bottom of Settings, the footer displays **Drift Browser**, the current app version (for example, `v1.3.6`), and a tappable link to the [official website](https://drift-browser.vercel.app/). The name and version come from the app configuration and update automatically with releases.
+At the bottom of Settings, the footer displays **Drift Browser**, the current app version (for example, `v1.3.6`), and a tappable link to the [official website](https://drift-browser.vercel.app/). The name and version come from the app configuration and update automatically with releases. Tapping the website opens it in a new tab in the current Drift workspace and closes Settings, preserving the previous tab without launching an external browser.
 
 ### 1.6 Workspace Editor
 
