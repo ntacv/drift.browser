@@ -4,6 +4,10 @@ WARNING: This application has been developed by ai agents. It may contain bugs, 
 
 Technical setup and run instructions for the Expo/React Native workspace.
 
+Official website: [drift-browser.vercel.app](https://drift-browser.vercel.app/).
+
+The bottom of **Settings** displays the app name, the current app version, and a tappable link to the official website. The link opens in a new Drift tab and closes Settings, without launching another browser.
+
 ## Screenshots
 
 <p align="center">
@@ -25,7 +29,7 @@ You can customize the default settings for new installations by editing `default
 You can configure:
 - Initial workspaces (name, icon, color)
 - Default theme, search engine, language
-- UI preferences (left-hand mode, compact lists, etc.)
+- UI preferences (one-handed mode, compact lists, etc.). Settings choice buttons sit to the right of their label when they fit, or wrap below it on narrow screens.
 - Default new tab URL
 
 See [DEFAULT_SETTINGS.md](DEFAULT_SETTINGS.md) for the complete configuration reference.

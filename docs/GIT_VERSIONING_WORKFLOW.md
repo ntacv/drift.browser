@@ -129,6 +129,13 @@ git push origin v1.1.0
 
 ### C) Automatic GitHub Release
 
+**Release policy:** Always publish GitHub Releases as **pre-releases**, even for
+plain semantic version tags such as `v1.3.6`. Do not mark them as stable or latest.
+Keep the pre-release flag enabled when updating notes or artifacts, and verify
+that GitHub marks the release as a pre-release before reporting completion.
+Release automation must explicitly set `prerelease: true`; GitHub CLI commands
+must use `--prerelease`.
+
 Pushing tag `v*` triggers:
 
 - `.github/workflows/release-on-tag.yml`
