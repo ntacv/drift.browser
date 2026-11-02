@@ -99,6 +99,7 @@ Configurable tiles:
 
 #### Page tools (Android)
 
+- **Eyedropper** freezes the visible page on Android 8 or newer. Tap or drag the preview, then choose Copy HEX color to copy `#RRGGBB`. Closing, navigating or rotating cancels selection and deletes the temporary capture. Only visible page pixels are sampled, not other apps; protected/video content may not be capturable.
 - **Find in page** highlights matches in the current page. Use the query field and Previous/Next match controls; Ctrl+F focuses search with a hardware keyboard. Enter/Shift+Enter moves between matches, and Escape or Android Back closes search before navigating.
 - Tools reset when the page navigates, the active tab changes, or the browser screen is left. Blank, loading and error pages cannot run page tools.
 - These tools require a new native Android build; Expo Go does not include the bridge. On iOS, Drift displays guidance to use Safari instead.

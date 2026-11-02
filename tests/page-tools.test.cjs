@@ -32,6 +32,19 @@ test('page commands are transient, repeatable and dismiss before navigation', ()
   assert.equal(tools.closePageTools(), false);
 });
 
+test('viewport coordinates map density-independent points and clamp edges', () => {
+  const exports = {};
+  const source = fs.readFileSync(path.join(__dirname, '../src/hooks/pagePixels.ts'), 'utf8');
+  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports });
+  const point = exports.viewportPoint;
+  assert.equal(point(100, 200, 200, 400).x, 0.5);
+  assert.equal(point(100, 200, 200, 400).y, 0.5);
+  assert.equal(point(-1, 500, 200, 400).x, 0);
+  assert.equal(point(-1, 500, 200, 400).y, 1);
+  assert.equal(point(0, 0, 0, 400), null);
+  assert.equal(point(NaN, 0, 200, 400), null);
+});
+
 test('native plugin insertion is idempotent and fails on unknown templates', () => {
   const anchor = 'PackageList(this).packages.apply {';
   const addition = '          add(PageToolsPackage())';

@@ -73,6 +73,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
       icon: 'search',
       disabled: !activeTab || activeTab.isLoading || !!activeTab.webError || !/^https?:\/\//i.test(activeTab.url),
     },
+    eyedropper: {
+      label: t('menuEyedropper'),
+      icon: 'colorize',
+      disabled: !activeTab || activeTab.isLoading || !!activeTab.webError || !/^https?:\/\//i.test(activeTab.url),
+    },
   };
 
   const toggleFullscreen = () => {
@@ -88,9 +93,9 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   };
 
   const executeTileAction = async (id: MenuTileId) => {
-    if (id === 'find') {
+    if (id === 'find' || id === 'eyedropper') {
       setMenuOpen(false);
-      requestPageTool('find');
+      requestPageTool(id);
       return;
     }
     if (id === 'back' || id === 'forward' || id === 'refresh') {

@@ -1,5 +1,14 @@
 package com.ntacv.drift
 
+import android.graphics.Bitmap
+import android.graphics.Rect
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.view.PixelCopy
+import android.view.WindowManager
+import java.io.File
+import java.io.FileOutputStream
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +22,59 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
   private var active: WeakReference<WebView>? = null
   private var generation = 0
   private var searching = false
+  private var capture: Bitmap? = null
+  private var captureFile: File? = null
+  private var captureGeneration = 0
+
+  private fun releaseCapture() {
+    captureGeneration++
+    capture?.recycle(); capture = null
+    captureFile?.delete(); captureFile = null
+  }
+
+  @ReactMethod fun discardCapture() { UiThreadUtil.runOnUiThread { releaseCapture() } }
+
+  @ReactMethod fun captureViewport(promise: Promise) = withPage(promise) { web ->
+    releaseCapture()
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) throw IllegalStateException("Pixel capture requires Android 8 or later")
+    val window = context.currentActivity?.window ?: throw IllegalStateException("No active window")
+    if ((window.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE) != 0) throw IllegalStateException("This window does not allow capture")
+    val bounds = Rect()
+    if (!web.getGlobalVisibleRect(bounds) || bounds.width() < 1 || bounds.height() < 1) throw IllegalStateException("No visible page")
+    val location = IntArray(2)
+    web.getLocationInWindow(location)
+    val rect = Rect(location[0], location[1], location[0] + web.width, location[1] + web.height)
+    if (web.width.toLong() * web.height > 16_000_000) throw IllegalStateException("Viewport too large to capture")
+    val bitmap = Bitmap.createBitmap(web.width, web.height, Bitmap.Config.ARGB_8888)
+    val token = captureGeneration
+    PixelCopy.request(window, rect, bitmap, { status ->
+      if (token != captureGeneration || active?.get() !== web) {
+        bitmap.recycle(); promise.reject("E_CANCELLED", "Capture cancelled")
+      } else if (status != PixelCopy.SUCCESS) {
+        bitmap.recycle(); promise.reject("E_CAPTURE", "This page could not be captured")
+      } else {
+        try {
+          val file = File.createTempFile("page-picker-", ".png", context.cacheDir)
+          FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+          capture = bitmap; captureFile = file
+          promise.resolve(Arguments.createMap().apply {
+            putString("uri", android.net.Uri.fromFile(file).toString()); putInt("width", bitmap.width); putInt("height", bitmap.height)
+          })
+        } catch (error: Exception) { bitmap.recycle(); promise.reject("E_CAPTURE", error.message, error) }
+      }
+    }, Handler(Looper.getMainLooper()))
+  }
+
+  @ReactMethod fun sample(x: Double, y: Double, promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      try {
+        val bitmap = capture ?: throw IllegalStateException("Capture expired")
+        require(x.isFinite() && y.isFinite() && x >= 0 && x <= 1 && y >= 0 && y <= 1)
+        val color = bitmap.getPixel((x * bitmap.width).toInt().coerceAtMost(bitmap.width - 1), (y * bitmap.height).toInt().coerceAtMost(bitmap.height - 1))
+        promise.resolve(String.format(java.util.Locale.ROOT, "#%06X", color and 0xFFFFFF))
+      } catch (error: Exception) { promise.reject("E_CAPTURE", error.message, error) }
+    }
+  }
 
   override fun getName() = "PageTools"
   override fun initialize() { super.initialize(); instance = WeakReference(this) }
@@ -31,6 +93,7 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
   }
 
   private fun clear() {
+    releaseCapture()
     generation++
     searching = false
     active?.get()?.let { it.setFindListener(null); it.clearMatches() }

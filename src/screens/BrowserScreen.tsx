@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 import { BrowserView } from '../components/browser/BrowserView';
-import { closePageTools } from '../components/browser/PageTools';
+import { closePageTools, usePageTools } from '../components/browser/PageTools';
 import { MenuSheet } from '../components/shell/MenuSheet';
 import { TabTray } from '../components/shell/TabTray';
 import { UrlBar } from '../components/shell/UrlBar';
@@ -20,6 +20,7 @@ interface BrowserScreenProps {
 export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenProps) => {
   const { theme } = useTheme();
   const isFocused = useIsFocused();
+  const pickingColor = usePageTools((state) => state.action === 'eyedropper');
   const { width, height } = useWindowDimensions();
   const isUserFullscreen = useBrowserStore((state) => state.isUserFullscreen);
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);
@@ -161,7 +162,7 @@ export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenPr
 
         {!shouldHideUI ? <TabTray /> : null}
         {!shouldHideUI ? <MenuSheet onOpenSettings={onOpenSettings} onOpenHistory={onOpenHistory} /> : null}
-        {!shouldHideUI ? <UrlBar /> : null}
+        {!shouldHideUI && !pickingColor ? <UrlBar /> : null}
       </View>
     </SafeAreaView>
   );

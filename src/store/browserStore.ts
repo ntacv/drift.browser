@@ -16,7 +16,7 @@ import type {
   Workspace,
 } from './types';
 import { getDefaultConfig } from './defaultConfig';
-import { migrateMenuTileOrder, normalizeMenuTileOrder } from '../utils/menuLayout';
+import { MENU_TILE_IDS, migrateMenuTileOrder, normalizeMenuTileOrder, type MenuTileId } from '../utils/menuLayout';
 import { SAVED_TABS_WORKSPACE_COLOR } from '../../default-settings';
 
 const makeId = (prefix: string): string => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100_000)}`;
@@ -758,13 +758,15 @@ export const useBrowserStore = create<BrowserStore>()(
           return persistedState;
         }
 
+        const BASE_MENU_TILE_IDS: MenuTileId[] = ['back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace'];
         const menuTileOrder = version < 8
           ? migrateMenuTileOrder(persistedState.menuTileOrder)
           : normalizeMenuTileOrder(persistedState.menuTileOrder);
+        const newMenuTiles = MENU_TILE_IDS.filter((id) => !BASE_MENU_TILE_IDS.includes(id));
 
         persistedState = {
           ...persistedState,
-          menuTileOrder: normalizeMenuTileOrder(menuTileOrder.includes('find') ? menuTileOrder : [...menuTileOrder, 'find']),
+          menuTileOrder: normalizeMenuTileOrder([...menuTileOrder, ...newMenuTiles]),
         };
 
         const workspaces = persistedState.workspaces;

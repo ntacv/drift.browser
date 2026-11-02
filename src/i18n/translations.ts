@@ -1,5 +1,10 @@
 export const translations = {
     en: {
+        menuEyedropper: 'Eyedropper',
+        eyedropperHint: 'Tap or drag on the frozen page preview to pick a color.',
+        eyedropperCopy: 'Copy HEX color',
+        eyedropperFailed: 'This viewport cannot be captured. Protected content and Android versions below 8 are not supported.',
+        eyedropperCopyFailed: 'Could not copy the color. Try again.',
         menuFindPage: 'Find in page',
         findPrevious: 'Previous match',
         findNext: 'Next match',
