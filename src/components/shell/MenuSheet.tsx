@@ -67,7 +67,6 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     settings: { label: t('menuSettings'), icon: 'settings' },
     history: { label: t('menuHistory'), icon: 'history' },
     workspace: { label: t('menuNewWorkspace'), icon: 'workspaces-outline' },
-    signout: { label: t('menuSignOut'), icon: 'logout', danger: true, disabled: !syncUser },
   };
 
   const toggleFullscreen = () => {
@@ -113,8 +112,6 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     } else if (id === 'workspace') {
       createWorkspace(t('menuNewWorkspace'), 'star', DEFAULT_NEW_WORKSPACE_COLOR);
       setMenuOpen(false);
-    } else if (id === 'signout') {
-      fxaService.signOut().then(() => setSyncUser(null));
     }
   };
 
@@ -125,7 +122,6 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
         onOpenChange={setMenuOpen}
         order={menuTileOrder}
         onOrderChange={setMenuTileOrder}
-        signedIn={Boolean(syncUser)}
         barPosition={barPosition}
         actions={actions}
         onAction={executeTileAction}

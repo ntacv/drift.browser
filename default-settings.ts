@@ -95,5 +95,5 @@ export const defaultSettings: DefaultConfig = {
         isFullUrlVisible: false,
         invertUrlBarSwipeDirection: false,
     },
-    menuTileOrder: ['back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace', 'signout'],
+    menuTileOrder: ['back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace'],
 };

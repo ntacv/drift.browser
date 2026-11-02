@@ -26,7 +26,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   order: MenuTileId[];
   onOrderChange: (order: MenuTileId[]) => void;
-  signedIn: boolean;
   barPosition: 'top' | 'bottom';
   actions: Record<MenuTileId, MenuAction>;
   onAction: (id: MenuTileId) => void;
@@ -55,21 +54,53 @@ const MenuActionTile = ({ id, action, width, editing, selected, picker, isDraggi
   const { theme } = useTheme();
   const { t } = useI18n();
   const suppressPress = useRef(false);
-  const startDrag = (point: DragPoint) => {
+  const tileRef = useRef<View>(null);
+  const coordinateOffset = useRef<{ x: number; y: number } | null>(null);
+  const pendingPoint = useRef<{ point: DragPoint; drop: boolean } | null>(null);
+  const gestureGeneration = useRef(0);
+  useEffect(() => () => { gestureGeneration.current++; }, []);
+  const deliverPoint = (point: DragPoint, drop: boolean) => {
+    const offset = coordinateOffset.current;
+    if (!offset) {
+      pendingPoint.current = { point, drop };
+      return;
+    }
+    const windowPoint = { id, x: point.x + offset.x, y: point.y + offset.y };
+    if (drop) onDrop(windowPoint);
+    else onDrag(windowPoint);
+  };
+  const startDrag = (point: DragPoint, localX: number, localY: number) => {
     suppressPress.current = true;
-    onDrag(point);
+    coordinateOffset.current = null;
+    pendingPoint.current = { point, drop: false };
+    const generation = ++gestureGeneration.current;
+    // Native gesture absolute coordinates can include Android window insets that
+    // measureInWindow excludes. Calibrate once using the same touch's local position.
+    tileRef.current?.measureInWindow((x, y) => {
+      if (generation !== gestureGeneration.current) return;
+      coordinateOffset.current = { x: x + localX - point.x, y: y + localY - point.y };
+      const pending = pendingPoint.current;
+      pendingPoint.current = null;
+      if (pending) deliverPoint(pending.point, pending.drop);
+    });
+  };
+  const cancelGesture = () => {
+    gestureGeneration.current++;
+    pendingPoint.current = null;
+    coordinateOffset.current = null;
+    onCancel();
   };
   const pan = Gesture.Pan()
     .enabled(editing && !selected)
     .activateAfterLongPress(180)
-    .onStart((event) => runOnJS(startDrag)({ id, x: event.absoluteX, y: event.absoluteY }))
-    .onUpdate((event) => runOnJS(onDrag)({ id, x: event.absoluteX, y: event.absoluteY }))
-    .onEnd((event) => runOnJS(onDrop)({ id, x: event.absoluteX, y: event.absoluteY }))
-    .onFinalize((_event, success) => { if (!success) runOnJS(onCancel)(); });
+    .onStart((event) => runOnJS(startDrag)({ id, x: event.absoluteX, y: event.absoluteY }, event.x, event.y))
+    .onUpdate((event) => runOnJS(deliverPoint)({ id, x: event.absoluteX, y: event.absoluteY }, false))
+    .onEnd((event) => runOnJS(deliverPoint)({ id, x: event.absoluteX, y: event.absoluteY }, true))
+    .onFinalize((_event, success) => { if (!success) runOnJS(cancelGesture)(); });
   const color = action.danger ? theme.danger : theme.text;
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View style={{ width, opacity: isDragging ? 0.45 : 1 }}>
+      <Animated.View ref={tileRef} collapsable={false} style={{ width, opacity: isDragging ? 0.45 : 1 }}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${action.label}${picker ? `, ${t(selected ? 'menuAdded' : 'menuAdd')}` : ''}`}
@@ -104,7 +135,7 @@ const MenuActionTile = ({ id, action, width, editing, selected, picker, isDraggi
   );
 };
 
-export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrderChange, signedIn, barPosition, actions, onAction, children }: Props) {
+export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrderChange, barPosition, actions, onAction, children }: Props) {
   const { theme } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
@@ -115,6 +146,7 @@ export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrde
   const [headerHeight, setHeaderHeight] = useState(52);
   const [gridWidth, setGridWidth] = useState(0);
   const [drag, setDrag] = useState<DragPoint | null>(null);
+  const [previewHeight, setPreviewHeight] = useState(44);
   const [target, setTarget] = useState<{ before: MenuTileId | null } | null>(null);
   const root = useRef<View>(null);
   const grid = useRef<View>(null);
@@ -126,7 +158,7 @@ export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrde
   const scrollOffset = useRef(0);
   const dragGeneration = useRef(0);
   const order = normalizeMenuTileOrder(storedOrder);
-  const visible = order.filter((id) => id !== 'signout' || signedIn || editing);
+  const visible = order;
   const bottom = barPosition === 'bottom' ? 68 + Math.max(insets.bottom, 4) : Math.max(insets.bottom, 10);
   const topClearance = insets.top + (barPosition === 'top' ? 68 : 10);
   const available = Math.max(0, height - bottom - topClearance);
@@ -158,9 +190,14 @@ export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrde
       if (commit) cancelDrag();
       return;
     }
+    if (commit) {
+      dragGeneration.current++;
+      pointer.current = null;
+    }
     const generation = dragGeneration.current;
+    const isCurrent = () => generation === dragGeneration.current && (commit || pointer.current === point);
     viewport.current?.measureInWindow((vx, vy, vw, vh) => {
-      if (generation !== dragGeneration.current) return;
+      if (!isCurrent()) return;
       if (point.x < vx || point.x > vx + vw || point.y < vy || point.y > vy + vh) {
         setTarget(null);
         if (commit) cancelDrag();
@@ -171,7 +208,7 @@ export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrde
         if (delta) scroll.current?.scrollTo({ y: Math.max(0, scrollOffset.current + delta), animated: false });
       }
       grid.current?.measureInWindow((gx, gy) => {
-        if (generation !== dragGeneration.current) return;
+        if (!isCurrent()) return;
         const orderedFrames = visible.map((id) => frames.current.get(id)).filter((frame): frame is TileFrame => Boolean(frame));
         // Account/header space is not a drop target; below the final row appends.
         if (point.y < gy) {
@@ -200,8 +237,12 @@ export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrde
 
   const onDrag = (point: DragPoint) => {
     pointer.current = point;
-    root.current?.measureInWindow((x, y) => { rootOrigin.current = { x, y }; });
-    setDrag(point);
+    const generation = dragGeneration.current;
+    root.current?.measureInWindow((x, y) => {
+      if (generation !== dragGeneration.current || pointer.current !== point) return;
+      rootOrigin.current = { x, y };
+      setDrag(point);
+    });
     locate(point, false);
   };
   const move = (id: MenuTileId, direction: number) => {
@@ -229,11 +270,14 @@ export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrde
     <Animated.View ref={root} pointerEvents={open ? 'auto' : 'none'} style={[styles.container, { bottom }, sheet.animatedStyle]}>
       {editing && (
         <View style={[styles.panel, { height: pickerHeight, backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)} style={styles.header}>
-            <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>{t('menuAvailableActions')}</Text>
-            <Pressable accessibilityRole="button" onPress={() => { cancelDrag(); setEditing(false); }} style={styles.save}>
-              <Text style={[styles.title, { color: theme.text }]}>{t('save')}</Text>
-            </Pressable>
+          <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+            <View style={styles.header}>
+              <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>{t('menuAvailableActions')}</Text>
+              <Pressable accessibilityRole="button" onPress={() => { cancelDrag(); setEditing(false); }} style={styles.save}>
+                <Text style={[styles.title, { color: theme.text }]}>{t('save')}</Text>
+              </Pressable>
+            </View>
+            <Text style={[styles.dropHint, { color: theme.text2 }]}>{t('menuDropHere')}</Text>
           </View>
           <ScrollView onContentSizeChange={(_w, h) => setPickerContentHeight(h)} style={styles.scroll} contentContainerStyle={styles.picker}>
             {MENU_TILE_IDS.map((id) => <View key={id}>{tile(id, true)}</View>)}
@@ -255,11 +299,11 @@ export function ActionMenuPanel({ open, onOpenChange, order: storedOrder, onOrde
                 </View>
               ))}
             </View>
-            {editing && <Text style={[styles.dropHint, { color: target && target.before === null ? theme.text : theme.text2 }]}>{t('menuDropHere')}</Text>}
+            {editing && <View pointerEvents="none" style={[styles.appendTarget, { borderColor: target?.before === null ? theme.text2 : 'transparent' }]} />}
           </ScrollView>
         </View>
       </View>
-      {drag && <View pointerEvents="none" style={[styles.preview, { left: drag.x - rootOrigin.current.x - 50, top: drag.y - rootOrigin.current.y - 50, backgroundColor: theme.surface2, borderColor: theme.text2 }]}><Text style={[styles.label, { color: theme.text }]}>{actions[drag.id].label}</Text></View>}
+      {drag && <View pointerEvents="none" onLayout={(event) => setPreviewHeight(event.nativeEvent.layout.height)} style={[styles.preview, { left: drag.x - rootOrigin.current.x - 60, top: drag.y - rootOrigin.current.y - previewHeight / 2, backgroundColor: theme.surface2, borderColor: theme.text2 }]}><Text style={[styles.label, { color: theme.text }]}>{actions[drag.id].label}</Text></View>}
     </Animated.View>
   );
 }
@@ -280,6 +324,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontFamily: 'Inter_700Bold', flexShrink: 1 },
   remove: { position: 'absolute', top: -5, right: -3, width: 26, height: 26, borderWidth: 1, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   insertion: { position: 'absolute', left: -4, top: 0, bottom: 0, width: 3, borderRadius: 2 },
-  dropHint: { paddingTop: 12, textAlign: 'center', fontSize: 12 },
+  dropHint: { paddingHorizontal: 14, paddingBottom: 10, fontSize: 12 },
+  appendTarget: { height: 24, marginTop: 8, borderWidth: 2, borderRadius: 8 },
   preview: { position: 'absolute', width: 120, minHeight: 44, padding: 10, borderRadius: 12, borderWidth: 1, elevation: 10, zIndex: 20 },
 });

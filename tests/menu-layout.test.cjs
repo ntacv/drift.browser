@@ -31,7 +31,8 @@ const layout = load('src\\utils\\menuLayout.ts');
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
 test('normalization preserves omissions, validates IDs, and protects Settings', () => {
-  assert.equal(layout.normalizeMenuTileOrder(undefined).length, 9);
+  assert.equal(layout.normalizeMenuTileOrder(undefined).length, 8);
+  assert.deepEqual(plain(layout.normalizeMenuTileOrder(['signout', 'settings'])), ['settings']);
   assert.deepEqual(plain(layout.normalizeMenuTileOrder([])), ['settings']);
   assert.deepEqual(plain(layout.normalizeMenuTileOrder(['refresh', 'bad', null, 'refresh'])), ['refresh', 'settings']);
   assert.deepEqual(plain(layout.removeMenuTile(['settings'], 'settings')), ['settings']);
@@ -40,7 +41,7 @@ test('normalization preserves omissions, validates IDs, and protects Settings', 
 
 test('migration reproduces the old fixed quick actions and missing legacy actions', () => {
   assert.deepEqual(plain(layout.migrateMenuTileOrder(['workspace', 'share', 'workspace', 'bogus'])), [
-    'back', 'forward', 'refresh', 'fullscreen', 'workspace', 'share', 'settings', 'history', 'signout',
+    'back', 'forward', 'refresh', 'fullscreen', 'workspace', 'share', 'settings', 'history',
   ]);
 });
 
@@ -79,11 +80,12 @@ test('store migrates even without workspaces and persists intentional removals',
   assert.equal(options.version, 8);
   assert.deepEqual(plain(store.getState().menuTileOrder), plain(layout.MENU_TILE_IDS));
   const old = options.migrate({ menuTileOrder: ['history', 'settings'] }, 7);
-  assert.deepEqual(plain(old.menuTileOrder), ['back', 'forward', 'refresh', 'fullscreen', 'history', 'settings', 'share', 'workspace', 'signout']);
-  store.getState().setMenuTileOrder(['signout', 'settings']);
+  assert.deepEqual(plain(old.menuTileOrder), ['back', 'forward', 'refresh', 'fullscreen', 'history', 'settings', 'share', 'workspace']);
+  store.getState().setMenuTileOrder(['workspace', 'settings']);
   const saved = options.partialize(store.getState());
   const rehydrated = options.merge(plain(saved), store.getInitialState());
-  assert.deepEqual(plain(rehydrated.menuTileOrder), ['signout', 'settings']);
+  assert.deepEqual(plain(rehydrated.menuTileOrder), ['workspace', 'settings']);
+  assert.deepEqual(plain(options.merge({ menuTileOrder: ['signout', 'settings'] }, store.getState()).menuTileOrder), ['settings']);
   assert.deepEqual(plain(options.migrate({ menuTileOrder: ['settings'] }, 8).menuTileOrder), ['settings']);
   assert.deepEqual(plain(options.merge({ menuTileOrder: ['bad', 'refresh', 'refresh'] }, store.getState()).menuTileOrder), ['refresh', 'settings']);
 });
