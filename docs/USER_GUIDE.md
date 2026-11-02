@@ -99,6 +99,7 @@ Configurable tiles:
 
 #### Page tools (Android)
 
+- **View page source** (Ctrl+U) fetches a fresh HTTP(S) GET using the current WebView user agent and available cookies. This is response HTML, not the live DOM, and it may differ from the original response (POST submissions are never replayed). The read-only, selectable viewer splits large HTML into sections and can copy the full response. Requests have a 15-second deadline and a 5 MiB decoded-content limit; non-HTML, failed or oversized responses show an error. Cookies are selected separately for each redirect; HTTPS downgrades are refused. Source is never executed or saved in browser history/storage.
 - **Print / Save as PDF** (Ctrl+P) opens Android's system print dialog for the live page, including its print styles. Choose a printer or **Save as PDF**, then choose the file destination. Closing the dialog cancels; Drift does not claim a file was saved just because the dialog opened.
 - **Eyedropper** freezes the visible page on Android 8 or newer. Tap or drag the preview, then choose Copy HEX color to copy `#RRGGBB`. Closing, navigating or rotating cancels selection and deletes the temporary capture. Only visible page pixels are sampled, not other apps; protected/video content may not be capturable.
 - **Find in page** highlights matches in the current page. Use the query field and Previous/Next match controls; Ctrl+F focuses search with a hardware keyboard. Enter/Shift+Enter moves between matches, and Escape or Android Back closes search before navigating.

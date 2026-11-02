@@ -1,5 +1,13 @@
 export const translations = {
     en: {
+        menuPageSource: 'View page source',
+        sourceNotice: 'Freshly fetched response HTML (GET), not the live DOM or a replay of the original response. It may differ from the loaded page.',
+        sourceLoading: 'Fetching HTML…',
+        sourceFailed: 'Could not fetch HTML. The response must be HTML, no larger than 5 MiB, and finish within 15 seconds. Some authenticated pages cannot be retrieved this way.',
+        sourceCopyFailed: 'Could not copy the HTML. Try again.',
+        sourceCopy: 'Copy all HTML',
+        sourcePrevious: 'Previous section',
+        sourceNext: 'Next section',
         menuPrintPage: 'Print / Save as PDF',
         pagePrintOpening: 'Opening the system print dialog… Choose Save as PDF or a printer.',
         pagePrintFailed: 'Could not open printing. Check that a print service is available and try again.',

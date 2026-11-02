@@ -45,6 +45,20 @@ test('viewport coordinates map density-independent points and clamp edges', () =
   assert.equal(point(NaN, 0, 200, 400), null);
 });
 
+test('source sections preserve inert HTML and never silently truncate the response', () => {
+  const exports = {};
+  const source = fs.readFileSync(path.join(__dirname, '../src/hooks/pageSource.ts'), 'utf8');
+  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports });
+  const html = '<script>alert(1)</script>' + 'x'.repeat(40000);
+  let restored = '';
+  const total = exports.sourcePage(html, 0).pages;
+  for (let index = 0; index < total; index++) restored += exports.sourcePage(html, index).text;
+  assert.equal(restored, html);
+  assert.equal(exports.sourcePage(html, -1).page, 0);
+  assert.equal(exports.sourcePage(html, 1000).page, total - 1);
+  assert.equal(exports.sourcePage('', 0).pages, 1);
+});
+
 test('native plugin insertion is idempotent and fails on unknown templates', () => {
   const anchor = 'PackageList(this).packages.apply {';
   const addition = '          add(PageToolsPackage())';

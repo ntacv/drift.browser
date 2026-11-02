@@ -20,7 +20,7 @@ interface BrowserScreenProps {
 export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenProps) => {
   const { theme } = useTheme();
   const isFocused = useIsFocused();
-  const pickingColor = usePageTools((state) => state.action === 'eyedropper');
+  const pickingColor = usePageTools((state) => state.action === 'eyedropper' || state.action === 'source');
   const { width, height } = useWindowDimensions();
   const isUserFullscreen = useBrowserStore((state) => state.isUserFullscreen);
   const isMenuOpen = useBrowserStore((state) => state.isMenuOpen);

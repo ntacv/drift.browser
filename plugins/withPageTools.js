@@ -25,7 +25,7 @@ function withPageTools(config) {
   return withDangerousMod(config, ['android', async (mod) => {
     const destination = path.join(mod.modRequest.platformProjectRoot, 'app', 'src', 'main', 'java', ...PACKAGE.split('.'));
     fs.mkdirSync(destination, { recursive: true });
-    for (const name of ['PageToolsModule.kt', 'PageToolsPackage.kt']) {
+    for (const name of ['PageToolsModule.kt', 'PageToolsPackage.kt', 'PageSource.kt']) {
       fs.copyFileSync(path.join(__dirname, 'android', name), path.join(destination, name));
     }
     return mod;

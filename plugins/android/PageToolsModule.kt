@@ -25,6 +25,23 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
   private var capture: Bitmap? = null
   private var captureFile: File? = null
   private var captureGeneration = 0
+  private var sourceRequest: PageSource? = null
+
+  @ReactMethod fun cancelSource() { UiThreadUtil.runOnUiThread { sourceRequest?.cancel(); sourceRequest = null } }
+
+  @ReactMethod fun pageSource(promise: Promise) = withPage(promise) { web ->
+    sourceRequest?.cancel()
+    val request = PageSource()
+    sourceRequest = request
+    val url = web.url ?: throw IllegalStateException("No page URL")
+    val agent = web.settings.userAgentString
+    Thread({
+      try {
+        val (finalUrl, html) = request.fetch(url, agent)
+        promise.resolve(Arguments.createMap().apply { putString("url", finalUrl); putString("html", html) })
+      } catch (error: Exception) { promise.reject("E_SOURCE", error.message, error) }
+    }, "DriftPageSource").start()
+  }
 
   private fun releaseCapture() {
     captureGeneration++
@@ -93,6 +110,7 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
   }
 
   private fun clear() {
+    sourceRequest?.cancel(); sourceRequest = null
     releaseCapture()
     generation++
     searching = false
@@ -161,6 +179,7 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
       val action = when {
         event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_F -> "find"
         event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_P -> "print"
+        event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_U -> "source"
         module.searching && event.keyCode == KeyEvent.KEYCODE_ESCAPE -> "close"
         module.searching && event.keyCode == KeyEvent.KEYCODE_ENTER -> if (event.isShiftPressed) "previous" else "next"
         else -> return false
