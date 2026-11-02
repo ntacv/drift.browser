@@ -174,6 +174,8 @@ const buildInitialState = () => {
     barPosition: 'bottom' as BarPosition,
     linkActionPanel: null,
     hasCompletedOnboarding: false,
+    isTabSelectionMode: false,
+    selectedTabIds: [],
   };
 };
 
@@ -236,8 +238,11 @@ export const useBrowserStore = create<BrowserStore>()(
           if (nextTabIds.length === 0) {
             const fallback = makeTab(workspace.id, normalizeDefaultNewTabUrl(state.defaultNewTabUrl));
             nextTabs[fallback.id] = fallback;
+            const nextSelectedTabIds = state.selectedTabIds.filter((id) => id !== tabId);
             return {
               tabs: nextTabs,
+              selectedTabIds: nextSelectedTabIds,
+              isTabSelectionMode: nextSelectedTabIds.length > 0 && state.isTabSelectionMode,
               workspaces: {
                 ...state.workspaces,
                 [workspace.id]: {
@@ -250,8 +255,11 @@ export const useBrowserStore = create<BrowserStore>()(
           }
 
           const nextActive = workspace.activeTabId === tabId ? nextTabIds[0] : workspace.activeTabId;
+          const nextSelectedTabIds = state.selectedTabIds.filter((id) => id !== tabId);
           return {
             tabs: nextTabs,
+            selectedTabIds: nextSelectedTabIds,
+            isTabSelectionMode: nextSelectedTabIds.length > 0 && state.isTabSelectionMode,
             workspaces: {
               ...state.workspaces,
               [workspace.id]: {
@@ -595,6 +603,8 @@ export const useBrowserStore = create<BrowserStore>()(
             tabs: nextTabs,
             workspaces: nextWorkspaces,
             isAllTabsView: false,
+            isTabSelectionMode: false,
+            selectedTabIds: [],
           };
         }),
 
@@ -739,6 +749,126 @@ export const useBrowserStore = create<BrowserStore>()(
                 pictureInPictureRequestId: tab.pictureInPictureRequestId + 1,
               },
             },
+          };
+        }),
+      enterTabSelectionMode: (initialTabId) =>
+        set((state) => {
+          if (initialTabId && !state.tabs[initialTabId]) {
+            return state;
+          }
+          const nextSelectedTabIds = initialTabId ? [initialTabId] : state.selectedTabIds;
+          return {
+            isTabSelectionMode: nextSelectedTabIds.length > 0,
+            selectedTabIds: nextSelectedTabIds,
+          };
+        }),
+      toggleTabSelection: (tabId) =>
+        set((state) => {
+          if (!state.tabs[tabId]) {
+            return state;
+          }
+          const isSelected = state.selectedTabIds.includes(tabId);
+          const nextSelectedTabIds = isSelected
+            ? state.selectedTabIds.filter((id) => id !== tabId)
+            : [...state.selectedTabIds, tabId];
+          return {
+            selectedTabIds: nextSelectedTabIds,
+            isTabSelectionMode: nextSelectedTabIds.length > 0,
+          };
+        }),
+      clearTabSelection: () =>
+        set({
+          isTabSelectionMode: false,
+          selectedTabIds: [],
+        }),
+      deleteSelectedTabs: () => {
+        const selectedTabIds = [...get().selectedTabIds];
+        if (selectedTabIds.length === 0) {
+          return;
+        }
+        selectedTabIds.forEach((tabId) => {
+          get().closeTab(tabId);
+        });
+        set({
+          isTabSelectionMode: false,
+          selectedTabIds: [],
+        });
+      },
+      moveSelectedTabsToWorkspace: (targetWorkspaceId) => {
+        const state = get();
+        if (!state.workspaces[targetWorkspaceId]) {
+          return;
+        }
+        const selectedTabIds = state.selectedTabIds.filter((tabId) => state.tabs[tabId]);
+        if (selectedTabIds.length === 0) {
+          return;
+        }
+        selectedTabIds.forEach((tabId) => {
+          get().moveTabToWorkspace(tabId, targetWorkspaceId);
+        });
+        set({
+          isTabSelectionMode: false,
+          selectedTabIds: [],
+        });
+      },
+      copySelectedTabsToWorkspace: (targetWorkspaceId) =>
+        set((state) => {
+          const targetWorkspace = state.workspaces[targetWorkspaceId];
+          if (!targetWorkspace) {
+            return state;
+          }
+          const selectedTabs = state.selectedTabIds
+            .map((tabId) => state.tabs[tabId])
+            .filter((tab): tab is Tab => Boolean(tab));
+          if (selectedTabs.length === 0) {
+            return state;
+          }
+
+          const nextTabs = { ...state.tabs };
+          const newTabIds: string[] = [];
+          selectedTabs.forEach((sourceTab) => {
+            const copiedTab: Tab = {
+              ...makeTab(targetWorkspaceId, sourceTab.url),
+              title: sourceTab.title,
+              favicon: sourceTab.favicon,
+              themeColor: sourceTab.themeColor,
+              isPinned: sourceTab.isPinned,
+            };
+            nextTabs[copiedTab.id] = copiedTab;
+            newTabIds.push(copiedTab.id);
+          });
+
+          return {
+            tabs: nextTabs,
+            workspaces: {
+              ...state.workspaces,
+              [targetWorkspaceId]: {
+                ...targetWorkspace,
+                tabIds: [...newTabIds, ...targetWorkspace.tabIds],
+                activeTabId: targetWorkspace.activeTabId ?? newTabIds[0],
+              },
+            },
+            isTabSelectionMode: false,
+            selectedTabIds: [],
+          };
+        }),
+      setSelectedTabsPinned: (pinned) =>
+        set((state) => {
+          const selectedTabIds = state.selectedTabIds.filter((tabId) => state.tabs[tabId]);
+          if (selectedTabIds.length === 0) {
+            return state;
+          }
+          const nextTabs = { ...state.tabs };
+          selectedTabIds.forEach((tabId) => {
+            nextTabs[tabId] = {
+              ...nextTabs[tabId],
+              isPinned: pinned,
+            };
+          });
+          return {
+            tabs: nextTabs,
+            isTabSelectionMode: false,
+            selectedTabIds: [],
           };
         }),
 
