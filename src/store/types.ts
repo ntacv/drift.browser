@@ -1,4 +1,5 @@
 import type { AppLanguage } from '../i18n/translations';
+import type { MenuTileId } from '../utils/menuLayout';
 
 export type { AppLanguage };
 
@@ -96,7 +97,7 @@ export interface BrowserState {
   searchEngine: SearchEngine;
   language: AppLanguage;
   tabListSize: TabListSize;
-  menuTileOrder: string[];
+  menuTileOrder: MenuTileId[];
   isLeftHandMode: boolean;
   defaultNewTabUrl: string;
   urlOverlayOpenRequestId: number;
@@ -154,7 +155,7 @@ export interface BrowserActions {
   setSearchEngine: (searchEngine: SearchEngine) => void;
   setLanguage: (language: AppLanguage) => void;
   setTabListSize: (size: TabListSize) => void;
-  setMenuTileOrder: (order: string[]) => void;
+  setMenuTileOrder: (order: MenuTileId[]) => void;
   setLeftHandMode: (value: boolean) => void;
   setDefaultNewTabUrl: (url: string) => void;
   setBlockTrackers: (value: boolean) => void;

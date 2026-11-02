@@ -71,5 +71,5 @@ const getFallbackConfig = (): DefaultConfig => ({
         isFullUrlVisible: false,
         invertUrlBarSwipeDirection: false,
     },
-    menuTileOrder: ['share', 'settings', 'workspace', 'signout'],
+    menuTileOrder: ['back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace', 'signout'],
 });

@@ -8,6 +8,7 @@
  */
 
 import type { AppLanguage, SearchEngine, TabListSize, ThemePreference } from './src/store/types';
+import type { MenuTileId } from './src/utils/menuLayout';
 
 // ===== UI Colors =====
 
@@ -48,7 +49,7 @@ export interface DefaultPreferences {
     invertUrlBarSwipeDirection: boolean;
 }
 
-export type MenuTileId = 'share' | 'settings' | 'workspace' | 'signout';
+export type { MenuTileId } from './src/utils/menuLayout';
 
 export interface DefaultConfig {
     defaultWorkspaces: WorkspaceConfig[];
@@ -94,5 +95,5 @@ export const defaultSettings: DefaultConfig = {
         isFullUrlVisible: false,
         invertUrlBarSwipeDirection: false,
     },
-    menuTileOrder: ['share', 'settings', 'workspace', 'signout'],
+    menuTileOrder: ['back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace', 'signout'],
 };
