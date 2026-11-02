@@ -1,5 +1,8 @@
 export const translations = {
     en: {
+        menuPrintPage: 'Print / Save as PDF',
+        pagePrintOpening: 'Opening the system print dialog… Choose Save as PDF or a printer.',
+        pagePrintFailed: 'Could not open printing. Check that a print service is available and try again.',
         menuEyedropper: 'Eyedropper',
         eyedropperHint: 'Tap or drag on the frozen page preview to pick a color.',
         eyedropperCopy: 'Copy HEX color',

@@ -139,6 +139,15 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
     promise.resolve(null)
   }
 
+  @ReactMethod fun printPage(promise: Promise) = withPage(promise) { web ->
+    val activity = context.currentActivity ?: throw IllegalStateException("No active activity")
+    val manager = activity.getSystemService(android.content.Context.PRINT_SERVICE) as? android.print.PrintManager
+      ?: throw IllegalStateException("Printing is unavailable")
+    val title = web.title?.takeIf { it.isNotBlank() }?.take(120) ?: "Drift page"
+    manager.print(title, web.createPrintDocumentAdapter(title), null)
+    promise.resolve(null)
+  }
+
   @ReactMethod fun next(forward: Boolean, promise: Promise) = withPage(promise) { it.findNext(forward); promise.resolve(null) }
   @ReactMethod fun closeFind() { UiThreadUtil.runOnUiThread {
     generation++; searching = false; active?.get()?.let { it.setFindListener(null); it.clearMatches() }
@@ -151,6 +160,7 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
       if (module.active?.get()?.isShown != true) return false
       val action = when {
         event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_F -> "find"
+        event.isCtrlPressed && event.keyCode == KeyEvent.KEYCODE_P -> "print"
         module.searching && event.keyCode == KeyEvent.KEYCODE_ESCAPE -> "close"
         module.searching && event.keyCode == KeyEvent.KEYCODE_ENTER -> if (event.isShiftPressed) "previous" else "next"
         else -> return false

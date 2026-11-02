@@ -78,6 +78,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
       icon: 'colorize',
       disabled: !activeTab || activeTab.isLoading || !!activeTab.webError || !/^https?:\/\//i.test(activeTab.url),
     },
+    print: {
+      label: t('menuPrintPage'),
+      icon: 'print',
+      disabled: !activeTab || activeTab.isLoading || !!activeTab.webError || !/^https?:\/\//i.test(activeTab.url),
+    },
   };
 
   const toggleFullscreen = () => {
@@ -93,7 +98,7 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   };
 
   const executeTileAction = async (id: MenuTileId) => {
-    if (id === 'find' || id === 'eyedropper') {
+    if (id === 'find' || id === 'eyedropper' || id === 'print') {
       setMenuOpen(false);
       requestPageTool(id);
       return;

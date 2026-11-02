@@ -24,6 +24,16 @@ export function PageTools({ hostTag, enabled }: { hostTag: number | null; enable
   const [ready, setReady] = useState(false);
   const sequence = useRef(0);
   const input = useRef<TextInput>(null);
+  const printing = useRef(false);
+
+  useEffect(() => {
+    if (action !== 'print' || !ready || !native || printing.current) return;
+    let live = true;
+    printing.current = true;
+    native.printPage().then(() => { if (live) closePageTools(); }).catch(() => { if (live) setError(t('pagePrintFailed')); })
+      .finally(() => { printing.current = false; });
+    return () => { live = false; };
+  }, [action, ready]);
 
   useEffect(() => {
     let live = true;
@@ -71,7 +81,7 @@ export function PageTools({ hostTag, enabled }: { hostTag: number | null; enable
     </Pressable>
   );
   return <View style={[styles.panel, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-    {Platform.OS !== 'android' || !native ? <Text style={{ color: theme.text }}>{t('pageToolsUnsupported')}</Text> : <>
+    {Platform.OS !== 'android' || !native ? <Text style={{ color: theme.text }}>{t('pageToolsUnsupported')}</Text> : action === 'print' ? <Text accessibilityRole={error ? 'alert' : undefined} style={{ color: theme.text }}>{error || t('pagePrintOpening')}</Text> : <>
       <TextInput ref={input} autoFocus value={query} onChangeText={setQuery} placeholder={t('menuFindPage')} placeholderTextColor={theme.text2}
         accessibilityLabel={t('menuFindPage')} style={[styles.input, { color: theme.text, borderColor: theme.border }]}
         onSubmitEditing={() => move(true)} submitBehavior="submit" />
