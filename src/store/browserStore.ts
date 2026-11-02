@@ -747,7 +747,7 @@ export const useBrowserStore = create<BrowserStore>()(
     }),
     {
       name: 'drift-browser-store-v2',
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => AsyncStorage),
       merge: (persisted, current) => {
         const saved = persisted && typeof persisted === 'object' ? persisted as Partial<BrowserStore> : {};
@@ -758,11 +758,13 @@ export const useBrowserStore = create<BrowserStore>()(
           return persistedState;
         }
 
+        const menuTileOrder = version < 8
+          ? migrateMenuTileOrder(persistedState.menuTileOrder)
+          : normalizeMenuTileOrder(persistedState.menuTileOrder);
+
         persistedState = {
           ...persistedState,
-          menuTileOrder: version < 8
-            ? migrateMenuTileOrder(persistedState.menuTileOrder)
-            : normalizeMenuTileOrder(persistedState.menuTileOrder),
+          menuTileOrder: normalizeMenuTileOrder(menuTileOrder.includes('find') ? menuTileOrder : [...menuTileOrder, 'find']),
         };
 
         const workspaces = persistedState.workspaces;

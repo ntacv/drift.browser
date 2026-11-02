@@ -9,7 +9,7 @@ export const useI18n = () => {
     // `language` is typed as AppLanguage but can hold a stale/invalid value
     // from persisted or imported state, so fall back to English instead of
     // crashing on `translations[language][key]`.
-    const dict = translations[language] ?? translations.en;
+    const dict: Partial<Record<TranslationKey, string>> = translations[language] ?? translations.en;
     return dict[key] ?? translations.en[key] ?? key;
   };
 

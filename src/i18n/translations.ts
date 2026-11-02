@@ -1,5 +1,11 @@
 export const translations = {
     en: {
+        menuFindPage: 'Find in page',
+        findPrevious: 'Previous match',
+        findNext: 'Next match',
+        findNoMatches: 'No matches',
+        pageToolsFailed: 'The page tool could not run. Wait for the page to finish loading and try again.',
+        pageToolsUnsupported: 'This page tool requires a new Android build of Drift. On iOS, open the site in Safari to use its page tools.',
         settingsTitle: 'Settings',
         externalLinkTitle: 'Open this link in another app?',
         externalLinkStay: 'Stay in Drift',

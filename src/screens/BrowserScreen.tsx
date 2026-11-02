@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 import { BrowserView } from '../components/browser/BrowserView';
+import { closePageTools } from '../components/browser/PageTools';
 import { MenuSheet } from '../components/shell/MenuSheet';
 import { TabTray } from '../components/shell/TabTray';
 import { UrlBar } from '../components/shell/UrlBar';
@@ -73,6 +74,8 @@ export const BrowserScreen = ({ onOpenSettings, onOpenHistory }: BrowserScreenPr
     if (!isFocused) {
       return false;
     }
+
+    if (closePageTools()) return true;
 
     // Priority 1: Exit user fullscreen mode first.
     if (isUserFullscreen) {

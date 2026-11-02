@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { DEFAULT_NEW_WORKSPACE_COLOR } from '../../../default-settings';
@@ -10,6 +10,7 @@ import { useTheme } from '../../theme';
 import { typography } from '../../theme';
 import * as fxaService from '../../services/fxaService';
 import { AppAlertDialog } from '../common/AppAlertDialog';
+import { requestPageTool } from '../browser/PageTools';
 
 interface MenuSheetProps {
   onOpenSettings: () => void;
@@ -67,6 +68,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     settings: { label: t('menuSettings'), icon: 'settings' },
     history: { label: t('menuHistory'), icon: 'history' },
     workspace: { label: t('menuNewWorkspace'), icon: 'workspaces-outline' },
+    find: {
+      label: t('menuFindPage'),
+      icon: 'search',
+      disabled: !activeTab || activeTab.isLoading || !!activeTab.webError || !/^https?:\/\//i.test(activeTab.url),
+    },
   };
 
   const toggleFullscreen = () => {
@@ -82,6 +88,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   };
 
   const executeTileAction = async (id: MenuTileId) => {
+    if (id === 'find') {
+      setMenuOpen(false);
+      requestPageTool('find');
+      return;
+    }
     if (id === 'back' || id === 'forward' || id === 'refresh') {
       requestActiveTabNavigation(id === 'refresh' ? 'reload' : id);
     } else if (id === 'fullscreen') {

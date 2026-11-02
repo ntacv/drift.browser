@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, findNodeHandle, StyleSheet, View } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
+import { PageTools } from './PageTools';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -45,6 +47,9 @@ const AnimatedMaterialIcon = Animated.createAnimatedComponent(MaterialIcons);
 
 export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   const { mode, theme } = useTheme();
+  const focused = useIsFocused();
+  const hostRef = useRef<View>(null);
+  const [hostTag, setHostTag] = useState<number | null>(null);
   const webViewRef = useRef<WebView>(null);
   const reloadWebView = useCallback(() => webViewRef.current?.reload(), []);
   const externalLinks = useExternalLinks(tabId, visible, reloadWebView);
@@ -208,7 +213,8 @@ export const WebViewWrapper = ({ tabId, visible }: WebViewWrapperProps) => {
   });
 
   return (
-    <View style={styles.webview}>
+    <View ref={hostRef} collapsable={false} onLayout={() => setHostTag(findNodeHandle(hostRef.current))} style={styles.webview}>
+      <PageTools key={tab.url} hostTag={hostTag} enabled={visible && focused && !tab.isLoading && !tab.webError && /^https?:\/\//i.test(tab.url)} />
       {showRefreshIndicator && (
         <Animated.View style={[styles.refreshIndicatorOverlay, { opacity }]}>
           <Animated.View
