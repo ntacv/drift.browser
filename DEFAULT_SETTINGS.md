@@ -49,15 +49,14 @@ Available buttons (strongly typed):
 - `"share"` - Share current page URL
 - `"settings"` - Open settings
 - `"workspace"` - Create new workspace
-- `"signout"` - Sign out of Firefox account
 
 ### Customizing the Action Menu
 
-The Action Menu grows with its content up to half the screen height, then scrolls. Long-press any button (including a disabled navigation button) to edit. A scrollable picker opens directly above the menu with all nine actions; already-added buttons are marked. Hold and drag available buttons down into the menu, or tap them to add. Hold and drag menu buttons to reorder; use their remove controls to hide them. Settings can move but cannot be removed. Screen-reader actions also support moving and removing buttons.
+The Action Menu grows with its content up to half the screen height, then scrolls. Long-press any button (including a disabled navigation button) to edit. A scrollable picker opens directly above the menu with all eight actions; already-added buttons are marked. Drag instructions appear directly below the Available buttons heading. Hold and drag available buttons down into the menu, or tap them to add. Hold and drag menu buttons to reorder; use their remove controls to hide them. Settings can move but cannot be removed. Screen-reader actions also support moving and removing buttons.
 
 Each completed change is saved immediately and survives closing or restarting the app. The **Save** button at the top finishes editing and returns to the normal menu. Drops outside the menu do not change the layout.
 
-Button sizes are fixed: Back, Forward, Refresh, and Fullscreen use small (one-column) buttons; the other actions use medium (two-column) buttons. The layout retains large (four-column) support without a size selector. The menu uses four columns. Sign Out is hidden while signed out outside editing, but its saved position is retained. The picker uses remaining screen space above the half-screen menu and scrolls independently; the menu may shrink further on short screens to keep the editor accessible.
+Button sizes are fixed: Back, Forward, Refresh, and Fullscreen use small (one-column) buttons; the other actions use medium (two-column) buttons. The layout retains large (four-column) support without a size selector. The menu uses four columns. Sign Out is not a menu tile; legacy saved Sign Out entries are removed when the layout is loaded. The picker uses remaining screen space above the half-screen menu and scrolls independently; the menu may shrink further on short screens to keep the editor accessible.
 
 Existing installations retain their previous action order when upgraded, with the previously fixed quick actions included in the editable layout.
 
@@ -87,7 +86,7 @@ export const defaultSettings: DefaultConfig = {
     isCompactTabList: false,
     isFullUrlVisible: true,
   },
-  menuTileOrder: ['back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace', 'signout'],
+  menuTileOrder: ['back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace'],
 };
 ```
 

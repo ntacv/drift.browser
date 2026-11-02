@@ -26,7 +26,10 @@ function harness() {
       const index = refCursor++;
       return refs[index] ?? (refs[index] = { current: initial });
     },
-    useCallback: (fn) => fn,
+    useCallback: (fn) => {
+      const index = refCursor++;
+      return refs[index] ?? (refs[index] = fn);
+    },
     useEffect: (fn, deps) => {
       const index = effectCursor++;
       const old = effects[index];
@@ -74,7 +77,7 @@ function harness() {
     },
   }, { filename });
   const props = {
-    open: true, order: ['back', 'refresh', 'settings', 'signout'], signedIn: false, barPosition: 'bottom',
+    open: true, order: ['back', 'refresh', 'settings', 'signout'], barPosition: 'bottom',
     actions: Object.fromEntries(utilityExports.MENU_TILE_IDS.map((id) => [id, { label: id, icon: 'settings', disabled: id === 'back' }])),
     onOrderChange: (order) => { changes.push([...order]); props.order = order; },
     onAction: (id) => calls.push(id), onOpenChange: (open) => { props.open = open; },
@@ -89,7 +92,7 @@ function harness() {
       cursor = refCursor = effectCursor = 0;
       const tree = exports.ActionMenuPanel(props);
       for (const effect of effects) {
-        if (effect.pending) { effect.cleanup = effect.pending(); delete effect.pending; }
+        if (effect?.pending) { effect.cleanup = effect.pending(); delete effect.pending; }
       }
       return tree;
     },
@@ -102,7 +105,7 @@ function all(tree, predicate) {
 const tiles = (tree, picker = false) => all(tree, (node) => typeof node.type === 'function' && node.props.picker === picker);
 const tile = (tree, id, picker = false) => tiles(tree, picker).find((node) => node.props.id === id);
 
-test('long press enters editing on disabled navigation; all nine actions appear and Save finishes', () => {
+test('long press enters editing on disabled navigation; all eight actions appear and Save finishes', () => {
   const h = harness();
   let tree = h.render();
   tile(tree, 'back').props.onPress();
@@ -110,8 +113,14 @@ test('long press enters editing on disabled navigation; all nine actions appear 
   assert.equal(tile(tree, 'signout'), undefined);
   tile(tree, 'back').props.onEdit();
   tree = h.render();
-  assert.equal(tiles(tree, true).length, 9);
-  assert.ok(tile(tree, 'signout'));
+  assert.equal(tiles(tree, true).length, 8);
+  assert.equal(tile(tree, 'signout'), undefined);
+  assert.equal(tile(tree, 'signout', true), undefined);
+  const instructions = all(tree, (node) => node.type === 'Text' && node.props.children.includes('menuDropHere'));
+  assert.equal(instructions.length, 1);
+  const header = all(tree, (node) => node.props.onLayout && all(node, (child) => child === instructions[0]).length)[0];
+  assert.ok(all(header, (node) => node.type === 'Text' && node.props.children.includes('menuAvailableActions')).length);
+  assert.equal(all(tree, (node) => node.type === 'ScrollView' && all(node, (child) => child === instructions[0]).length).length, 0);
   tile(tree, 'refresh').props.onPress();
   assert.deepEqual(h.calls, []);
   tile(tree, 'history', true).props.onPress();
@@ -138,7 +147,7 @@ test('tile long press suppresses the action and edit pan forwards real coordinat
   pressable.props.onPress();
   assert.deepEqual(h.calls, []);
   tree = h.render();
-  assert.equal(tiles(tree, true).length, 9);
+  assert.equal(tiles(tree, true).length, 8);
   const source = tile(tree, 'history', true);
   const events = [];
   source.props.onDrag = (point) => events.push(['drag', point.x, point.y]);
@@ -150,14 +159,62 @@ test('tile long press suppresses the action and edit pan forwards real coordinat
   assert.equal(gesture.enabledValue, true);
   pressable = all(rendered, (node) => node.type === 'Pressable')[0];
   pressable.props.onPressIn();
-  gesture.onStartValue({ absoluteX: 20, absoluteY: 100 });
-  gesture.onUpdateValue({ absoluteX: 40, absoluteY: 350 });
-  gesture.onEndValue({ absoluteX: 40, absoluteY: 400 });
+  const tileView = all(rendered, (node) => node.props.collapsable === false)[0];
+  tileView.props.ref.current = { measureInWindow: (fn) => fn(10, 80, 180, 44) };
+  gesture.onStartValue({ absoluteX: 20, absoluteY: 124, x: 10, y: 20 });
+  gesture.onUpdateValue({ absoluteX: 40, absoluteY: 374 });
+  gesture.onEndValue({ absoluteX: 40, absoluteY: 424 });
   gesture.onFinalizeValue({}, true);
   pressable.props.onPress();
   assert.deepEqual(events, [['drag', 20, 100], ['drag', 40, 350], ['drop', 40, 400]]);
   gesture.onFinalizeValue({}, false);
   assert.deepEqual(events.at(-1), ['cancel']);
+});
+
+test('delayed coordinate calibration uses the latest point and ignores canceled measurements', () => {
+  const h = harness();
+  let tree = h.render();
+  tile(tree, 'settings').props.onEdit();
+  tree = h.render();
+  const source = tile(tree, 'history', true);
+  const events = [];
+  source.props.onDrag = (point) => events.push(['drag', point.x, point.y]);
+  source.props.onDrop = (point) => events.push(['drop', point.x, point.y]);
+  source.props.onCancel = () => events.push(['cancel']);
+  const rendered = h.renderTile(source);
+  const gesture = rendered.props.gesture;
+  let measured;
+  all(rendered, (node) => node.props.collapsable === false)[0].props.ref.current = {
+    measureInWindow: (fn) => { measured = fn; },
+  };
+  gesture.onStartValue({ absoluteX: 20, absoluteY: 124, x: 10, y: 20 });
+  gesture.onUpdateValue({ absoluteX: 40, absoluteY: 374 });
+  gesture.onEndValue({ absoluteX: 40, absoluteY: 424 });
+  assert.deepEqual(events, []);
+  measured(10, 80);
+  assert.deepEqual(events, [['drop', 40, 400]]);
+  gesture.onStartValue({ absoluteX: 20, absoluteY: 124, x: 10, y: 20 });
+  gesture.onFinalizeValue({}, false);
+  measured(10, 80);
+  assert.deepEqual(events, [['drop', 40, 400], ['cancel']]);
+});
+
+test('drag preview is centered on the same window-space finger point used for drops', () => {
+  const h = harness();
+  let tree = h.render();
+  tile(tree, 'settings').props.onEdit();
+  tree = h.render();
+  tree.props.ref.current = { measureInWindow: (fn) => fn(0, 200) };
+  tile(tree, 'history', true).props.onDrag({ id: 'history', x: 100, y: 400 });
+  tree = h.render();
+  const preview = all(tree, (node) => node.props.pointerEvents === 'none' && node.props.onLayout)[0];
+  const position = Object.assign({}, ...preview.props.style);
+  assert.equal(position.left + 60, 100);
+  assert.equal(position.top + 22 + 200, 400);
+  preview.props.onLayout({ nativeEvent: { layout: { height: 80 } } });
+  tree = h.render();
+  const resized = all(tree, (node) => node.props.pointerEvents === 'none' && node.props.onLayout)[0];
+  assert.equal(Object.assign({}, ...resized.props.style).top + 40 + 200, 400);
 });
 
 test('remove and accessible reorder persist immediately, including across dismissal', () => {
@@ -178,7 +235,7 @@ test('remove and accessible reorder persist immediately, including across dismis
   tree = h.render();
   assert.equal(tiles(tree, true).length, 0);
   assert.equal(tile(tree, 'refresh'), undefined);
-  assert.ok(h.props.order.includes('signout'));
+  assert.ok(!h.props.order.includes('signout'));
 });
 
 test('measured menu grows and shrinks with content and caps at half the screen', () => {

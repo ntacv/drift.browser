@@ -1,5 +1,5 @@
 export const MENU_TILE_IDS = [
-  'back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace', 'signout',
+  'back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace',
 ] as const;
 
 export type MenuTileId = typeof MENU_TILE_IDS[number];
@@ -7,10 +7,10 @@ export type TileSize = 's' | 'm' | 'l';
 
 export const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
   back: 's', forward: 's', refresh: 's', fullscreen: 's',
-  share: 'm', settings: 'm', history: 'm', workspace: 'm', signout: 'm',
+  share: 'm', settings: 'm', history: 'm', workspace: 'm',
 };
 
-const LEGACY_MENU_IDS: MenuTileId[] = ['share', 'settings', 'history', 'workspace', 'signout'];
+const LEGACY_MENU_IDS: MenuTileId[] = ['share', 'settings', 'history', 'workspace'];
 
 export function normalizeMenuTileOrder(order: unknown): MenuTileId[] {
   if (!Array.isArray(order)) return [...MENU_TILE_IDS];
