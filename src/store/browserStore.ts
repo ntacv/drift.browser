@@ -16,6 +16,7 @@ import type {
   Workspace,
 } from './types';
 import { getDefaultConfig } from './defaultConfig';
+import { migrateMenuTileOrder, normalizeMenuTileOrder } from '../utils/menuLayout';
 import { SAVED_TABS_WORKSPACE_COLOR } from '../../default-settings';
 
 const makeId = (prefix: string): string => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 100_000)}`;
@@ -152,7 +153,7 @@ const buildInitialState = () => {
     searchEngine: config.preferences.searchEngine,
     language: config.preferences.language,
     tabListSize: config.preferences.tabListSize,
-    menuTileOrder: config.menuTileOrder,
+    menuTileOrder: normalizeMenuTileOrder(config.menuTileOrder),
     isLeftHandMode: config.preferences.isLeftHandMode,
     defaultNewTabUrl: config.preferences.defaultNewTabUrl,
     urlOverlayOpenRequestId: 0,
@@ -705,7 +706,7 @@ export const useBrowserStore = create<BrowserStore>()(
       setSearchEngine: (searchEngine) => set({ searchEngine }),
       setLanguage: (language) => set({ language }),
       setTabListSize: (size) => set({ tabListSize: size }),
-      setMenuTileOrder: (order) => set({ menuTileOrder: order }),
+      setMenuTileOrder: (order) => set({ menuTileOrder: normalizeMenuTileOrder(order) }),
       setLeftHandMode: (value) => set({ isLeftHandMode: value }),
       setDefaultNewTabUrl: (url) => set({ defaultNewTabUrl: url }),
       setBlockTrackers: (value) => set({ blockTrackers: value }),
@@ -746,12 +747,23 @@ export const useBrowserStore = create<BrowserStore>()(
     }),
     {
       name: 'drift-browser-store-v2',
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => AsyncStorage),
+      merge: (persisted, current) => {
+        const saved = persisted && typeof persisted === 'object' ? persisted as Partial<BrowserStore> : {};
+        return { ...current, ...saved, menuTileOrder: normalizeMenuTileOrder(saved.menuTileOrder ?? current.menuTileOrder) };
+      },
       migrate: (persistedState: any, version: number) => {
         if (!persistedState || typeof persistedState !== 'object') {
           return persistedState;
         }
+
+        persistedState = {
+          ...persistedState,
+          menuTileOrder: version < 8
+            ? migrateMenuTileOrder(persistedState.menuTileOrder)
+            : normalizeMenuTileOrder(persistedState.menuTileOrder),
+        };
 
         const workspaces = persistedState.workspaces;
         if (!workspaces || typeof workspaces !== 'object') {

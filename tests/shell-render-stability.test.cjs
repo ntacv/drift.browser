@@ -30,6 +30,7 @@ function loadComponent(relativePath) {
     },
     useState: (value) => [value, () => {}],
     useRef: (value) => ({ current: value }),
+    useCallback: (callback) => callback,
     useEffect: () => {},
   };
   const gesture = new Proxy({}, { get: () => () => gesture });
@@ -66,6 +67,14 @@ function loadComponent(relativePath) {
     exports,
     require: (name) => {
       if (mocks[name]) return mocks[name];
+      if (name.endsWith('/menuLayout')) {
+        const utilityExports = {};
+        const utilityFile = path.resolve(path.dirname(filename), name + '.ts');
+        vm.runInNewContext(ts.transpileModule(fs.readFileSync(utilityFile, 'utf8'), {
+          compilerOptions: { module: ts.ModuleKind.CommonJS },
+        }).outputText, { exports: utilityExports });
+        return utilityExports;
+      }
       if (name.endsWith('/useGestures')) return {
         useSheetGesture: (options) => {
           sheetOptions.push(options);
@@ -111,10 +120,10 @@ test('URL overlay retains its spring configuration across renders', () => {
 });
 
 test('menu tiles retain component identity across parent renders', () => {
-  const component = loadComponent('src\\components\\shell\\MenuSheet.tsx');
-  const props = { onOpenSettings() {}, onOpenHistory() {} };
-  const first = component.render('MenuSheet', props);
-  const second = component.render('MenuSheet', props);
+  const component = loadComponent('src\\components\\shell\\ActionMenuPanel.tsx');
+  const props = { open: true, order: ['share', 'settings'], actions: { share: { label: 'Share', icon: 'ios-share' }, settings: { label: 'Settings', icon: 'settings' } }, onOpenChange() {}, onOrderChange() {}, onAction() {} };
+  const first = component.render('ActionMenuPanel', props);
+  const second = component.render('ActionMenuPanel', props);
   const isShareTile = (element) => element.props?.id === 'share';
   const firstTile = findElement(first, isShareTile);
   const secondTile = findElement(second, isShareTile);
@@ -122,5 +131,6 @@ test('menu tiles retain component identity across parent renders', () => {
   assert.ok(secondTile);
   assert.strictEqual(firstTile.type, secondTile.type);
   assert.equal(firstTile.props.isDragging, false);
-  assert.ok(firstTile.props.children.length);
+  assert.equal(firstTile.props.action.label, 'Share');
+  assert.equal(typeof firstTile.props.onPress, 'function');
 });

@@ -1,12 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
-import { DEFAULT_NEW_WORKSPACE_COLOR, SHEET_HANDLE_COLOR } from '../../../default-settings';
-import { useSheetGesture } from '../../hooks/useGestures';
+import { DEFAULT_NEW_WORKSPACE_COLOR } from '../../../default-settings';
+import { ActionMenuPanel, type MenuAction } from './ActionMenuPanel';
+import type { MenuTileId } from '../../utils/menuLayout';
 import { useI18n } from '../../i18n/useI18n';
 import { useBrowserStore, getActiveTab } from '../../store/browserStore';
 import { useTheme } from '../../theme';
@@ -14,55 +11,10 @@ import { typography } from '../../theme';
 import * as fxaService from '../../services/fxaService';
 import { AppAlertDialog } from '../common/AppAlertDialog';
 
-const SHEET_HEIGHT = 360;
-const TILE_GAP = 8;
-const TILE_SPAN_COUNT = 4;
-
 interface MenuSheetProps {
   onOpenSettings: () => void;
   onOpenHistory: () => void;
 }
-
-type MenuTileId =
-  | 'share'
-  | 'settings'
-  | 'history'
-  | 'workspace'
-  | 'signout';
-
-type QuickTileId = 'back' | 'forward' | 'refresh' | 'fullscreen';
-type DisplayTileId = QuickTileId | MenuTileId;
-type TileSize = 's' | 'm' | 'l';
-
-interface DisplayTile {
-  id: DisplayTileId;
-  size: TileSize;
-}
-
-const DEFAULT_TILE_ORDER: MenuTileId[] = [
-  'share',
-  'settings',
-  'history',
-  'workspace',
-  'signout',
-];
-
-const QUICK_TILES: DisplayTile[] = [
-  { id: 'back', size: 's' },
-  { id: 'forward', size: 's' },
-  { id: 'refresh', size: 's' },
-  { id: 'fullscreen', size: 's' },
-];
-
-const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
-  share: 'm',
-  settings: 'm',
-  history: 'm',
-  workspace: 'm',
-  signout: 'm',
-};
-
-const QUICK_TILE_IDS = new Set<QuickTileId>(['back', 'forward', 'refresh', 'fullscreen']);
 const TYPOGRAPHY = typography ?? {
   fontFamily: {
     regular: 'Inter_400Regular',
@@ -84,57 +36,10 @@ const TYPOGRAPHY = typography ?? {
   },
 };
 
-interface DraggableTileProps {
-  id: MenuTileId;
-  isDragging: boolean;
-  onDragStart: (id: MenuTileId) => void;
-  frameStyle: { width: number } | null;
-  children: React.ReactNode;
-}
-
-const DraggableTile = ({ id, isDragging, onDragStart, frameStyle, children }: DraggableTileProps) => {
-  const { theme } = useTheme();
-  const { t } = useI18n();
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    if (!isDragging) {
-      scale.value = withSpring(1);
-    }
-  }, [isDragging, scale]);
-
-  const longPress = Gesture.LongPress()
-    .minDuration(400)
-    .onStart(() => {
-      runOnJS(onDragStart)(id);
-      scale.value = withSpring(1.05);
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: isDragging ? 0.7 : 1,
-  }));
-
-  return (
-    <GestureDetector gesture={longPress}>
-      <Animated.View style={[styles.tileWrap, frameStyle, animatedStyle]}>
-        {children}
-        {isDragging && (
-          <View style={styles.dragHint}>
-            <Text style={[styles.dragHintText, { color: theme.text2 }]}>{t('menuDragHint')}</Text>
-          </View>
-        )}
-      </Animated.View>
-    </GestureDetector>
-  );
-};
-
 export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => {
   const { theme } = useTheme();
   const { t } = useI18n();
-  const insets = useSafeAreaInsets();
-  const [draggedTile, setDraggedTile] = useState<MenuTileId | null>(null);
-  const [tileAreaWidth, setTileAreaWidth] = useState(0);
+  const barPosition = useBrowserStore((state) => state.barPosition);
   const [showFullscreenDialog, setShowFullscreenDialog] = useState(false);
   const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
 
@@ -153,72 +58,16 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   const requestActiveTabNavigation = useBrowserStore((state) => state.requestActiveTabNavigation);
   const activeTab = useBrowserStore(getActiveTab);
 
-  const gesture = useSheetGesture({
-    isOpen: isMenuOpen,
-    sheetHeight: SHEET_HEIGHT,
-    onOpenChange: setMenuOpen,
-  });
-
-  const actionButtonStyle = [styles.actionButton, { backgroundColor: theme.surface2 }];
-
-  const getMenuTileLabel = (id: MenuTileId): string => {
-    if (id === 'share') {
-      return t('menuShareUrl');
-    }
-    if (id === 'settings') {
-      return t('menuSettings');
-    }
-    if (id === 'history') {
-      return t('menuHistory');
-    }
-    if (id === 'workspace') {
-      return t('menuNewWorkspace');
-    }
-    return t('menuSignOut');
-  };
-
-  const tileOrder = useMemo<MenuTileId[]>(() => {
-    const filtered = (menuTileOrder as MenuTileId[]).filter((id) => DEFAULT_TILE_ORDER.includes(id));
-    const missing = DEFAULT_TILE_ORDER.filter((id) => !filtered.includes(id));
-    return [...filtered, ...missing];
-  }, [menuTileOrder]);
-
-  const swapTiles = (fromId: MenuTileId, toId: MenuTileId) => {
-    const fromIndex = tileOrder.indexOf(fromId);
-    const toIndex = tileOrder.indexOf(toId);
-
-    if (fromIndex < 0 || toIndex < 0) {
-      return;
-    }
-
-    const next = [...tileOrder];
-    [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
-    setMenuTileOrder(next);
-  };
-
-  const columnUnit = useMemo(() => {
-    if (tileAreaWidth <= 0) {
-      return 0;
-    }
-
-    const availableWidth = Math.floor(tileAreaWidth);
-    const totalGapWidth = TILE_GAP * (TILE_SPAN_COUNT - 1);
-    const usableWidth = Math.max(availableWidth - totalGapWidth, 0);
-
-    return usableWidth / TILE_SPAN_COUNT;
-  }, [tileAreaWidth]);
-
-  const tileFrameStyle = (size: TileSize) => {
-    const span = size === 's' ? 1 : size === 'm' ? 2 : TILE_SPAN_COUNT;
-    const width = columnUnit > 0
-      ? Math.floor(columnUnit * span + TILE_GAP * (span - 1))
-      : 0;
-
-    if (width <= 0) {
-      return null;
-    }
-
-    return { width };
+  const actions: Record<MenuTileId, MenuAction> = {
+    back: { label: t('menuBack'), icon: 'arrow-back', disabled: !activeTab?.canGoBack },
+    forward: { label: t('menuForward'), icon: 'arrow-forward', disabled: !activeTab?.canGoForward },
+    refresh: { label: t('menuRefresh'), icon: 'refresh' },
+    fullscreen: { label: t('menuFullscreen'), icon: isUserFullscreen ? 'fullscreen-exit' : 'fullscreen' },
+    share: { label: t('menuShareUrl'), icon: 'ios-share' },
+    settings: { label: t('menuSettings'), icon: 'settings' },
+    history: { label: t('menuHistory'), icon: 'history' },
+    workspace: { label: t('menuNewWorkspace'), icon: 'workspaces-outline' },
+    signout: { label: t('menuSignOut'), icon: 'logout', danger: true, disabled: !syncUser },
   };
 
   const toggleFullscreen = () => {
@@ -234,7 +83,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   };
 
   const executeTileAction = async (id: MenuTileId) => {
-    if (id === 'share') {
+    if (id === 'back' || id === 'forward' || id === 'refresh') {
+      requestActiveTabNavigation(id === 'refresh' ? 'reload' : id);
+    } else if (id === 'fullscreen') {
+      toggleFullscreen();
+    } else if (id === 'share') {
       const url = activeTab?.url;
       if (!url) {
         setAlertDialog({ title: t('share'), message: t('noActiveTab') });
@@ -265,156 +118,18 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
     }
   };
 
-  const renderMenuTile = (id: MenuTileId) => {
-    const handlePress = () => {
-      if (draggedTile && draggedTile !== id) {
-        swapTiles(draggedTile, id);
-        setDraggedTile(null);
-        return;
-      }
-
-      // Execute tile action when not in drag mode
-      if (!draggedTile) {
-        executeTileAction(id);
-      }
-    };
-
-    const baseProps = {
-      style: actionButtonStyle,
-      onPress: handlePress,
-    };
-
-    if (id === 'share') {
-      return (
-        <Pressable key={id} {...baseProps}>
-          <MaterialIcons name="ios-share" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
-        </Pressable>
-      );
-    }
-
-    if (id === 'settings') {
-      return (
-        <Pressable key={id} {...baseProps}>
-          <MaterialIcons name="settings" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
-        </Pressable>
-      );
-    }
-
-    if (id === 'history') {
-      return (
-        <Pressable key={id} {...baseProps}>
-          <MaterialIcons name="history" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
-        </Pressable>
-      );
-    }
-
-    if (id === 'workspace') {
-      return (
-        <Pressable key={id} {...baseProps}>
-          <MaterialIcons name="workspaces-outline" size={18} color={theme.text} style={styles.actionIcon} />
-          <Text style={[styles.actionText, { color: theme.text }]}>{getMenuTileLabel(id)}</Text>
-        </Pressable>
-      );
-    }
-
-    return (
-      <Pressable key={id} {...baseProps}>
-        <MaterialIcons name="logout" size={18} color={theme.danger} style={styles.actionIcon} />
-        <Text style={[styles.actionText, { color: theme.danger }]}>{getMenuTileLabel(id)}</Text>
-      </Pressable>
-    );
-  };
-
-  const renderQuickTile = (id: QuickTileId) => {
-    if (id === 'back') {
-      return (
-        <Pressable
-          key={id}
-          onPress={() => requestActiveTabNavigation('back')}
-          disabled={!activeTab?.canGoBack}
-          style={[
-            styles.quickActionButton,
-            { backgroundColor: theme.surface2 },
-            !activeTab?.canGoBack && styles.quickActionDisabled,
-          ]}
-        >
-          <MaterialIcons name="arrow-back" size={18} color={theme.text} />
-        </Pressable>
-      );
-    }
-
-    if (id === 'forward') {
-      return (
-        <Pressable
-          key={id}
-          onPress={() => requestActiveTabNavigation('forward')}
-          disabled={!activeTab?.canGoForward}
-          style={[
-            styles.quickActionButton,
-            { backgroundColor: theme.surface2 },
-            !activeTab?.canGoForward && styles.quickActionDisabled,
-          ]}
-        >
-          <MaterialIcons name="arrow-forward" size={18} color={theme.text} />
-        </Pressable>
-      );
-    }
-
-    if (id === 'refresh') {
-      return (
-        <Pressable
-          key={id}
-          onPress={() => requestActiveTabNavigation('reload')}
-          style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
-        >
-          <MaterialIcons name="refresh" size={18} color={theme.text} />
-        </Pressable>
-      );
-    }
-
-    return (
-      <Pressable
-        key={id}
-        onPress={toggleFullscreen}
-        style={[styles.quickActionButton, { backgroundColor: theme.surface2 }]}
-      >
-        <MaterialIcons name={isUserFullscreen ? 'fullscreen-exit' : 'fullscreen'} size={18} color={theme.text} />
-      </Pressable>
-    );
-  };
-
-  const visibleTileOrder = tileOrder.filter((id) => !(id === 'signout' && !syncUser));
-
-  const displayTiles = useMemo<DisplayTile[]>(() => {
-    const menuTiles = visibleTileOrder.map((id) => ({ id, size: MENU_TILE_SIZE[id] }));
-
-    return [...QUICK_TILES, ...menuTiles];
-  }, [visibleTileOrder]);
-
   return (
     <>
-      <GestureDetector gesture={gesture.panGesture}>
-        <Animated.View
-          pointerEvents={isMenuOpen ? 'auto' : 'none'}
-          style={[
-            styles.container,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            gesture.animatedStyle,
-          ]}
-        >
-        <View style={styles.handle} />
-
-        <ScrollView
-          style={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces={true}
-          contentContainerStyle={{
-            paddingBottom: Math.max(insets.bottom, 10) + 150,
-          }}
-        >
+      <ActionMenuPanel
+        open={isMenuOpen}
+        onOpenChange={setMenuOpen}
+        order={menuTileOrder}
+        onOrderChange={setMenuTileOrder}
+        signedIn={Boolean(syncUser)}
+        barPosition={barPosition}
+        actions={actions}
+        onAction={executeTileAction}
+      >
           <View style={[styles.accountCard, { backgroundColor: theme.surface2 }]}>
             {syncUser ? (
               <>
@@ -442,38 +157,7 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
               </Pressable>
             )}
           </View>
-
-          <View
-            style={styles.tilesGrid}
-            onLayout={(event) => {
-              setTileAreaWidth(event.nativeEvent.layout.width);
-            }}
-          >
-            {displayTiles.map((tile) => {
-              if (QUICK_TILE_IDS.has(tile.id as QuickTileId)) {
-                return (
-                  <View key={tile.id} style={[styles.tileWrap, tileFrameStyle(tile.size)]}>
-                    {renderQuickTile(tile.id as QuickTileId)}
-                  </View>
-                );
-              }
-
-              return (
-                <DraggableTile
-                  key={tile.id}
-                  id={tile.id as MenuTileId}
-                  isDragging={draggedTile === tile.id}
-                  onDragStart={setDraggedTile}
-                  frameStyle={tileFrameStyle(tile.size)}
-                >
-                  {renderMenuTile(tile.id as MenuTileId)}
-                </DraggableTile>
-              );
-            })}
-          </View>
-        </ScrollView>
-        </Animated.View>
-      </GestureDetector>
+      </ActionMenuPanel>
 
       <AppAlertDialog
         visible={showFullscreenDialog}
@@ -512,28 +196,6 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderTopWidth: 1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 14,
-    height: SHEET_HEIGHT,
-  },
-  handle: {
-    width: 44,
-    height: 4,
-    borderRadius: 999,
-    alignSelf: 'center',
-    backgroundColor: SHEET_HANDLE_COLOR,
-    marginBottom: 10,
-  },
-  scrollContent: {
-    flex: 1,
-  },
   accountCard: {
     borderRadius: 14,
     padding: 12,
@@ -547,55 +209,5 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.base,
     fontFamily: TYPOGRAPHY.fontFamily.regular,
     marginTop: 4,
-  },
-  tilesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: TILE_GAP,
-    marginBottom: 10,
-  },
-  quickActionButton: {
-    width: '100%',
-    minHeight: 44,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  quickActionDisabled: {
-    opacity: 0.4,
-  },
-  actionButton: {
-    width: '100%',
-    borderRadius: 12,
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-  },
-  tileWrap: {
-    alignSelf: 'flex-start',
-    gap: 6,
-  },
-  actionIcon: {
-    marginRight: 8,
-  },
-  actionText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontFamily: TYPOGRAPHY.fontFamily.bold,
-    textAlign: 'left',
-  },
-  dragHint: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-  },
-  dragHintText: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontFamily: TYPOGRAPHY.fontFamily.semiBold,
   },
 });
