@@ -5,6 +5,7 @@ import { useI18n } from '../../i18n/useI18n';
 import { useTheme } from '../../theme';
 import { PageEyedropper } from './PageEyedropper';
 import { PageSourceViewer } from './PageSourceViewer';
+import { SiteInstallPanel } from './SiteInstallPanel';
 
 export const usePageTools = create<{ action: string | null; request: number }>(() => ({ action: null, request: 0 }));
 export const requestPageTool = (action: string) => usePageTools.setState((state) => ({ action, request: state.request + 1 }));
@@ -77,6 +78,7 @@ export function PageTools({ hostTag, enabled }: { hostTag: number | null; enable
   if (!action || !enabled) return null;
   if (action === 'eyedropper' && native && ready && Platform.OS === 'android') return <PageEyedropper onClose={closePageTools} />;
   if (action === 'source' && native && ready && Platform.OS === 'android') return <PageSourceViewer onClose={closePageTools} />;
+  if (action === 'install' && native && ready && Platform.OS === 'android') return <SiteInstallPanel onClose={closePageTools} />;
   const button = (label: string, handler: () => void, disabled = false) => (
     <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={handler} style={[styles.button, disabled && { opacity: 0.4 }]}>
       <Text style={{ color: theme.text }}>{label}</Text>

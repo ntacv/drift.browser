@@ -157,6 +157,13 @@ class PageToolsModule(private val context: ReactApplicationContext) : ReactConte
     promise.resolve(null)
   }
 
+  @ReactMethod fun installSite(shortcut: Boolean, promise: Promise) = withPage(promise) { web ->
+    val activity = context.currentActivity ?: throw IllegalStateException("No active activity")
+    val url = web.url ?: throw IllegalStateException("No page URL")
+    if (shortcut) SiteInstall.pin(activity, url, web.title ?: "") else SiteInstall.openBrowser(activity, url)
+    promise.resolve(null)
+  }
+
   @ReactMethod fun printPage(promise: Promise) = withPage(promise) { web ->
     val activity = context.currentActivity ?: throw IllegalStateException("No active activity")
     val manager = activity.getSystemService(android.content.Context.PRINT_SERVICE) as? android.print.PrintManager

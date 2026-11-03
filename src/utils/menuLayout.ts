@@ -1,6 +1,6 @@
 export const MENU_TILE_IDS = [
   'back', 'forward', 'refresh', 'fullscreen', 'share', 'settings', 'history', 'workspace',
-  'find', 'eyedropper', 'print', 'source',
+  'find', 'eyedropper', 'print', 'source', 'install',
 ] as const;
 
 export type MenuTileId = typeof MENU_TILE_IDS[number];
@@ -9,7 +9,7 @@ export type TileSize = 's' | 'm' | 'l';
 export const MENU_TILE_SIZE: Record<MenuTileId, TileSize> = {
   back: 's', forward: 's', refresh: 's', fullscreen: 's',
   share: 'm', settings: 'm', history: 'm', workspace: 'm',
-  find: 'm', eyedropper: 'm', print: 'm', source: 'm',
+  find: 'm', eyedropper: 'm', print: 'm', source: 'm', install: 'm',
 };
 
 const LEGACY_MENU_IDS: MenuTileId[] = ['share', 'settings', 'history', 'workspace'];

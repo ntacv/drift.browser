@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/inter';
 
 import { handleOAuthCallback } from './src/services/fxaService';
+import { createShortcutQueue } from './src/hooks/siteShortcut';
 import { BrowserScreen } from './src/screens/BrowserScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { NewTabScreen } from './src/screens/NewTabScreen';
@@ -111,15 +112,21 @@ export default function App() {
   });
 
   useEffect(() => {
-    const sub = Linking.addEventListener('url', ({ url }) => {
+    let live = true;
+    const queue = createShortcutQueue((url) => useBrowserStore.getState().createTab(undefined, url));
+    const unsubscribe = useBrowserStore.persist.onFinishHydration(() => queue.ready());
+    if (useBrowserStore.persist.hasHydrated()) queue.ready();
+    const receive = (url: string) => {
+      if (!live || queue.accept(url)) return;
       const parsed = Linking.parse(url);
       if (parsed.path === 'fxa-oauth') {
         const code = typeof parsed.queryParams?.code === 'string' ? parsed.queryParams.code : '';
         handleOAuthCallback(code).catch(() => undefined);
       }
-    });
-
-    return () => sub.remove();
+    };
+    const sub = Linking.addEventListener('url', ({ url }) => receive(url));
+    Linking.getInitialURL().then((url) => { if (url) receive(url); }).catch(() => undefined);
+    return () => { live = false; sub.remove(); unsubscribe(); };
   }, []);
 
   if (!fontsLoaded) {

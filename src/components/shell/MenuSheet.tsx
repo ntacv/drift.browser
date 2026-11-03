@@ -88,6 +88,11 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
       icon: 'code',
       disabled: !activeTab || activeTab.isLoading || !!activeTab.webError || !/^https?:\/\//i.test(activeTab.url),
     },
+    install: {
+      label: t('menuInstallSite'),
+      icon: 'install-mobile',
+      disabled: !activeTab || activeTab.isLoading || !!activeTab.webError || !/^https?:\/\//i.test(activeTab.url),
+    },
   };
 
   const toggleFullscreen = () => {
@@ -103,7 +108,7 @@ export const MenuSheet = ({ onOpenSettings, onOpenHistory }: MenuSheetProps) => 
   };
 
   const executeTileAction = async (id: MenuTileId) => {
-    if (id === 'find' || id === 'eyedropper' || id === 'print' || id === 'source') {
+    if (id === 'find' || id === 'eyedropper' || id === 'print' || id === 'source' || id === 'install') {
       setMenuOpen(false);
       requestPageTool(id);
       return;

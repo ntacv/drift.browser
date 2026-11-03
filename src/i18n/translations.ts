@@ -1,5 +1,14 @@
 export const translations = {
     en: {
+        menuInstallSite: 'Install site',
+        siteInstallHint: 'Open this site in another browser, then use its Install app or Add to Home screen action. Installation depends on the site and browser.',
+        siteInstallBrowser: 'Install with another browser',
+        siteShortcutHint: 'Alternatively, create a home-screen shortcut that opens this page in Drift. This is not a standalone PWA.',
+        siteAddShortcut: 'Add shortcut to Drift',
+        siteShortcutRequested: 'Shortcut requested. Confirm in your launcher; the launcher decides whether it is added.',
+        siteBrowserOpened: 'Browser chooser opened. Complete installation in the selected browser if supported.',
+        siteShortcutFailed: 'Could not request a shortcut. Android 8 or later and a launcher supporting pinned shortcuts are required.',
+        siteBrowserFailed: 'Could not open an external browser. Install or enable a compatible browser and try again.',
         menuPageSource: 'View page source',
         sourceNotice: 'Freshly fetched response HTML (GET), not the live DOM or a replay of the original response. It may differ from the loaded page.',
         sourceLoading: 'Fetching HTML…',
