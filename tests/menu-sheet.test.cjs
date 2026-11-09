@@ -105,7 +105,7 @@ function all(tree, predicate) {
 const tiles = (tree, picker = false) => all(tree, (node) => typeof node.type === 'function' && node.props.picker === picker);
 const tile = (tree, id, picker = false) => tiles(tree, picker).find((node) => node.props.id === id);
 
-test('long press enters editing on disabled navigation; all eight actions appear and Save finishes', () => {
+test('long press enters editing on disabled navigation; all thirteen actions appear and Save finishes', () => {
   const h = harness();
   let tree = h.render();
   tile(tree, 'back').props.onPress();
@@ -113,7 +113,7 @@ test('long press enters editing on disabled navigation; all eight actions appear
   assert.equal(tile(tree, 'signout'), undefined);
   tile(tree, 'back').props.onEdit();
   tree = h.render();
-  assert.equal(tiles(tree, true).length, 8);
+  assert.equal(tiles(tree, true).length, 13);
   assert.equal(tile(tree, 'signout'), undefined);
   assert.equal(tile(tree, 'signout', true), undefined);
   const instructions = all(tree, (node) => node.type === 'Text' && node.props.children.includes('menuDropHere'));
@@ -147,7 +147,7 @@ test('tile long press suppresses the action and edit pan forwards real coordinat
   pressable.props.onPress();
   assert.deepEqual(h.calls, []);
   tree = h.render();
-  assert.equal(tiles(tree, true).length, 8);
+  assert.equal(tiles(tree, true).length, 13);
   const source = tile(tree, 'history', true);
   const events = [];
   source.props.onDrag = (point) => events.push(['drag', point.x, point.y]);

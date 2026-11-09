@@ -31,7 +31,7 @@ const layout = load('src\\utils\\menuLayout.ts');
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
 test('normalization preserves omissions, validates IDs, and protects Settings', () => {
-  assert.equal(layout.normalizeMenuTileOrder(undefined).length, 8);
+  assert.equal(layout.normalizeMenuTileOrder(undefined).length, 13);
   assert.deepEqual(plain(layout.normalizeMenuTileOrder(['signout', 'settings'])), ['settings']);
   assert.deepEqual(plain(layout.normalizeMenuTileOrder([])), ['settings']);
   assert.deepEqual(plain(layout.normalizeMenuTileOrder(['refresh', 'bad', null, 'refresh'])), ['refresh', 'settings']);
@@ -77,15 +77,15 @@ test('height shrinks to content and respects half-screen and available space', (
 test('store migrates even without workspaces and persists intentional removals', () => {
   const store = load('src\\store\\browserStore.ts').useBrowserStore;
   const options = store.persist.getOptions();
-  assert.equal(options.version, 8);
+  assert.equal(options.version, 9);
   assert.deepEqual(plain(store.getState().menuTileOrder), plain(layout.MENU_TILE_IDS));
   const old = options.migrate({ menuTileOrder: ['history', 'settings'] }, 7);
-  assert.deepEqual(plain(old.menuTileOrder), ['back', 'forward', 'refresh', 'fullscreen', 'history', 'settings', 'share', 'workspace']);
+  assert.deepEqual(plain(old.menuTileOrder), ['back', 'forward', 'refresh', 'fullscreen', 'history', 'settings', 'share', 'workspace', 'find', 'eyedropper', 'print', 'source', 'install']);
   store.getState().setMenuTileOrder(['workspace', 'settings']);
   const saved = options.partialize(store.getState());
   const rehydrated = options.merge(plain(saved), store.getInitialState());
   assert.deepEqual(plain(rehydrated.menuTileOrder), ['workspace', 'settings']);
   assert.deepEqual(plain(options.merge({ menuTileOrder: ['signout', 'settings'] }, store.getState()).menuTileOrder), ['settings']);
-  assert.deepEqual(plain(options.migrate({ menuTileOrder: ['settings'] }, 8).menuTileOrder), ['settings']);
+  assert.deepEqual(plain(options.migrate({ menuTileOrder: ['settings'] }, 8).menuTileOrder), ['settings', 'find', 'eyedropper', 'print', 'source', 'install']);
   assert.deepEqual(plain(options.merge({ menuTileOrder: ['bad', 'refresh', 'refresh'] }, store.getState()).menuTileOrder), ['refresh', 'settings']);
 });
