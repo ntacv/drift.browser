@@ -16,6 +16,7 @@ import { TEXT_ON_COLORED_BACKGROUND } from '../../default-settings';
 import { buildImportedState, createBackupJson, parseBackupJson } from '../services/dataTransferService';
 import { AppAlertDialog } from '../components/common/AppAlertDialog';
 import { AnimatedSwitch } from '../components/common/AnimatedSwitch';
+import { AppInfoFooter } from '../components/common/AppInfoFooter';
 
 const SEARCH_ENGINES: SearchEngine[] = ['google', 'brave', 'duckduckgo', 'bing'];
 const THEMES: ThemePreference[] = ['system', 'dark', 'light'];
@@ -61,6 +62,23 @@ const CardTitle = ({
       <MaterialIcons name={icon} size={15} color={theme.text2} />
     </View>
     <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
+  </View>
+);
+
+const ChoiceRow = ({
+  label,
+  children,
+  theme,
+}: {
+  label: string;
+  children: React.ReactNode;
+  theme: ReturnType<typeof useTheme>['theme'];
+}) => (
+  <View style={styles.choiceRow}>
+    <Text style={[styles.rowText, styles.choiceLabel, { color: theme.text }]}>{label}</Text>
+    <View style={styles.choiceOptions} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      {children}
+    </View>
   </View>
 );
 
@@ -273,18 +291,19 @@ export const SettingsScreen = () => {
               <Text style={[styles.buttonLabel, { color: theme.text }]}>{syncUser ? t('signOut') : t('signInFirefox')}</Text>
             </Pressable>
 
-            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('language')}</Text>
-            <View style={styles.chipsRow}>
+            <ChoiceRow label={t('language')} theme={theme}>
               {APP_LANGUAGES.map((lang) => (
                 <Pressable
                   key={lang}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: language === lang }}
                   onPress={() => setLanguage(lang)}
                   style={[styles.chip, { backgroundColor: language === lang ? theme.accent : theme.surface2 }]}
                 >
                   <Text style={[styles.chipLabel, { color: language === lang ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{getLanguageNativeName(lang)}</Text>
                 </Pressable>
               ))}
-            </View>
+            </ChoiceRow>
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
@@ -293,9 +312,7 @@ export const SettingsScreen = () => {
               <Text style={[styles.rowText, { color: theme.text }]}>{t('blockTrackers')}</Text>
             </SwitchRow>
 
-            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('externalLinkSetting')}</Text>
-            <Text style={[styles.rowText, { color: theme.text2 }]}>{t('externalLinkHint')}</Text>
-            <View style={styles.chipsRow}>
+            <ChoiceRow label={t('externalLinkSetting')} theme={theme}>
               {(['ask', 'stay', 'external'] as const).map((action) => (
                 <Pressable
                   key={action}
@@ -309,13 +326,15 @@ export const SettingsScreen = () => {
                   </Text>
                 </Pressable>
               ))}
-            </View>
+            </ChoiceRow>
+            <Text style={[styles.rowText, { color: theme.text2 }]}>{t('externalLinkHint')}</Text>
 
-            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('defaultSearchEngine')}</Text>
-            <View style={styles.chipsRow}>
+            <ChoiceRow label={t('defaultSearchEngine')} theme={theme}>
               {SEARCH_ENGINES.map((engine) => (
                 <Pressable
                   key={engine}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: searchEngine === engine }}
                   onPress={() => setSearchEngine(engine)}
                   style={[
                     styles.chip,
@@ -327,7 +346,7 @@ export const SettingsScreen = () => {
                   <Text style={[styles.chipLabel, { color: searchEngine === engine ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(SEARCH_ENGINE_LABEL_KEY[engine])}</Text>
                 </Pressable>
               ))}
-            </View>
+            </ChoiceRow>
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
@@ -378,21 +397,36 @@ export const SettingsScreen = () => {
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <CardTitle icon="tab" title={t('tabs')} theme={theme} />
-            <SwitchRow value={isLeftHandMode} onValueChange={setLeftHandMode} accessibilityLabel={t('leftHandMode')}>
-              <Text style={[styles.rowText, { color: theme.text }]}>{t('leftHandMode')}</Text>
-            </SwitchRow>
-            <Text style={[styles.rowText, { color: theme.text2 }]}>{t('verticalTabListSize')}</Text>
-            <View style={styles.chipsRow}>
+            <ChoiceRow label={t('handMode')} theme={theme}>
+                {(['left', 'right'] as const).map((hand) => {
+                  const selected = isLeftHandMode === (hand === 'left');
+                  return (
+                    <Pressable
+                      key={hand}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: selected }}
+                      accessibilityLabel={t(hand)}
+                      onPress={() => setLeftHandMode(hand === 'left')}
+                      style={[styles.chip, { backgroundColor: selected ? theme.accent : theme.surface2 }]}
+                    >
+                      <Text style={[styles.chipLabel, { color: selected ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(hand)}</Text>
+                    </Pressable>
+                  );
+                })}
+            </ChoiceRow>
+            <ChoiceRow label={t('verticalTabListSize')} theme={theme}>
               {TAB_LIST_SIZES.map((size) => (
                 <Pressable
                   key={size}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: tabListSize === size }}
                   onPress={() => setTabListSize(size)}
                   style={[styles.chip, { backgroundColor: tabListSize === size ? theme.accent : theme.surface2 }]}
                 >
                   <Text style={[styles.chipLabel, { color: tabListSize === size ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(TAB_SIZE_LABEL_KEY[size])}</Text>
                 </Pressable>
               ))}
-            </View>
+            </ChoiceRow>
 
             <SwitchRow value={isCompactTabList} onValueChange={setCompactTabList} accessibilityLabel={t('compactTabList')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('compactTabList')}</Text>
@@ -407,18 +441,19 @@ export const SettingsScreen = () => {
 
           <View style={[styles.card, { backgroundColor: theme.surface }]}>
             <CardTitle icon="palette" title={t('appearance')} theme={theme} />
-            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('theme')}</Text>
-            <View style={styles.chipsRow}>
+            <ChoiceRow label={t('theme')} theme={theme}>
               {THEMES.map((pref) => (
                 <Pressable
                   key={pref}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: themePreference === pref }}
                   onPress={() => setThemePreference(pref)}
                   style={[styles.chip, { backgroundColor: themePreference === pref ? theme.accent : theme.surface2 }]}
                 >
                   <Text style={[styles.chipLabel, { color: themePreference === pref ? TEXT_ON_COLORED_BACKGROUND : theme.text }]}>{t(THEME_LABEL_KEY[pref])}</Text>
                 </Pressable>
               ))}
-            </View>
+            </ChoiceRow>
 
             <SwitchRow value={isTransparentMode} onValueChange={setTransparentMode} accessibilityLabel={t('transparentMode')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('transparentMode')}</Text>
@@ -471,11 +506,12 @@ export const SettingsScreen = () => {
               <Text style={[styles.helperText, { color: theme.text3 }]}>{t('invertUrlBarSwipeDirectionHint')}</Text>
             </SwitchRow>
 
-            <Text style={[styles.sectionSubTitle, { color: theme.text2 }]}>{t('barPosition')}</Text>
-            <View style={styles.chipsRow}>
+            <ChoiceRow label={t('barPosition')} theme={theme}>
               {BAR_POSITIONS.map((pos) => (
                 <Pressable
                   key={pos}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: barPosition === pos }}
                   onPress={() => setBarPosition(pos)}
                   style={[styles.chip, { backgroundColor: barPosition === pos ? theme.accent : theme.surface2 }]}
                 >
@@ -484,7 +520,7 @@ export const SettingsScreen = () => {
                   </Text>
                 </Pressable>
               ))}
-            </View>
+            </ChoiceRow>
 
             <SwitchRow value={isFullUrlVisible} onValueChange={setFullUrlVisible} accessibilityLabel={t('displayFullUrl')}>
               <Text style={[styles.rowText, { color: theme.text }]}>{t('displayFullUrl')}</Text>
@@ -521,6 +557,8 @@ export const SettingsScreen = () => {
               <Text style={[styles.buttonLabel, { color: theme.text }]}>{t('importData')}</Text>
             </Pressable>
           </View>
+
+          <AppInfoFooter />
 
           <Pressable
             onPress={() => setDebugMode(!debugMode)}
@@ -717,6 +755,27 @@ const styles = StyleSheet.create({
   debugHotspot: {
     height: 24,
     opacity: 0,
+  },
+  choiceRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 44,
+    marginVertical: 8,
+  },
+  choiceLabel: {
+    marginBottom: 0,
+    maxWidth: '100%',
+  },
+  choiceOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    columnGap: 8,
+    rowGap: 6,
+    maxWidth: '100%',
+    marginLeft: 'auto',
   },
   chipsRow: {
     flexDirection: 'row',
